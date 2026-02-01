@@ -80,10 +80,10 @@ serve(async (req) => {
 
     console.log('Found user_mission:', { id: userMission.id, mission_id: userMission.mission_id, proof_photo_url: userMission.proof_photo_url })
 
-    // STEP 2: Fetch the mission record to get the description
+    // STEP 2: Fetch the mission record to get the description and XP reward
     const { data: mission, error: missionError } = await supabase
       .from('missions')
-      .select('id, title, description')
+      .select('id, title, description, xp_reward')
       .eq('id', userMission.mission_id)
       .single()
 
@@ -224,19 +224,99 @@ Be strict but fair. If the image clearly shows evidence of the mission being com
       )
     }
 
-    // Return the verification result (Subtask #2 complete - we'll update DB in Subtask #3)
+    // STEP 7: Update the database with the AI verdict (Subtask #3)
+    console.log('Updating user_mission status based on verdict:', aiVerdict.verdict)
+
+    try {
+      if (aiVerdict.verdict === true) {
+        // VERIFIED: Update status and set verified timestamp
+        const { error: updateError } = await supabase
+          .from('user_missions')
+          .update({
+            status: 'verified',
+            verified_at: new Date().toISOString(),
+            verified_by: 'gemini-ai',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', record.id)
+
+        if (updateError) {
+          console.error('Failed to update user_mission to verified:', updateError)
+          throw new Error(`Database update failed: ${updateError.message}`)
+        }
+
+        console.log('Successfully updated user_mission to verified')
+
+        // STEP 7.5: Award XP and recompute rank (Subtask #4)
+        console.log('Awarding XP for mission:', mission.xp_reward)
+        
+        const { error: xpError } = await supabase.rpc('award_mission_xp_and_recompute_rank', {
+          p_user_mission_id: record.id,
+          p_xp_reward: mission.xp_reward,
+        })
+
+        if (xpError) {
+          console.error('Failed to award XP:', xpError)
+          // Don't fail the whole operation, just log it
+          console.warn('XP award failed but mission is still verified')
+        } else {
+          console.log('Successfully awarded XP and recomputed rank')
+        }
+      } else {
+        // REJECTED: Update status only
+        const { error: updateError } = await supabase
+          .from('user_missions')
+          .update({
+            status: 'rejected',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', record.id)
+
+        if (updateError) {
+          console.error('Failed to update user_mission to rejected:', updateError)
+          throw new Error(`Database update failed: ${updateError.message}`)
+        }
+
+        console.log('Successfully updated user_mission to rejected')
+      }
+    } catch (dbError) {
+      console.error('Database update error:', dbError)
+      // Return the AI result but note the database update failed
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'AI verification succeeded but database update failed',
+          aiVerdict: aiVerdict.verdict,
+          dbError: dbError.message,
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    // STEP 8: Return the final result
+    const responseData = {
+      success: true,
+      userMissionId: record.id,
+      missionTitle: mission.title,
+      verdict: aiVerdict.verdict,
+      confidence: aiVerdict.confidence,
+      reasoning: aiVerdict.reasoning,
+      status: aiVerdict.verdict ? 'verified' : 'rejected',
+      message: aiVerdict.verdict
+        ? `Mission proof VERIFIED! Well done, soldier. +${mission.xp_reward} XP awarded!`
+        : 'Mission proof REJECTED. Try again. Status updated to rejected.',
+    }
+
+    // Add XP info if verified
+    if (aiVerdict.verdict) {
+      responseData.xpAwarded = mission.xp_reward
+    }
+
     return new Response(
-      JSON.stringify({
-        success: true,
-        userMissionId: record.id,
-        missionTitle: mission.title,
-        verdict: aiVerdict.verdict,
-        confidence: aiVerdict.confidence,
-        reasoning: aiVerdict.reasoning,
-        message: aiVerdict.verdict
-          ? 'Mission proof VERIFIED! Well done, soldier.'
-          : 'Mission proof REJECTED. Try again.',
-      }),
+      JSON.stringify(responseData),
       {
         status: 200,
         headers: { 'Content-Type': 'application/json' },

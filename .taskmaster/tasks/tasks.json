@@ -159,7 +159,7 @@
               2
             ],
             "details": "Parse the Gemini response. If the result is positive, update the 'user_missions' table entry status to 'verified'. If negative, set it to 'rejected'. Include robust try-catch blocks to handle API timeouts or malformed responses from the AI.",
-            "status": "pending",
+            "status": "in_progress",
             "testStrategy": "Unit test the parsing logic with mock AI responses and verify the 'user_missions' table reflects the correct status in the Supabase dashboard."
           },
           {
@@ -170,7 +170,7 @@
               3
             ],
             "details": "On a successful 'verified' verdict, use the Supabase client to call the 'rpc' method for 'award_mission_xp_and_recompute_rank'. Pass the relevant mission ID and user ID. Ensure this happens after the status update but within the same execution flow.",
-            "status": "pending",
+            "status": "in_progress",
             "testStrategy": "Perform an end-to-end test where a valid image results in a 'verified' status and the user's XP/Rank in the 'profiles' table is automatically updated via the SQL callback."
           }
         ]
