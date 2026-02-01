@@ -1,0 +1,389 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Project Initialization and Supabase Schema Deployment",
+        "description": "Initialize the Expo project and deploy the foundational Supabase database schema including tables, RLS policies, and triggers.",
+        "details": "Initialize Expo with Nativewind and Reanimated. Configure Supabase client. Execute the provided `docs/schema.sql` to create tables: `profiles`, `contract_versions`, `ranks`, `parties`, `warrior_bands`, `directives`, `directive_bands`, `salvos`, `missions`, `user_missions`, `h3_tiles`, and `check_ins`. Seed the `contract_versions` and `ranks` (Warrior, Centurion, etc.) tables. Set up RLS for all tables and install the `pg_net` or standard triggers for rank recomputation.",
+        "testStrategy": "Verify database connection from the app. Use Supabase dashboard to confirm all tables, RLS policies, and functions are correctly created. Run a test SQL insert to ensure triggers for rank recomputation fire.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "complexity": 5,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break down into Expo project setup, Supabase client configuration, SQL schema execution (tables/RLS), and initial seed data insertion.",
+        "updatedAt": "2026-01-31T03:53:16.711Z"
+      },
+      {
+        "id": "2",
+        "title": "The Gates: Auth and Mandatory Oath Screen",
+        "description": "Implement the authentication flow and the blocking Oath screen overlay for non-compliant users.",
+        "details": "Implement Supabase Auth (Email/Phone). Create a 'The Gates' overlay component that checks `oath_signed_at` and `contract_version_id` in the user's profile. The Oath screen must feature a scroll-to-bottom requirement before the 'Join' button is enabled. On submission, update the profile with the current `contract_version_id`, set the role to 'warrior' (level 0), and link to the 'Hard Party'.",
+        "testStrategy": "Log in with a new user; confirm the app is inaccessible until the Oath is scrolled and signed. Check the profile table to ensure `oath_signed_at` and `contract_version_id` are populated correctly.",
+        "priority": "high",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 4,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Focus on Supabase Auth integration, the 'The Gates' UI logic with scroll-to-bottom validation, and the profile update mutation upon signing."
+      },
+      {
+        "id": "3",
+        "title": "Command Feed: War Log UI Implementation",
+        "description": "Create the directive feed screen using the War Log/Citizen aesthetic.",
+        "details": "Fetch directives from Supabase where `party_id` matches the user and `directive_bands` is empty (party-wide) or contains the user's `warrior_band_id`. Use FlashList for performance. UI Style: Citizen-style dark theme, one card per directive with a timestamp, bold title, and green accenting for completed directives.",
+        "testStrategy": "Seed mock directives in the DB. Verify that directives show up only if they match the user's band or are party-wide. Ensure the 'completed' status (green) appears if the target goal is met.",
+        "priority": "medium",
+        "dependencies": [
+          "2"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 4,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Divide into data fetching logic (Supabase filters for bands), FlashList implementation for the feed, and the themed UI card components."
+      },
+      {
+        "id": "4",
+        "title": "Pillage Meter and Real-time Raid Action",
+        "description": "Implement the Raid button with rate limiting and real-time progress updates via the Pillage Meter.",
+        "details": "Add a Raid button on the Directive detail screen. Implement client-side debouncing. On tap, insert a row into the `salvos` table. Use Supabase Realtime to subscribe to changes in the `salvos` table for the specific `directive_id`. The Pillage Meter should be a Call of Duty-style circular gauge calculating `(current_salvos / target_goal) * 100`. Enforce the 10 salvos per 60 seconds limit via RLS.",
+        "testStrategy": "Spam the Raid button to test debounce and RLS rate limits. Open two devices/windows to ensure the Pillage Meter updates in real-time on both when a salvo is registered.",
+        "priority": "high",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Debounced Raid Button UI",
+            "description": "Create the Raid button on the Directive detail screen with integrated client-side debounce logic.",
+            "dependencies": [],
+            "details": "Add the button component to the Directive detail view. Use a debounce function (e.g., from lodash or a custom hook) to limit the frequency of function calls to 500ms to prevent UI spam before network requests.",
+            "status": "pending",
+            "testStrategy": "Rapidly tap the Raid button and verify that the trigger function only fires once per the debounce interval.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Configure RLS Rate Limiting for Salvos",
+            "description": "Implement Row Level Security (RLS) on the salvos table to enforce rate limits on the server side.",
+            "dependencies": [
+              1
+            ],
+            "details": "Write a Postgres SQL policy for the 'salvos' table that checks if the count of entries for the current 'user_id' and 'directive_id' within the last 60 seconds is less than 10 before allowing an insert.",
+            "status": "pending",
+            "testStrategy": "Attempt to bypass client debouncing by sending direct API requests to insert more than 10 salvos in a minute; verify that the database rejects the 11th entry.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Setup Supabase Realtime Subscription",
+            "description": "Establish a real-time connection to track changes in the salvos table for a specific directive.",
+            "dependencies": [],
+            "details": "Implement the `supabase.channel()` listener in the directive detail screen. Filter the subscription to only listen for 'INSERT' events where the 'directive_id' matches the current screen context.",
+            "status": "pending",
+            "testStrategy": "Use a separate database client to insert a row into the salvos table and verify the app receives the event and updates its local count state instantly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Develop Circular Pillage Meter Component",
+            "description": "Create a Call of Duty-style circular gauge to visualize raid progress.",
+            "dependencies": [
+              3
+            ],
+            "details": "Build a custom component using React Native SVG or Skia. It must accept 'currentCount' and 'targetGoal' props, calculating percentage progress and animating the stroke-dasharray smoothly when the count increases.",
+            "status": "pending",
+            "testStrategy": "Manually pass varying values for the current count to the component and observe if the circular animation responds correctly and smoothly.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Integrate Raid Action with Progress Updates",
+            "description": "Connect the Raid button action to the database and link the Realtime stream to the Pillage Meter.",
+            "dependencies": [
+              1,
+              2,
+              3,
+              4
+            ],
+            "details": "Ensure the Raid button click triggers the `salvos` insertion. Map the incoming Realtime event data to the state driving the Pillage Meter component, completing the feedback loop for the user.",
+            "status": "pending",
+            "testStrategy": "Perform a raid action and verify the Pillage Meter increments in real-time. Check that the meter persists the correct value on screen refresh by fetching the initial count.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Identify subtasks for the Raid button with debouncing, the Supabase Realtime subscription setup, the circular gauge animation logic, and the RLS rate-limit enforcement."
+      },
+      {
+        "id": "5",
+        "title": "Mission Proof Submission and Storage",
+        "description": "Enable users to start missions and upload evidence for AI verification.",
+        "details": "Create a mission detail screen. When a user starts a mission, create a record in `user_missions` with status 'pending'. Implement image picking and upload to Supabase Storage bucket 'mission-proofs'. Upon upload, update the `user_mission` record status to 'submitted' and set `proof_photo_url`.",
+        "testStrategy": "Start a mission, upload a photo, and verify the file exists in Supabase Storage and the `user_missions` record reflects the correct URL and 'submitted' status.",
+        "priority": "medium",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Include image picker integration, Supabase Storage bucket configuration/upload logic, and the state management for mission status updates."
+      },
+      {
+        "id": "6",
+        "title": "AI Verification Edge Function with Gemini 1.5 Flash",
+        "description": "Develop a Supabase Edge Function to verify mission proofs using Google Gemini AI.",
+        "details": "Create a Deno-based Edge Function triggered by `user_missions` updates. Use the Gemini 1.5 Flash API to analyze the image against the mission description. The AI should return a boolean. If TRUE, update `user_mission` status to 'verified' and call the SQL function `award_mission_xp_and_recompute_rank`. If FALSE, set status to 'rejected'.",
+        "testStrategy": "Manually trigger the edge function with a test payload. Verify Gemini returns a verdict and the database is updated with the result and XP is awarded to the user profile.",
+        "priority": "high",
+        "dependencies": [
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Deno Edge Function and Environment Variables",
+            "description": "Set up the Supabase Edge Function infrastructure and configure secure secrets for API access.",
+            "dependencies": [],
+            "details": "Create a new edge function directory. Use 'supabase secrets set' to store GEMINI_API_KEY and SUPABASE_SERVICE_ROLE_KEY. Configure the Deno runtime environment with necessary imports from the standard library and Supabase SDK.",
+            "status": "pending",
+            "testStrategy": "Deploy an empty function and verify it can log the presence of environment variables without exposing them.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Gemini 1.5 Flash API Integration with Image Processing",
+            "description": "Develop the logic to retrieve mission proof images and send them to Google Gemini for analysis.",
+            "dependencies": [
+              1
+            ],
+            "details": "Download the image from the 'mission-proofs' bucket using the Supabase client. Convert the image buffer to a Base64 string. Construct a prompt for Gemini 1.5 Flash asking to verify if the image fulfills the mission description, requesting a structured JSON response with a boolean verdict.",
+            "status": "pending",
+            "testStrategy": "Invoke the function with a sample image and mission description. Log the raw AI response to ensure the prompt engineering results in a clear TRUE/FALSE verdict.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Develop Status Update Logic and Error Handling",
+            "description": "Process the AI verdict to update the user mission record status to either verified or rejected.",
+            "dependencies": [
+              2
+            ],
+            "details": "Parse the Gemini response. If the result is positive, update the 'user_missions' table entry status to 'verified'. If negative, set it to 'rejected'. Include robust try-catch blocks to handle API timeouts or malformed responses from the AI.",
+            "status": "pending",
+            "testStrategy": "Unit test the parsing logic with mock AI responses and verify the 'user_missions' table reflects the correct status in the Supabase dashboard.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Integrate SQL RPC for XP Award and Rank Recomputation",
+            "description": "Trigger the database function to reward the user and update their rank upon successful verification.",
+            "dependencies": [
+              3
+            ],
+            "details": "On a successful 'verified' verdict, use the Supabase client to call the 'rpc' method for 'award_mission_xp_and_recompute_rank'. Pass the relevant mission ID and user ID. Ensure this happens after the status update but within the same execution flow.",
+            "status": "pending",
+            "testStrategy": "Perform an end-to-end test where a valid image results in a 'verified' status and the user's XP/Rank in the 'profiles' table is automatically updated via the SQL callback.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Focus on Deno Edge Function setup, Gemini API integration, image processing/base64 handling, and the SQL callback for XP/Rank updates."
+      },
+      {
+        "id": "7",
+        "title": "Ranks, XP, and Call of Duty-style Profile UI",
+        "description": "Implement the user profile screen showing ranks, level progress, and the Victory Screen.",
+        "details": "Create a profile screen with high-contrast tactical UI. Display Rank (Recruit, Warrior, Centurion) and XP. Implement a 'Victory Screen' animation (using Reanimated) that triggers when a user_mission is verified, showing XP gains and potential Rank Up. Include a 'Compare Stats' feature to look up other users' level/XP/rank.",
+        "testStrategy": "Check that XP increases after a successful mission verification. Verify the Victory Screen displays the correct data. Test the lookup feature by searching for another user's ID.",
+        "priority": "medium",
+        "dependencies": [
+          "6"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 6,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break down into the profile data layer, the Reanimated 'Victory Screen' sequence, XP progress bar logic, and the user lookup feature."
+      },
+      {
+        "id": "8",
+        "title": "Fog of War: Mapbox and H3 Hex Grid",
+        "description": "Implement the 3D tactical map using Mapbox and H3 Resolution 9 tiles.",
+        "details": "Integrate `@rnmapbox/maps` with a 3D tilted perspective. Use `h3-js` to calculate Resolution 9 indices. Create two FillLayers: a global 'fog' layer (dark) and a 'revealed' layer (Hard Party Green). Tiles are revealed by checking in; tiles should be fetched from the `h3_tiles` table. No pre-seeding; tiles are created on-demand via the check-in database trigger.",
+        "testStrategy": "Perform a check-in at a specific location. Verify that a new H3 tile is created in the database and that the Mapbox 'revealed' layer updates to show a green hexagon at that location.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Mapbox 3D Viewport and Camera",
+            "description": "Configure the MapboxGL component with a 3D tilted perspective suitable for tactical viewing.",
+            "dependencies": [],
+            "details": "Install and initialize @rnmapbox/maps. Set the camera configuration with a pitch of 45-60 degrees and a zoom level optimized for city-scale tactical movement. Use a dark-themed base style.",
+            "status": "pending",
+            "testStrategy": "Verify that the map renders on the mobile device with a visible 3D tilt and tactical dark styling.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "H3 Grid Geometry Utility Implementation",
+            "description": "Create a JavaScript utility using h3-js to manage Resolution 9 coordinate transformations.",
+            "dependencies": [
+              1
+            ],
+            "details": "Develop a helper function that takes a latitude/longitude pair, converts it to an H3 Resolution 9 index, and generates the GeoJSON polygon geometry required for Mapbox rendering.",
+            "status": "pending",
+            "testStrategy": "Unit test the utility with a specific coordinate (e.g., 37.7749, -122.4194) and verify it returns a valid H3 Res 9 hexagon GeoJSON feature.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Fog and Revealed Layer Management",
+            "description": "Implement the Mapbox FillLayers for the global fog-of-war and the green revealed zones.",
+            "dependencies": [
+              2
+            ],
+            "details": "Define a global 'fog' FillLayer with a high-opacity dark color. Implement a second 'revealed' FillLayer using the 'Hard Party Green' color. Use a GeoJSON source to dynamically update the revealed hexagons.",
+            "status": "pending",
+            "testStrategy": "Inject mock H3 indices into the map source and confirm that the green hexagons appear on top of the dark fog layer.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Supabase Real-time H3 Tile Integration",
+            "description": "Establish a real-time data sync between the h3_tiles database table and the Mapbox revealed layer.",
+            "dependencies": [
+              3
+            ],
+            "details": "Create a Supabase real-time subscription for the 'h3_tiles' table. When new rows are detected, update the local GeoJSON state to re-render the revealed hexagons on the map.",
+            "status": "pending",
+            "testStrategy": "Manually insert an H3 index into the h3_tiles table via the database console and verify that the map updates in real-time without a full refresh.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 5,
+            "title": "Location-based Check-in and Reveal Logic",
+            "description": "Develop the trigger logic to reveal tiles based on the user's current GPS location.",
+            "dependencies": [
+              4
+            ],
+            "details": "Retrieve user location coordinates, calculate the current H3 Res 9 index, and invoke the Supabase check-in function. Ensure the UI provides feedback when a new tile is discovered and added to the 'revealed' layer.",
+            "status": "pending",
+            "testStrategy": "Perform a physical or simulated location change to an unrevealed area and verify the 'Hard Party Green' hexagon appears at the user's location.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 9,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Subtasks for @rnmapbox/maps integration, H3 grid calculation logic (JS-side), dynamic FillLayer management, and location-based check-in triggers."
+      },
+      {
+        "id": "9",
+        "title": "Offline Synchronization Queue",
+        "description": "Build an offline queue using expo-sqlite for check-ins and salvos.",
+        "details": "Setup `expo-sqlite` with tables `pending_check_ins` and `pending_salvos`. If the user is offline during a Raid or Check-in, store the action locally. Implement a sync service that monitors NetInfo; on reconnection or app foreground, drain the local queue to Supabase using a batch insert, then clear the local store.",
+        "testStrategy": "Enable Airplane mode, perform a Raid and a Check-in. Verify data is saved in SQLite. Disable Airplane mode and verify the data syncs to Supabase and disappears from the local queue.",
+        "priority": "medium",
+        "dependencies": [
+          "4",
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize SQLite Schema for Offline Queues",
+            "description": "Configure the local expo-sqlite database and define the tables required for storing pending actions.",
+            "dependencies": [],
+            "details": "Create the 'pending_check_ins' and 'pending_salvos' tables in SQLite. Include columns for the payload (JSON), an auto-incrementing local ID, a timestamp, and any necessary foreign keys to ensure compatibility with Supabase schema.",
+            "status": "pending",
+            "testStrategy": "Initialize the app and use an SQLite inspector or logging to verify that the database and tables are correctly created upon startup.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 2,
+            "title": "Implement Offline Action Interceptors",
+            "description": "Develop the logic to intercept API calls and divert them to the local SQLite storage when the network is unavailable.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create a wrapper for Check-in and Salvo submission functions. If the device is offline or the initial fetch fails, serialize the request body into the respective SQLite table instead of throwing an error.",
+            "status": "pending",
+            "testStrategy": "Disable network connectivity in the emulator/device, attempt to perform a check-in, and verify that a new row appears in the 'pending_check_ins' SQLite table.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 3,
+            "title": "Set Up NetInfo Connectivity Monitoring",
+            "description": "Integrate NetInfo to detect changes in network status and trigger the synchronization service.",
+            "dependencies": [
+              2
+            ],
+            "details": "Use @react-native-community/netinfo to listen for connectivity changes. Create a listener that triggers a synchronization check whenever the status changes from offline to online, or when the app returns to the foreground.",
+            "status": "pending",
+            "testStrategy": "Log network status changes to the console. Toggle Airplane Mode and verify that the app correctly detects and logs the transition back to 'online' status.",
+            "parentId": "undefined"
+          },
+          {
+            "id": 4,
+            "title": "Batch Synchronization and Local Cleanup Logic",
+            "description": "Build the service that uploads stored local data to Supabase and reconciles the local state.",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement a 'drainQueue' function that fetches all records from the SQLite tables, performs a batch insert into Supabase, and then deletes those records from SQLite only upon a successful HTTP 201 response. Handle potential duplication via Supabase upsert if necessary.",
+            "status": "pending",
+            "testStrategy": "Queue several actions while offline. Once online, verify that all actions are uploaded to Supabase in a single batch and that the local SQLite tables are empty afterward.",
+            "parentId": "undefined"
+          }
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Identify steps for expo-sqlite schema setup, local action interceptors, NetInfo monitoring, and the batch synchronization/reconciliation logic."
+      },
+      {
+        "id": "10",
+        "title": "Hierarchy Management and General/Captain Controls",
+        "description": "Implement role-based controls for General and Captains to manage directives and bands.",
+        "details": "Create a 'Command Center' UI accessible only to 'general' or 'captain' roles. General can create new directives and scope them to specific `warrior_bands`. Captains can create `warrior_bands` and assign profiles to them. Enforce these via Supabase RLS (e.g., `profiles.role = 'general'` for directive insertion).",
+        "testStrategy": "Log in as a Warrior and verify the Directive Creation UI is hidden. Log in as a General and successfully create a directive that only appears for a specific Captain's band.",
+        "priority": "low",
+        "dependencies": [
+          "3",
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Focus on role-based UI access control, the Command Center management screens, and the administrative RLS policy validation."
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2026-01-31T03:53:16.713Z",
+      "taskCount": 10,
+      "completedCount": 1,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}

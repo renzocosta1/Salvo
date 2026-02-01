@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2026-01-31T02:22:59.725Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Task Master",
+		"usedResearch": false
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Project Initialization and Supabase Schema Deployment",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down into Expo project setup, Supabase client configuration, SQL schema execution (tables/RLS), and initial seed data insertion.",
+			"reasoning": "Standard initialization task, but requires careful orchestration of multiple database tables, Row Level Security (RLS) policies, and specific triggers for rank recomputation right from the start."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "The Gates: Auth and Mandatory Oath Screen",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Focus on Supabase Auth integration, the 'The Gates' UI logic with scroll-to-bottom validation, and the profile update mutation upon signing.",
+			"reasoning": "Medium complexity. Involves blocking navigation logic based on user state and implementing a specific 'scroll-to-bottom' UI pattern which is a common but specific UX requirement."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Command Feed: War Log UI Implementation",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Divide into data fetching logic (Supabase filters for bands), FlashList implementation for the feed, and the themed UI card components.",
+			"reasoning": "Primarily a UI/UX task. The complexity lies in the specific 'Citizen' aesthetic and ensuring the FlashList handles the 'War Log' styling efficiently while filtering correctly by user bands."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Pillage Meter and Real-time Raid Action",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Identify subtasks for the Raid button with debouncing, the Supabase Realtime subscription setup, the circular gauge animation logic, and the RLS rate-limit enforcement.",
+			"reasoning": "High complexity due to real-time synchronization requirements, circular progress animations, and implementing server-side rate limiting via RLS/Postgres which can be tricky to test."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Mission Proof Submission and Storage",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Include image picker integration, Supabase Storage bucket configuration/upload logic, and the state management for mission status updates.",
+			"reasoning": "Moderate complexity. Involves handling binary data (images), permissions for camera/gallery, and managing the lifecycle of a 'mission' record from pending to submitted."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "AI Verification Edge Function with Gemini 1.5 Flash",
+			"complexityScore": 8,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Focus on Deno Edge Function setup, Gemini API integration, image processing/base64 handling, and the SQL callback for XP/Rank updates.",
+			"reasoning": "Highest technical challenge. Requires cross-platform integration (Deno to Gemini), secure API key management, and robust handling of AI-driven database updates via triggers or direct calls."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Ranks, XP, and Call of Duty-style Profile UI",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down into the profile data layer, the Reanimated 'Victory Screen' sequence, XP progress bar logic, and the user lookup feature.",
+			"reasoning": "Complexity comes from the 'tactical' animation requirements and the logic for calculating level thresholds. The Victory Screen needs to be polished and high-performing."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Fog of War: Mapbox and H3 Hex Grid",
+			"complexityScore": 9,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Subtasks for @rnmapbox/maps integration, H3 grid calculation logic (JS-side), dynamic FillLayer management, and location-based check-in triggers.",
+			"reasoning": "Very high complexity. Merging Mapbox with H3 hex grids in a mobile environment requires significant performance optimization and math-heavy geographic calculations to render 'fog' correctly."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Offline Synchronization Queue",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Identify steps for expo-sqlite schema setup, local action interceptors, NetInfo monitoring, and the batch synchronization/reconciliation logic.",
+			"reasoning": "Complex state management problem. Handling conflicts and ensuring data integrity when syncing offline actions back to a real-time database requires a robust queue architecture."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Hierarchy Management and General/Captain Controls",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Focus on role-based UI access control, the Command Center management screens, and the administrative RLS policy validation.",
+			"reasoning": "Moderate. It is primarily about building CRUD interfaces for administrative roles, but the security layer must be foolproof to ensure regular users cannot access these controls."
+		}
+	]
+}
