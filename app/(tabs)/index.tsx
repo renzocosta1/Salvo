@@ -2,12 +2,14 @@ import { DirectiveCard } from '@/components/feed/DirectiveCard';
 import { EmptyFeed } from '@/components/feed/EmptyFeed';
 import { useDirectives } from '@/hooks/useDirectives';
 import { useAuth } from '@/lib/auth';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 
 export default function CommandFeedScreen() {
   const { profile, signOut } = useAuth();
   const { directives, loading, error, refreshing, refresh } = useDirectives();
+  const router = useRouter();
 
 
   // Guard: Don't render if no profile (prevents flash when redirecting to login)
@@ -94,6 +96,22 @@ export default function CommandFeedScreen() {
             </Text>
           </View>
         </View>
+      </View>
+
+      {/* TEMPORARY: Test Mission Button */}
+      <View className="px-4 py-4">
+        <Pressable
+          onPress={() => router.push('/mission/4b4df90a-c0d5-4d7e-aaec-2e92204eff8f')}
+          className="py-4 rounded-lg items-center justify-center"
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? '#cc5428' : '#ff6b35',
+            opacity: pressed ? 0.9 : 1,
+          })}
+        >
+          <Text className="text-lg font-bold tracking-wider" style={{ color: '#ffffff' }}>
+            🎯 TEST MISSION (TEMP)
+          </Text>
+        </Pressable>
       </View>
 
       {/* Directive List */}

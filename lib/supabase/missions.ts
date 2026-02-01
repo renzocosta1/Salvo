@@ -1,3 +1,4 @@
+import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../supabase';
 
 export interface Mission {
@@ -120,19 +121,33 @@ export async function uploadMissionProof(
   fileUri: string
 ): Promise<{ url: string | null; error: Error | null }> {
   try {
-    // Convert file URI to blob
-    const response = await fetch(fileUri);
-    const blob = await response.blob();
+    // Read file as base64
+    const base64 = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: 'base64',
+    });
     
-    // Generate unique filename
-    const fileExt = fileUri.split('.').pop() || 'jpg';
-    const fileName = `${userId}/${userMissionId}_${Date.now()}.${fileExt}`;
+    // Convert base64 to ArrayBuffer
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    
+    // Determine file extension and content type
+    const filename = fileUri.split('/').pop() || 'photo.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const fileExt = match ? match[1] : 'jpg';
+    const contentType = match ? `image/${fileExt}` : 'image/jpeg';
+    
+    // Generate unique filename for storage
+    const storageFileName = `${userId}/${userMissionId}_${Date.now()}.${fileExt}`;
 
     // Upload to Supabase Storage
     const { data, error: uploadError } = await supabase.storage
       .from('mission-proofs')
-      .upload(fileName, blob, {
-        contentType: `image/${fileExt}`,
+      .upload(storageFileName, byteArray, {
+        contentType,
         upsert: false,
       });
 
@@ -143,11 +158,11 @@ export async function uploadMissionProof(
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('mission-proofs')
-      .getPublicUrl(fileName);
+      .getPublicUrl(storageFileName);
 
     return { url: publicUrl, error: null };
   } catch (error) {
-    console.error('Unexpected error in uploadMissionProof:', error);
+    console.error('Error uploading mission proof:', error);
     return { url: null, error: error as Error };
   }
 }

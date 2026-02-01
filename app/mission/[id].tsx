@@ -1,22 +1,22 @@
 import { useAuth } from '@/lib/auth';
 import {
-  fetchMissionById,
-  startMission,
-  uploadMissionProof,
-  submitMissionProof,
-  type MissionWithUserStatus,
+    fetchMissionById,
+    startMission,
+    submitMissionProof,
+    uploadMissionProof,
+    type MissionWithUserStatus,
 } from '@/lib/supabase/missions';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Pressable,
+    ScrollView,
+    Text,
+    View,
 } from 'react-native';
 
 export default function MissionDetailScreen() {

@@ -233,6 +233,47 @@ Created test mission:
 - [x] proof_photo_url saved correctly
 - [x] Status badges display correctly
 - [x] Error handling works
+- [x] **Images upload correctly and are viewable in Supabase Storage**
+- [x] **Status updates to "PENDING VERIFICATION" after submission**
+
+## 🐛 Issues Fixed During Development
+
+### Issue 1: Mission Not Found (PGRST116 Error)
+**Problem**: Mission query returned 0 rows even with correct mission ID
+**Root Cause**: 
+1. Missing RLS policies on `missions` table
+2. Mission record was never actually inserted (subquery in INSERT failed silently)
+
+**Solution**:
+- Created `Scripts/fix_missions_rls.sql` with proper RLS policies
+- Created `Scripts/force_insert_test_mission.sql` with explicit UUIDs instead of subqueries
+- Applied both scripts to Supabase
+
+### Issue 2: Image Upload Corruption
+**Problem**: Uploaded images were corrupted and unviewable
+**Root Cause**: Using `fetch(fileUri)` on React Native doesn't properly convert local file URIs to blobs
+
+**Solution**:
+- Installed `expo-file-system` package
+- Used `FileSystem.readAsStringAsync()` with base64 encoding
+- Converted base64 to `Uint8Array` for binary upload
+- Used legacy API import: `expo-file-system/legacy`
+
+**Final working approach**:
+```typescript
+// Read as base64
+const base64 = await FileSystem.readAsStringAsync(fileUri, { encoding: 'base64' });
+
+// Convert to binary
+const byteCharacters = atob(base64);
+const byteArray = new Uint8Array(byteCharacters.length);
+for (let i = 0; i < byteCharacters.length; i++) {
+  byteArray[i] = byteCharacters.charCodeAt(i);
+}
+
+// Upload binary data
+await supabase.storage.from('mission-proofs').upload(filename, byteArray, {...});
+```
 
 ---
 
