@@ -142,13 +142,13 @@
           },
           {
             "id": 2,
-            "title": "Implement Gemini 1.5 Flash API Integration with Image Processing",
+            "title": "Implement Gemini 2.5 Flash API Integration with Image Processing",
             "description": "Develop the logic to retrieve mission proof images and send them to Google Gemini for analysis.",
             "dependencies": [
               1
             ],
-            "details": "Download the image from the 'mission-proofs' bucket using the Supabase client. Convert the image buffer to a Base64 string. Construct a prompt for Gemini 1.5 Flash asking to verify if the image fulfills the mission description, requesting a structured JSON response with a boolean verdict.",
-            "status": "in_progress",
+            "details": "Download the image from the 'mission-proofs' bucket using the Supabase client. Convert the image buffer to a Base64 string. Construct a prompt for Gemini 2.5 Flash asking to verify if the image fulfills the mission description, requesting a structured JSON response with a boolean verdict.",
+            "status": "done",
             "testStrategy": "Invoke the function with a sample image and mission description. Log the raw AI response to ensure the prompt engineering results in a clear TRUE/FALSE verdict."
           },
           {

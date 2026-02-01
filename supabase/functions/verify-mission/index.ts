@@ -55,10 +55,10 @@ serve(async (req) => {
 
     console.log('Processing verification for user_mission:', record.id)
 
-    // STEP 1: Fetch the user_mission record to get proof_url and mission_id
+    // STEP 1: Fetch the user_mission record to get proof_photo_url and mission_id
     const { data: userMission, error: userMissionError } = await supabase
       .from('user_missions')
-      .select('id, mission_id, proof_url, status')
+      .select('id, mission_id, proof_photo_url, status')
       .eq('id', record.id)
       .single()
 
@@ -70,15 +70,15 @@ serve(async (req) => {
       )
     }
 
-    if (!userMission.proof_url) {
-      console.error('No proof_url for user_mission:', record.id)
+    if (!userMission.proof_photo_url) {
+      console.error('No proof_photo_url for user_mission:', record.id)
       return new Response(
         JSON.stringify({ error: 'No proof image uploaded' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('Found user_mission:', { id: userMission.id, mission_id: userMission.mission_id, proof_url: userMission.proof_url })
+    console.log('Found user_mission:', { id: userMission.id, mission_id: userMission.mission_id, proof_photo_url: userMission.proof_photo_url })
 
     // STEP 2: Fetch the mission record to get the description
     const { data: mission, error: missionError } = await supabase
@@ -99,9 +99,9 @@ serve(async (req) => {
 
     // STEP 3: Download the image from Supabase Storage
     // Extract the file path from the public URL
-    const storagePathMatch = userMission.proof_url.match(/mission-proofs\/(.+)$/)
+    const storagePathMatch = userMission.proof_photo_url.match(/mission-proofs\/(.+)$/)
     if (!storagePathMatch) {
-      console.error('Invalid proof_url format:', userMission.proof_url)
+      console.error('Invalid proof_photo_url format:', userMission.proof_photo_url)
       return new Response(
         JSON.stringify({ error: 'Invalid proof URL format' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
@@ -134,7 +134,8 @@ serve(async (req) => {
     console.log('Image converted to Base64, length:', base64Image.length)
 
     // STEP 5: Send to Gemini AI for verification
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`
+    // Using Gemini 2.5 Flash for image understanding (Feb 2026 current model)
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`
 
     const prompt = `You are a mission verification AI for a tactical mobile game called SALVO.
 

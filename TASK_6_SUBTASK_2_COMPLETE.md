@@ -1,6 +1,6 @@
 # Task #6 Subtask #2: COMPLETE ✅
 
-**Gemini 1.5 Flash AI Integration with Image Processing**
+**Gemini 2.5 Flash AI Integration with Image Processing**
 
 ## What Was Implemented
 
@@ -168,4 +168,22 @@ The function currently just returns the AI verdict as JSON. It doesn't update th
 ---
 
 **Completion Date:** February 1, 2026
-**Status:** ✅ COMPLETE - Ready for User Testing
+**Status:** ✅ COMPLETE - TESTED AND VERIFIED
+
+## Bugs Fixed During Implementation
+
+1. **Column Name Mismatch:** Fixed `proof_url` → `proof_photo_url` (schema discrepancy)
+2. **Gemini Model Name:** Updated from `gemini-1.5-flash` → `gemini-2.5-flash` (current model as of Feb 2026)
+3. **API Endpoint:** Using `v1beta` for Gemini 2.5 Flash model support
+
+## Verified AI Response
+
+```json
+{
+  "success": true,
+  "verdict": true,
+  "confidence": 0.95,
+  "reasoning": "The image clearly displays a computer desk setup including a keyboard and monitors...",
+  "message": "Mission proof VERIFIED! Well done, soldier."
+}
+```
