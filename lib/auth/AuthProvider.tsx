@@ -126,8 +126,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchProfile = async (userId: string, retryCount = 0) => {
-    const MAX_RETRIES = 5;
-    const RETRY_DELAY = 1500; // 1.5 seconds between retries
+    const MAX_RETRIES = 3; // Reduced from 5 to 3 for faster cleanup
+    const RETRY_DELAY = 800; // Reduced from 1500ms to 800ms
     
     // Ensure loading state is maintained during profile fetch
     if (!isFetchingProfile.current) {
@@ -143,24 +143,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        // Only log actual errors, not "profile not found" which is expected for orphaned sessions
+        if (error.code !== 'PGRST116') {
+          console.error('Error fetching profile:', error);
+        }
         
         // Profile might not exist yet due to trigger delay
         // Retry up to MAX_RETRIES times
         if (retryCount < MAX_RETRIES) {
-          console.log(`Retrying profile fetch (${retryCount + 1}/${MAX_RETRIES})...`);
+          // Silence the retry logs - they're noisy and expected
           setTimeout(() => fetchProfile(userId, retryCount + 1), RETRY_DELAY);
           return;
         }
         
         // Max retries reached - profile truly doesn't exist
-        // This is an orphaned session - sign out automatically
-        console.log('Profile not found after max retries. Signing out orphaned session.');
+        // This is an orphaned session from a previous sign-in - clean it up silently
         isFetchingProfile.current = false;
         setProfile(null);
         setLoading(false);
         
-        // Auto sign out orphaned session
+        // Auto sign out orphaned session (silently)
         await signOut();
         return;
       }
@@ -181,8 +183,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    console.log('Signing out and clearing all auth data...');
-    
     // Clear Supabase session
     await supabase.auth.signOut();
     
@@ -195,7 +195,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await AsyncStorage.removeItem('supabase.auth.token');
       await AsyncStorage.clear(); // Nuclear option - clear everything
-      console.log('AsyncStorage cleared');
     } catch (error) {
       console.error('Error clearing AsyncStorage:', error);
     }

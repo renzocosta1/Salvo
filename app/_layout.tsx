@@ -4,7 +4,8 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import '../global.css';
 
@@ -42,9 +43,11 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -109,8 +112,11 @@ function RootLayoutNav() {
   // Show loading screen while checking auth state
   if (loading) {
     return (
-      <View className="flex-1 bg-[#0A0A0A] justify-center items-center">
-        <ActivityIndicator size="large" color="#00FF41" />
+      <View style={{ flex: 1, backgroundColor: '#0a0a0a', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#00ff88" />
+        <Text style={{ color: '#a0a0a0', marginTop: 16, fontSize: 12, letterSpacing: 2 }}>
+          LOADING...
+        </Text>
       </View>
     );
   }

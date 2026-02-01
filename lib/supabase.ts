@@ -64,6 +64,8 @@ export type Rank = {
   created_at: string;
 };
 
+// Directive type moved to lib/supabase/types.ts
+// Kept here for backward compatibility
 export type Directive = {
   id: string;
   party_id: string;
