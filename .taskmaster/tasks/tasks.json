@@ -137,7 +137,7 @@
             "description": "Set up the Supabase Edge Function infrastructure and configure secure secrets for API access.",
             "dependencies": [],
             "details": "Create a new edge function directory. Use 'supabase secrets set' to store GEMINI_API_KEY and SUPABASE_SERVICE_ROLE_KEY. Configure the Deno runtime environment with necessary imports from the standard library and Supabase SDK.",
-            "status": "in_progress",
+            "status": "done",
             "testStrategy": "Deploy an empty function and verify it can log the presence of environment variables without exposing them."
           },
           {
