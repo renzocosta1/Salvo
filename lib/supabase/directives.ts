@@ -130,8 +130,13 @@ export function subscribeToSalvos(
     return null;
   }
 
+  // Create a unique channel name based on the directive IDs
+  const channelName = `salvos-${directiveIds.join('-')}`;
+  
+  console.log(`[REALTIME] Creating channel: ${channelName} for directives:`, directiveIds);
+
   const channel = supabase
-    .channel('salvos-changes')
+    .channel(channelName)
     .on(
       'postgres_changes',
       {
@@ -141,13 +146,58 @@ export function subscribeToSalvos(
         filter: `directive_id=in.(${directiveIds.join(',')})`,
       },
       (payload) => {
-        console.log('Salvo inserted:', payload);
+        console.log(`[REALTIME] Channel ${channelName} received salvo:`, payload);
         onUpdate(payload);
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log(`[REALTIME] Channel ${channelName} subscription status:`, status);
+    });
 
   return channel;
+}
+
+/**
+ * Insert a salvo (raid action) for a directive
+ * Rate limited by RLS policy: 10 salvos per 60 seconds per user per directive
+ */
+export async function insertSalvo(
+  userId: string,
+  directiveId: string
+): Promise<{ success: boolean; error: Error | null }> {
+  try {
+    const { error: insertError } = await supabase
+      .from('salvos')
+      .insert({
+        user_id: userId,
+        directive_id: directiveId,
+      });
+
+    if (insertError) {
+      // Check for rate limit error - use console.warn to avoid red error box
+      if (insertError.message.includes('rate limit') || insertError.code === '42501') {
+        console.warn('[RAID] Rate limit exceeded:', insertError.message);
+        return { 
+          success: false, 
+          error: new Error('Rate limit exceeded. You can only raid 10 times per minute.')
+        };
+      }
+
+      console.error('Error inserting salvo:', insertError);
+      return { 
+        success: false, 
+        error: new Error(insertError.message || 'Failed to record raid action')
+      };
+    }
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Unexpected error in insertSalvo:', error);
+    return { 
+      success: false, 
+      error: new Error('Network error. Please try again.')
+    };
+  }
 }
 
 /**

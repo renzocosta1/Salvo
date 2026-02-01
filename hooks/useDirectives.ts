@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../lib/auth';
 import { fetchDirectivesForUser, subscribeToSalvos } from '../lib/supabase/directives';
 import type { DirectiveWithProgress } from '../lib/supabase/types';
@@ -57,6 +57,11 @@ export function useDirectives() {
     const channel = subscribeToSalvos(directiveIds, (payload) => {
       // When a new salvo is inserted, increment the count for that directive
       const directiveId = payload.new.directive_id;
+      const userId = payload.new.user_id;
+      
+      // Note: For the command feed, we DO want to show all updates including our own
+      // because we navigate away after raiding, so there's no double-count issue here
+      console.log('[useDirectives] Real-time update for directive:', directiveId, 'from user:', userId);
       
       setDirectives(prev =>
         prev.map(directive => {

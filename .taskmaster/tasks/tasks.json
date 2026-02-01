@@ -48,7 +48,7 @@
         "dependencies": [
           3
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -56,7 +56,7 @@
             "description": "Create the Raid button on the Directive detail screen with integrated client-side debounce logic.",
             "dependencies": [],
             "details": "Add the button component to the Directive detail view. Use a debounce function (e.g., from lodash or a custom hook) to limit the frequency of function calls to 500ms to prevent UI spam before network requests.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Rapidly tap the Raid button and verify that the trigger function only fires once per the debounce interval."
           },
           {
@@ -67,7 +67,7 @@
               1
             ],
             "details": "Write a Postgres SQL policy for the 'salvos' table that checks if the count of entries for the current 'user_id' and 'directive_id' within the last 60 seconds is less than 10 before allowing an insert.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Attempt to bypass client debouncing by sending direct API requests to insert more than 10 salvos in a minute; verify that the database rejects the 11th entry."
           },
           {
@@ -76,7 +76,7 @@
             "description": "Establish a real-time connection to track changes in the salvos table for a specific directive.",
             "dependencies": [],
             "details": "Implement the `supabase.channel()` listener in the directive detail screen. Filter the subscription to only listen for 'INSERT' events where the 'directive_id' matches the current screen context.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Use a separate database client to insert a row into the salvos table and verify the app receives the event and updates its local count state instantly."
           },
           {
@@ -87,7 +87,7 @@
               3
             ],
             "details": "Build a custom component using React Native SVG or Skia. It must accept 'currentCount' and 'targetGoal' props, calculating percentage progress and animating the stroke-dasharray smoothly when the count increases.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Manually pass varying values for the current count to the component and observe if the circular animation responds correctly and smoothly."
           },
           {
@@ -101,7 +101,7 @@
               4
             ],
             "details": "Ensure the Raid button click triggers the `salvos` insertion. Map the incoming Realtime event data to the state driving the Pillage Meter component, completing the feedback loop for the user.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Perform a raid action and verify the Pillage Meter increments in real-time. Check that the meter persists the correct value on screen refresh by fetching the initial count."
           }
         ]
