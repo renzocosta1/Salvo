@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 export type DirectiveWithProgress = {
   id: string;
@@ -21,13 +21,6 @@ export function DirectiveCard({ directive }: DirectiveCardProps) {
   const progress = Math.min((directive.current_salvos / directive.target_goal) * 100, 100);
   const isComplete = directive.is_completed || progress >= 100;
 
-  console.log('[DirectiveCard] Rendering:', {
-    title: directive.title,
-    currentSalvos: directive.current_salvos,
-    targetGoal: directive.target_goal,
-    progress: progress.toFixed(1),
-    isComplete
-  });
 
   // Format timestamp (e.g., "2H AGO", "15M AGO")
   const getTimeAgo = (timestamp: string) => {
@@ -54,10 +47,10 @@ export function DirectiveCard({ directive }: DirectiveCardProps) {
       className="mb-3 mx-4 p-4 rounded-lg"
       style={({ pressed }) => ({
         opacity: pressed ? 0.8 : 1,
+        transform: [{ scale: pressed ? 0.98 : 1 }],
         backgroundColor: '#1a1a1a',
-        borderColor: '#ff4444', // DEBUG: Bright red border to see if card exists
-        borderWidth: 3, // DEBUG: Thick border
-        minHeight: 150, // Ensure card has minimum height
+        borderColor: isComplete ? '#00ff88' : '#333333',
+        borderWidth: isComplete ? 2 : 1,
       })}
     >
       {/* Header: Timestamp */}

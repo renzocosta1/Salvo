@@ -1,22 +1,14 @@
-import React from 'react';
-import { View, Text, ActivityIndicator, RefreshControl, Pressable, Alert, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '@/lib/auth';
-import { useDirectives } from '@/hooks/useDirectives';
 import { DirectiveCard } from '@/components/feed/DirectiveCard';
 import { EmptyFeed } from '@/components/feed/EmptyFeed';
+import { useDirectives } from '@/hooks/useDirectives';
+import { useAuth } from '@/lib/auth';
+import React from 'react';
+import { ActivityIndicator, Alert, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 
 export default function CommandFeedScreen() {
   const { profile, signOut } = useAuth();
   const { directives, loading, error, refreshing, refresh } = useDirectives();
 
-  console.log('[CommandFeed] State:', {
-    hasProfile: !!profile,
-    directivesCount: directives.length,
-    loading,
-    error: error?.message,
-    refreshing
-  });
 
   // Guard: Don't render if no profile (prevents flash when redirecting to login)
   if (!profile) {
@@ -57,9 +49,12 @@ export default function CommandFeedScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-tactical-bg" edges={['top']}>
+    <View 
+      className="flex-1 bg-tactical-bg"
+      style={{ flex: 1 }}
+    >
       {/* Header */}
-      <View className="px-4 pt-4 pb-4 border-b border-tactical-border">
+      <View className="px-4 pb-4 border-b border-tactical-border" style={{ paddingTop: 60 }}>
         <View className="flex-row items-center justify-between mb-2">
           <Text 
             className="text-3xl font-bold tracking-tight flex-1"
@@ -107,10 +102,7 @@ export default function CommandFeedScreen() {
       ) : (
         <FlatList
           data={directives}
-          renderItem={({ item }) => {
-            console.log('[FlatList] Rendering item:', item.title);
-            return <DirectiveCard directive={item} />;
-          }}
+          renderItem={({ item }) => <DirectiveCard directive={item} />}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 32 }}
           style={{ flex: 1 }}
@@ -124,6 +116,6 @@ export default function CommandFeedScreen() {
           }
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
