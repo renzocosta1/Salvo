@@ -148,7 +148,7 @@
               1
             ],
             "details": "Download the image from the 'mission-proofs' bucket using the Supabase client. Convert the image buffer to a Base64 string. Construct a prompt for Gemini 1.5 Flash asking to verify if the image fulfills the mission description, requesting a structured JSON response with a boolean verdict.",
-            "status": "pending",
+            "status": "in_progress",
             "testStrategy": "Invoke the function with a sample image and mission description. Log the raw AI response to ensure the prompt engineering results in a clear TRUE/FALSE verdict."
           },
           {
