@@ -12,6 +12,8 @@ import '../global.css';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { initDatabase } from '@/lib/offline/database';
+import { startSyncService } from '@/lib/offline/sync';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -35,6 +37,19 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      
+      // Initialize offline database and start sync service
+      initDatabase()
+        .then(() => {
+          // Start sync service after database is ready
+          const cleanup = startSyncService();
+          
+          // Return cleanup function
+          return cleanup;
+        })
+        .catch(err => {
+          console.error('Failed to initialize offline systems:', err);
+        });
     }
   }, [loaded]);
 

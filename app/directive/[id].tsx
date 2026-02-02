@@ -99,26 +99,31 @@ export default function DirectiveDetailScreen() {
 
     try {
       // Insert salvo to database
-      const { success, error: insertError } = await insertSalvo(profile.id, directive.id);
+      const { success, error: insertError, queued } = await insertSalvo(profile.id, directive.id);
 
       if (success) {
-        // Success - salvo recorded
-        console.log('[RAID] Salvo inserted successfully!');
+        // Success - salvo recorded (either online or queued offline)
+        console.log(`[RAID] Salvo ${queued ? 'queued offline' : 'inserted successfully'}!`);
         
         // Haptic feedback on success
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
         
-        // Update local count optimistically
-        setDirective(prev => prev ? {
-          ...prev,
-          current_salvos: prev.current_salvos + 1,
-          is_completed: (prev.current_salvos + 1) >= prev.target_goal,
-        } : null);
+        // Only update local count if online (realtime will handle it)
+        // If offline/queued, don't update yet
+        if (!queued) {
+          setDirective(prev => prev ? {
+            ...prev,
+            current_salvos: prev.current_salvos + 1,
+            is_completed: (prev.current_salvos + 1) >= prev.target_goal,
+          } : null);
+        }
 
         Alert.alert(
-          'RAID SUCCESSFUL',
-          '⚔️ Salvo recorded! The Pillage Meter will update momentarily.',
-          [{ text: 'CONTINUE', style: 'default' }]
+          queued ? '📡 RAID QUEUED' : 'RAID SUCCESSFUL',
+          queued 
+            ? '⚔️ Salvo saved offline! Will sync when connected.'
+            : '⚔️ Salvo recorded! The Pillage Meter will update momentarily.',
+          [{ text: queued ? 'OK' : 'CONTINUE', style: 'default' }]
         );
       } else {
         // Error - rate limit or other issue

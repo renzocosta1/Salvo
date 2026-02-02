@@ -266,7 +266,7 @@
           4,
           8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -274,7 +274,7 @@
             "description": "Configure the local expo-sqlite database and define the tables required for storing pending actions.",
             "dependencies": [],
             "details": "Create the 'pending_check_ins' and 'pending_salvos' tables in SQLite. Include columns for the payload (JSON), an auto-incrementing local ID, a timestamp, and any necessary foreign keys to ensure compatibility with Supabase schema.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Initialize the app and use an SQLite inspector or logging to verify that the database and tables are correctly created upon startup."
           },
           {
@@ -285,7 +285,7 @@
               1
             ],
             "details": "Create a wrapper for Check-in and Salvo submission functions. If the device is offline or the initial fetch fails, serialize the request body into the respective SQLite table instead of throwing an error.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Disable network connectivity in the emulator/device, attempt to perform a check-in, and verify that a new row appears in the 'pending_check_ins' SQLite table."
           },
           {
@@ -296,7 +296,7 @@
               2
             ],
             "details": "Use @react-native-community/netinfo to listen for connectivity changes. Create a listener that triggers a synchronization check whenever the status changes from offline to online, or when the app returns to the foreground.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Log network status changes to the console. Toggle Airplane Mode and verify that the app correctly detects and logs the transition back to 'online' status."
           },
           {
@@ -307,7 +307,7 @@
               3
             ],
             "details": "Implement a 'drainQueue' function that fetches all records from the SQLite tables, performs a batch insert into Supabase, and then deletes those records from SQLite only upon a successful HTTP 201 response. Handle potential duplication via Supabase upsert if necessary.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Queue several actions while offline. Once online, verify that all actions are uploaded to Supabase in a single batch and that the local SQLite tables are empty afterward."
           }
         ]

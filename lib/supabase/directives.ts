@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import type { DirectiveWithProgress, Profile } from './types';
+import { submitSalvo } from '../offline/actions';
 
 /**
  * Fetch directives for the current user's party and warrior band
@@ -160,37 +161,36 @@ export function subscribeToSalvos(
 /**
  * Insert a salvo (raid action) for a directive
  * Rate limited by RLS policy: 10 salvos per 60 seconds per user per directive
+ * Supports offline queueing
  */
 export async function insertSalvo(
   userId: string,
   directiveId: string
-): Promise<{ success: boolean; error: Error | null }> {
+): Promise<{ success: boolean; error: Error | null; queued?: boolean }> {
   try {
-    const { error: insertError } = await supabase
-      .from('salvos')
-      .insert({
-        user_id: userId,
-        directive_id: directiveId,
-      });
+    // Use offline-aware submit function
+    const result = await submitSalvo({
+      user_id: userId,
+      directive_id: directiveId,
+    });
 
-    if (insertError) {
-      // Check for rate limit error - use console.warn to avoid red error box
-      if (insertError.message.includes('rate limit') || insertError.code === '42501') {
-        console.warn('[RAID] Rate limit exceeded:', insertError.message);
+    if (!result.success) {
+      // Check if it looks like a rate limit error from the error message
+      if (result.error?.includes('rate limit') || result.error?.includes('42501')) {
+        console.warn('[RAID] Rate limit exceeded');
         return { 
           success: false, 
           error: new Error('Rate limit exceeded. You can only raid 10 times per minute.')
         };
       }
 
-      console.error('Error inserting salvo:', insertError);
       return { 
         success: false, 
-        error: new Error(insertError.message || 'Failed to record raid action')
+        error: new Error(result.error || 'Failed to record raid action')
       };
     }
 
-    return { success: true, error: null };
+    return { success: true, error: null, queued: result.queued };
   } catch (error) {
     console.error('Unexpected error in insertSalvo:', error);
     return { 

@@ -14,6 +14,7 @@ try {
 
 import { coordsToH3, h3ArrayToGeoJSON } from '../../lib/h3Utils';
 import { supabase } from '../../lib/supabase';
+import { submitCheckIn } from '../../lib/offline/actions';
 
 let Mapbox: any = null;
 let mapboxAvailable = false;
@@ -154,7 +155,6 @@ export default function MapScreen() {
 
     const [lng, lat] = userLocation;
     const h3Index = coordsToH3(lat, lng);
-
     
     console.log(`🎯 Checking in at H3: ${h3Index}`);
 
@@ -165,22 +165,28 @@ export default function MapScreen() {
       return;
     }
 
-    // Insert into Supabase (will trigger realtime update)
-    const { data, error } = await supabase
-      .from('check_ins')
-      .insert({
-        user_id: user.id,
-        h3_index: h3Index,
-        event_type: 'check_in',
-      })
-      .select();
+    // Use offline-aware submit function
+    const result = await submitCheckIn({
+      user_id: user.id,
+      h3_index: h3Index,
+      event_type: 'check_in',
+    });
 
-    if (error) {
-      console.error('Check-in error:', error);
-      Alert.alert('Check-in Failed', error.message);
+    if (!result.success) {
+      Alert.alert('Check-in Failed', result.error || 'Unknown error');
+      return;
+    }
+    
+    if (result.queued) {
+      // Queued offline
+      Alert.alert(
+        '📡 Queued Offline',
+        `Check-in saved locally. Will sync when online.`,
+        [{ text: 'OK' }]
+      );
     } else {
-      
-      console.log('✅ Check-in successful!', data);
+      // Submitted online successfully
+      console.log('✅ Check-in successful!');
       Alert.alert(
         '✅ Area Revealed!',
         `You discovered hexagon ${h3Index.slice(0, 8)}...`,
@@ -194,8 +200,6 @@ export default function MapScreen() {
           .select('h3_index');
         if (tilesData) {
           const indices = tilesData.map(row => row.h3_index);
-          
-          
           setRevealedH3Tiles(indices);
           setTilesRevealed(indices.length);
           console.log(`🔄 Manually refetched ${indices.length} tiles`);
