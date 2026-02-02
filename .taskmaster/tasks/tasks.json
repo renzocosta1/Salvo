@@ -217,7 +217,7 @@
               1
             ],
             "details": "Develop a helper function that takes a latitude/longitude pair, converts it to an H3 Resolution 9 index, and generates the GeoJSON polygon geometry required for Mapbox rendering.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Unit test the utility with a specific coordinate (e.g., 37.7749, -122.4194) and verify it returns a valid H3 Res 9 hexagon GeoJSON feature."
           },
           {
