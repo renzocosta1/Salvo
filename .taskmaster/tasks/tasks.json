@@ -198,7 +198,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -228,7 +228,7 @@
               2
             ],
             "details": "Define a global 'fog' FillLayer with a high-opacity dark color. Implement a second 'revealed' FillLayer using the 'Hard Party Green' color. Use a GeoJSON source to dynamically update the revealed hexagons.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Inject mock H3 indices into the map source and confirm that the green hexagons appear on top of the dark fog layer."
           },
           {
@@ -239,7 +239,7 @@
               3
             ],
             "details": "Create a Supabase real-time subscription for the 'h3_tiles' table. When new rows are detected, update the local GeoJSON state to re-render the revealed hexagons on the map.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Manually insert an H3 index into the h3_tiles table via the database console and verify that the map updates in real-time without a full refresh."
           },
           {
@@ -250,7 +250,7 @@
               4
             ],
             "details": "Retrieve user location coordinates, calculate the current H3 Res 9 index, and invoke the Supabase check-in function. Ensure the UI provides feedback when a new tile is discovered and added to the 'revealed' layer.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Perform a physical or simulated location change to an unrevealed area and verify the 'Hard Party Green' hexagon appears at the user's location."
           }
         ]

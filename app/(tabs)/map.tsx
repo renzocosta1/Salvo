@@ -1,6 +1,9 @@
 import * as Constants from 'expo-constants';
 import React, { useEffect, useState } from 'react';
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as Location from 'expo-location';
+import { coordsToH3, h3ArrayToGeoJSON } from '../../lib/h3Utils';
+import { supabase } from '../../lib/supabase';
 
 // #region agent log
 fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:6',message:'Map module import start',data:{platform:Platform.OS},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
@@ -45,7 +48,76 @@ if (mapboxAvailable && Mapbox) {
 
 export default function MapScreen() {
   const [mapReady, setMapReady] = useState(false);
+  const [revealedH3Tiles, setRevealedH3Tiles] = useState<string[]>([]);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [tilesRevealed, setTilesRevealed] = useState(0);
   const isExpoGo = Constants.default?.executionEnvironment === 'storeClient';
+
+  // Request location permissions and get user location
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Location permission denied');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const coords: [number, number] = [
+        location.coords.longitude,
+        location.coords.latitude,
+      ];
+      setUserLocation(coords);
+      console.log('📍 User location:', coords);
+    })();
+  }, []);
+
+  // Subscribe to Supabase realtime updates for h3_tiles
+  useEffect(() => {
+    // Fetch initial revealed tiles
+    const fetchRevealedTiles = async () => {
+      const { data, error } = await supabase
+        .from('h3_tiles')
+        .select('h3_index');
+
+      if (error) {
+        console.error('Error fetching tiles:', error);
+        return;
+      }
+
+      if (data) {
+        const indices = data.map(row => row.h3_index);
+        setRevealedH3Tiles(indices);
+        setTilesRevealed(indices.length);
+        console.log(`🗺️ Loaded ${indices.length} revealed tiles`);
+      }
+    };
+
+    fetchRevealedTiles();
+
+    // Subscribe to new tiles
+    const channel = supabase
+      .channel('h3-tiles-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'h3_tiles',
+        },
+        (payload: any) => {
+          const newH3Index = payload.new.h3_index;
+          console.log('🆕 New tile revealed:', newH3Index);
+          setRevealedH3Tiles(prev => [...new Set([...prev, newH3Index])]);
+          setTilesRevealed(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     // #region agent log
@@ -59,8 +131,40 @@ export default function MapScreen() {
     }
   }, []);
 
-  // Starting location: Silver Spring, MD
-  const centerCoordinate: [number, number] = [-77.0261, 38.9907];
+  // Check-in function to reveal tile at current location
+  const handleCheckIn = async () => {
+    if (!userLocation) {
+      Alert.alert('Location Required', 'Please enable location services');
+      return;
+    }
+
+    const [lng, lat] = userLocation;
+    const h3Index = coordsToH3(lat, lng);
+
+    console.log(`🎯 Checking in at H3: ${h3Index}`);
+
+    // Insert into Supabase (will trigger realtime update)
+    const { error } = await supabase
+      .from('check_ins')
+      .insert({
+        h3_index: h3Index,
+        location: `POINT(${lng} ${lat})`,
+      });
+
+    if (error) {
+      console.error('Check-in error:', error);
+      Alert.alert('Check-in Failed', error.message);
+    } else {
+      Alert.alert(
+        '✅ Area Revealed!',
+        `You discovered hexagon ${h3Index.slice(0, 8)}...`,
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  // Starting location: Silver Spring, MD (or user location)
+  const centerCoordinate: [number, number] = userLocation || [-77.0261, 38.9907];
 
   // If Mapbox isn't available (Expo Go mode), show instructions
   if (!mapboxAvailable || isExpoGo) {
@@ -120,6 +224,9 @@ export default function MapScreen() {
     );
   }
 
+  // Convert revealed H3 tiles to GeoJSON
+  const revealedGeoJSON = h3ArrayToGeoJSON(revealedH3Tiles);
+
   // Mapbox is available, render the map
   return (
     <View style={styles.container}>
@@ -140,6 +247,37 @@ export default function MapScreen() {
           centerCoordinate={centerCoordinate}
           animationDuration={1000}
         />
+
+        {/* Revealed Hexagon Tiles (Hard Party Green) */}
+        <Mapbox.ShapeSource id="revealed-hexagons" shape={revealedGeoJSON}>
+          <Mapbox.FillLayer
+            id="revealed-fill"
+            style={{
+              fillColor: '#00ff88',
+              fillOpacity: 0.3,
+            }}
+          />
+          <Mapbox.LineLayer
+            id="revealed-outline"
+            style={{
+              lineColor: '#00ff88',
+              lineWidth: 2,
+              lineOpacity: 0.8,
+            }}
+          />
+        </Mapbox.ShapeSource>
+
+        {/* User Location Marker */}
+        {userLocation && (
+          <Mapbox.PointAnnotation
+            id="user-location"
+            coordinate={userLocation}
+          >
+            <View style={styles.userMarker}>
+              <Text style={styles.userMarkerText}>📍</Text>
+            </View>
+          </Mapbox.PointAnnotation>
+        )}
       </Mapbox.MapView>
 
       {/* Tactical HUD Overlay */}
@@ -152,7 +290,24 @@ export default function MapScreen() {
               {mapReady ? 'TACTICAL VIEW ONLINE' : 'INITIALIZING...'}
             </Text>
           </View>
+          <View style={styles.statsRow}>
+            <Text style={styles.statsLabel}>TILES REVEALED:</Text>
+            <Text style={styles.statsValue}>{tilesRevealed}</Text>
+          </View>
         </View>
+      </View>
+
+      {/* Check-in Button */}
+      <View style={styles.checkInContainer}>
+        <Pressable
+          style={[styles.checkInButton, !userLocation && styles.checkInButtonDisabled]}
+          onPress={handleCheckIn}
+          disabled={!userLocation}
+        >
+          <Text style={styles.checkInButtonText}>
+            {userLocation ? '🎯 REVEAL AREA' : '📍 LOCATING...'}
+          </Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -286,5 +441,67 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 12,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 255, 136, 0.2)',
+  },
+  statsLabel: {
+    color: '#00ff88',
+    fontSize: 12,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    letterSpacing: 1,
+  },
+  statsValue: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  checkInContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 20,
+    right: 20,
+  },
+  checkInButton: {
+    backgroundColor: '#00ff88',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#00ff88',
+    shadowColor: '#00ff88',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  checkInButtonDisabled: {
+    backgroundColor: '#333',
+    borderColor: '#666',
+    shadowColor: '#000',
+  },
+  checkInButtonText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    letterSpacing: 1,
+  },
+  userMarker: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userMarkerText: {
+    fontSize: 24,
   },
 });
