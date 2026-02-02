@@ -16,7 +16,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.renzocosta.salvo"
+      "bundleIdentifier": "com.renzocosta.salvo",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Salvo needs your location to reveal hexagonal tiles on the tactical map as you move around.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Salvo needs your location to reveal hexagonal tiles on the tactical map as you move around."
+      }
     },
     "android": {
       "package": "com.renzocosta.salvo",
@@ -39,6 +43,12 @@
         {
           "RNMapboxMapsDownloadToken": "",
           "RNMapboxMapsImpl": "mapbox"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Salvo needs your location to reveal hexagonal tiles on the tactical map as you move around."
         }
       ]
     ],

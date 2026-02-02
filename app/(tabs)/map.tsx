@@ -1,7 +1,36 @@
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:1',message:'Module imports starting',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2'})}).catch(()=>{});
+// #endregion
+
 import * as Constants from 'expo-constants';
 import React, { useEffect, useState } from 'react';
 import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import * as Location from 'expo-location';
+
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:4',message:'Before Location import attempt',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H5'})}).catch(()=>{});
+// #endregion
+
+let Location: any = null;
+let locationAvailable = false;
+
+try {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:try',message:'Attempting expo-location require',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H5'})}).catch(()=>{});
+  // #endregion
+  
+  Location = require('expo-location');
+  locationAvailable = true;
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:success',message:'expo-location loaded successfully',data:{locationAvailable:true,hasRequestPermissions:typeof Location?.requestForegroundPermissionsAsync==='function'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+  // #endregion
+} catch (error) {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:catch',message:'expo-location FAILED to load',data:{error:error?.toString(),errorName:error?.name,errorMessage:error?.message,locationAvailable:false},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3'})}).catch(()=>{});
+  // #endregion
+  console.warn('⚠️ Location module not available:', error);
+}
+
 import { coordsToH3, h3ArrayToGeoJSON } from '../../lib/h3Utils';
 import { supabase } from '../../lib/supabase';
 
@@ -55,20 +84,53 @@ export default function MapScreen() {
 
   // Request location permissions and get user location
   useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:useEffect-location',message:'Location useEffect triggered',data:{locationAvailable,hasLocation:!!Location},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H5'})}).catch(()=>{});
+    // #endregion
+    
+    if (!locationAvailable || !Location) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:location-skip',message:'Location not available, skipping permission request',data:{locationAvailable,Location:!!Location},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3'})}).catch(()=>{});
+      // #endregion
+      console.log('⚠️ Location module not available');
+      return;
+    }
+    
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('Location permission denied');
-        return;
-      }
+      try {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:request-perm',message:'Requesting location permissions',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4,H5'})}).catch(()=>{});
+        // #endregion
+        
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:perm-result',message:'Permission request result',data:{status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
+        // #endregion
+        
+        if (status !== 'granted') {
+          console.log('Location permission denied');
+          return;
+        }
 
-      const location = await Location.getCurrentPositionAsync({});
-      const coords: [number, number] = [
-        location.coords.longitude,
-        location.coords.latitude,
-      ];
-      setUserLocation(coords);
-      console.log('📍 User location:', coords);
+        const location = await Location.getCurrentPositionAsync({});
+        const coords: [number, number] = [
+          location.coords.longitude,
+          location.coords.latitude,
+        ];
+        setUserLocation(coords);
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:location-success',message:'User location obtained',data:{coords},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
+        // #endregion
+        
+        console.log('📍 User location:', coords);
+      } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:location-error',message:'Location error',data:{error:error?.toString()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4,H5'})}).catch(()=>{});
+        // #endregion
+        console.error('Location error:', error);
+      }
     })();
   }, []);
 
@@ -143,12 +205,20 @@ export default function MapScreen() {
 
     console.log(`🎯 Checking in at H3: ${h3Index}`);
 
+    // Get current user ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      Alert.alert('Error', 'User not authenticated');
+      return;
+    }
+
     // Insert into Supabase (will trigger realtime update)
     const { error } = await supabase
       .from('check_ins')
       .insert({
+        user_id: user.id,
         h3_index: h3Index,
-        location: `POINT(${lng} ${lat})`,
+        event_type: 'check_in',
       });
 
     if (error) {
