@@ -1,31 +1,57 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 
 export function EmptyFeed() {
   return (
-    <View className="flex-1 justify-center items-center px-8 bg-tactical-bg">
+    <View style={styles.container}>
       {/* Icon/Visual */}
-      <View className="w-20 h-20 rounded-full bg-tactical-bgSecondary border-2 border-tactical-border items-center justify-center mb-6">
-        <View className="w-12 h-12 border-2 border-tactical-textMuted rounded-lg" />
+      <View style={styles.iconContainer}>
+        <Text style={styles.iconText}>📋</Text>
       </View>
 
       {/* Heading */}
-      <Text style={{color: '#ffffff'}} className="text-2xl font-bold tracking-tight text-center mb-3">
-        NO ACTIVE DIRECTIVES
-      </Text>
+      <Text style={styles.heading}>No Active Directives</Text>
 
       {/* Subtext */}
-      <Text style={{color: '#a0a0a0'}} className="text-center text-base leading-6 max-w-sm">
+      <Text style={styles.subtext}>
         Command feed is empty. Await orders from your General or Captain.
       </Text>
-
-      {/* Status Indicator */}
-      <View className="mt-8 flex-row items-center">
-        <View className="w-2 h-2 rounded-full" style={{backgroundColor: '#00ff88'}} />
-        <Text style={{color: '#a0a0a0'}} className="text-xs font-mono tracking-wider ml-2">
-          STANDING BY
-        </Text>
-      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    backgroundColor: '#0f1419',
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#1c2631',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  iconText: {
+    fontSize: 40,
+  },
+  heading: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  subtext: {
+    fontSize: 15,
+    color: '#8b98a5',
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 280,
+  },
+});

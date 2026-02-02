@@ -80,12 +80,14 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inGatesGroup = segments[0] === '(gates)';
+    const inOnboardingGroup = segments[0] === '(onboarding)';
     const inTabsGroup = segments[0] === '(tabs)';
 
     console.log('[Auth Guard]', {
       session: !!session,
       profile: !!profile,
       oath: profile?.oath_signed_at,
+      onboarding: profile?.onboarding_completed_at,
       currentSegment: segments[0],
     });
 
@@ -114,10 +116,19 @@ function RootLayoutNav() {
       return;
     }
 
-    // Rule 4: Session + Profile + Oath → Main app
-    if (session && profile && profile.oath_signed_at) {
-      if (inAuthGroup || inGatesGroup) {
-        console.log('[Auth Guard] Oath signed, redirecting to main app');
+    // Rule 4: Session + Profile + Oath but no onboarding → Onboarding flow
+    if (session && profile && profile.oath_signed_at && !profile.onboarding_completed_at) {
+      if (!inOnboardingGroup) {
+        console.log('[Auth Guard] Oath signed but onboarding not complete, redirecting to onboarding');
+        router.replace('/(onboarding)/personal-details');
+      }
+      return;
+    }
+
+    // Rule 5: Session + Profile + Oath + Onboarding → Main app
+    if (session && profile && profile.oath_signed_at && profile.onboarding_completed_at) {
+      if (inAuthGroup || inGatesGroup || inOnboardingGroup) {
+        console.log('[Auth Guard] Onboarding complete, redirecting to main app');
         router.replace('/(tabs)');
       }
       return;
@@ -141,6 +152,7 @@ function RootLayoutNav() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(gates)" options={{ headerShown: false }} />
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>

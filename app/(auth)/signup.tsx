@@ -17,6 +17,7 @@ import { supabase } from '@/lib/supabase';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { Ionicons } from '@expo/vector-icons';
+import { acceptInvite } from '@/lib/recruiting/invites';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -25,6 +26,7 @@ export default function SignupScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -61,13 +63,24 @@ export default function SignupScreen() {
 
       if (error) {
         Alert.alert('Signup Failed', error.message);
-      } else if (data.user && !data.session) {
-        // Email confirmation required (if enabled in Supabase)
-        Alert.alert(
-          'Check Your Email',
-          'We sent you a confirmation email. Please check your inbox.',
-          [{ text: 'OK' }]
-        );
+      } else if (data.user) {
+        // If invite code was provided, accept the invite
+        if (inviteCode.trim()) {
+          const inviteResult = await acceptInvite(inviteCode.trim(), data.user.id);
+          if (!inviteResult.success) {
+            console.warn('Failed to accept invite:', inviteResult.error);
+            // Don't block signup if invite fails, just log it
+          }
+        }
+
+        if (!data.session) {
+          // Email confirmation required (if enabled in Supabase)
+          Alert.alert(
+            'Check Your Email',
+            'We sent you a confirmation email. Please check your inbox.',
+            [{ text: 'OK' }]
+          );
+        }
       }
       // If session exists, AuthProvider will automatically handle navigation to Oath screen
     } catch (error) {
@@ -335,6 +348,19 @@ export default function SignupScreen() {
                 placeholder="Your warrior name"
                 placeholderTextColor="#666"
                 autoCapitalize="words"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Invite Code (Optional)</Text>
+              <TextInput
+                style={styles.input}
+                value={inviteCode}
+                onChangeText={(text) => setInviteCode(text.toUpperCase())}
+                placeholder="Enter invite code"
+                placeholderTextColor="#666"
+                autoCapitalize="characters"
+                maxLength={6}
               />
             </View>
 

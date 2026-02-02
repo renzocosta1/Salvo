@@ -1,6 +1,16 @@
 import * as Constants from 'expo-constants';
 import React, { useEffect, useState } from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 let Location: any = null;
 let locationAvailable = false;
@@ -46,18 +56,15 @@ export default function MapScreen() {
 
   // Request location permissions and get user location
   useEffect(() => {
-    
     if (!locationAvailable || !Location) {
       console.log('⚠️ Location module not available');
       return;
     }
-    
+
     (async () => {
       try {
-        
         const { status } = await Location.requestForegroundPermissionsAsync();
-        
-        
+
         if (status !== 'granted') {
           console.log('Location permission denied');
           return;
@@ -69,8 +76,6 @@ export default function MapScreen() {
           location.coords.latitude,
         ];
         setUserLocation(coords);
-        
-        
         console.log('📍 User location:', coords);
       } catch (error) {
         console.error('Location error:', error);
@@ -80,13 +85,9 @@ export default function MapScreen() {
 
   // Subscribe to Supabase realtime updates for h3_tiles
   useEffect(() => {
-    
     // Fetch initial revealed tiles
     const fetchRevealedTiles = async () => {
-      
-      const { data, error } = await supabase
-        .from('h3_tiles')
-        .select('h3_index');
+      const { data, error } = await supabase.from('h3_tiles').select('h3_index');
 
       if (error) {
         console.error('Error fetching tiles:', error);
@@ -94,11 +95,9 @@ export default function MapScreen() {
       }
 
       if (data) {
-        const indices = data.map(row => row.h3_index);
+        const indices = data.map((row) => row.h3_index);
         setRevealedH3Tiles(indices);
         setTilesRevealed(indices.length);
-        
-        
         console.log(`🗺️ Loaded ${indices.length} revealed tiles`);
       }
     };
@@ -116,16 +115,13 @@ export default function MapScreen() {
           table: 'h3_tiles',
         },
         (payload: any) => {
-          
           const newH3Index = payload.new.h3_index;
           console.log('🆕 New tile revealed:', newH3Index);
-          setRevealedH3Tiles(prev => {
+          setRevealedH3Tiles((prev) => {
             const updated = [...new Set([...prev, newH3Index])];
-            
-            
             return updated;
           });
-          setTilesRevealed(prev => prev + 1);
+          setTilesRevealed((prev) => prev + 1);
         }
       )
       .subscribe((status: string) => {
@@ -138,7 +134,6 @@ export default function MapScreen() {
   }, []);
 
   useEffect(() => {
-    
     if (!MAPBOX_ACCESS_TOKEN) {
       console.error('❌ MAPBOX_ACCESS_TOKEN is not set in .env file');
     } else {
@@ -155,11 +150,13 @@ export default function MapScreen() {
 
     const [lng, lat] = userLocation;
     const h3Index = coordsToH3(lat, lng);
-    
+
     console.log(`🎯 Checking in at H3: ${h3Index}`);
 
     // Get current user ID
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       Alert.alert('Error', 'User not authenticated');
       return;
@@ -176,30 +173,24 @@ export default function MapScreen() {
       Alert.alert('Check-in Failed', result.error || 'Unknown error');
       return;
     }
-    
+
     if (result.queued) {
       // Queued offline
-      Alert.alert(
-        '📡 Queued Offline',
-        `Check-in saved locally. Will sync when online.`,
-        [{ text: 'OK' }]
-      );
+      Alert.alert('📡 Queued Offline', `Check-in saved locally. Will sync when online.`, [
+        { text: 'OK' },
+      ]);
     } else {
       // Submitted online successfully
       console.log('✅ Check-in successful!');
-      Alert.alert(
-        '✅ Area Revealed!',
-        `You discovered hexagon ${h3Index.slice(0, 8)}...`,
-        [{ text: 'OK' }]
-      );
-      
+      Alert.alert('✅ Area Revealed!', `You discovered hexagon ${h3Index.slice(0, 8)}...`, [
+        { text: 'OK' },
+      ]);
+
       // Manually refetch tiles as a backup (in case realtime doesn't fire)
       setTimeout(async () => {
-        const { data: tilesData } = await supabase
-          .from('h3_tiles')
-          .select('h3_index');
+        const { data: tilesData } = await supabase.from('h3_tiles').select('h3_index');
         if (tilesData) {
-          const indices = tilesData.map(row => row.h3_index);
+          const indices = tilesData.map((row) => row.h3_index);
           setRevealedH3Tiles(indices);
           setTilesRevealed(indices.length);
           console.log(`🔄 Manually refetched ${indices.length} tiles`);
@@ -215,41 +206,32 @@ export default function MapScreen() {
   if (!mapboxAvailable || isExpoGo) {
     return (
       <View style={styles.container}>
-        <ScrollView contentContainerStyle={styles.errorContainer}>
+        <ScrollView contentContainerStyle={styles.errorScrollContent}>
           <Text style={styles.errorEmoji}>🗺️</Text>
           <Text style={styles.errorTitle}>Development Build Required</Text>
-          <Text style={styles.errorText}>
-            Mapbox requires native code that isn't available in Expo Go.
-          </Text>
+          <Text style={styles.errorText}>Mapbox requires native code that isn't available in Expo Go.</Text>
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>📱 Why This Happened:</Text>
             <Text style={styles.infoText}>
-              • Mapbox uses native modules{'\n'}
-              • Expo Go only supports built-in modules{'\n'}
-              • You need a custom development build
+              • Mapbox uses native modules{'\n'}• Expo Go only supports built-in modules{'\n'}• You need a custom
+              development build
             </Text>
           </View>
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>🔧 How to Fix:</Text>
             <Text style={styles.infoText}>
-              1. Run: npx expo prebuild{'\n'}
-              2. Run: npx expo run:android (or run:ios){'\n'}
-              3. Wait for build to complete{'\n'}
-              4. Map will work! 🎯
+              1. Run: npx expo prebuild{'\n'}2. Run: npx expo run:android (or run:ios){'\n'}3. Wait for build to
+              complete{'\n'}4. Map will work! 🎯
             </Text>
           </View>
           <Pressable
             style={styles.docsButton}
-            onPress={() => Linking.openURL('https://docs.expo.dev/develop/development-builds/introduction/')}
+            onPress={() =>
+              Linking.openURL('https://docs.expo.dev/develop/development-builds/introduction/')
+            }
           >
             <Text style={styles.docsButtonText}>📚 Read Expo Dev Build Docs</Text>
           </Pressable>
-          <View style={styles.debugInfo}>
-            <Text style={styles.debugText}>Debug Info:</Text>
-            <Text style={styles.debugText}>• Expo Go: {isExpoGo ? 'YES' : 'NO'}</Text>
-            <Text style={styles.debugText}>• Mapbox Available: {mapboxAvailable ? 'YES' : 'NO'}</Text>
-            <Text style={styles.debugText}>• Token: {MAPBOX_ACCESS_TOKEN ? 'SET' : 'MISSING'}</Text>
-          </View>
         </ScrollView>
       </View>
     );
@@ -260,8 +242,8 @@ export default function MapScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>⚠️ MAPBOX TOKEN MISSING</Text>
-          <Text style={styles.errorSubtext}>
+          <Text style={styles.errorTitle}>⚠️ Mapbox Token Missing</Text>
+          <Text style={styles.errorText}>
             Add EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN to your .env file
           </Text>
         </View>
@@ -271,14 +253,23 @@ export default function MapScreen() {
 
   // Convert revealed H3 tiles to GeoJSON
   const revealedGeoJSON = h3ArrayToGeoJSON(revealedH3Tiles);
-  
 
   // Mapbox is available, render the map
   return (
     <View style={styles.container}>
+      {/* Clean Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Map</Text>
+        <View style={styles.headerRight}>
+          <View style={styles.tilesCounter}>
+            <Text style={styles.tilesCounterText}>{tilesRevealed} revealed</Text>
+          </View>
+        </View>
+      </View>
+
       <Mapbox.MapView
         style={styles.map}
-        styleURL="mapbox://styles/mapbox/dark-v11"
+        styleURL="mapbox://styles/mapbox/light-v11"
         onDidFinishLoadingMap={() => {
           setMapReady(true);
           console.log('🗺️ Map loaded successfully');
@@ -291,64 +282,48 @@ export default function MapScreen() {
           animationDuration={1000}
         />
 
-        {/* Revealed Hexagon Tiles (Hard Party Green) */}
+        {/* Revealed Hexagon Tiles (Soft Blue) */}
         <Mapbox.ShapeSource id="revealed-hexagons" shape={revealedGeoJSON}>
           <Mapbox.FillLayer
             id="revealed-fill"
             style={{
-              fillColor: '#00ff88',
-              fillOpacity: 0.3,
+              fillColor: '#2196f3',
+              fillOpacity: 0.25,
             }}
           />
           <Mapbox.LineLayer
             id="revealed-outline"
             style={{
-              lineColor: '#00ff88',
+              lineColor: '#2196f3',
               lineWidth: 2,
-              lineOpacity: 0.8,
+              lineOpacity: 0.6,
             }}
           />
         </Mapbox.ShapeSource>
 
         {/* User Location Marker */}
         {userLocation && (
-          <Mapbox.PointAnnotation
-            id="user-location"
-            coordinate={userLocation}
-          >
+          <Mapbox.PointAnnotation id="user-location" coordinate={userLocation}>
             <View style={styles.userMarker}>
-              <Text style={styles.userMarkerText}>📍</Text>
+              <View style={styles.userMarkerDot} />
             </View>
           </Mapbox.PointAnnotation>
         )}
       </Mapbox.MapView>
 
-      {/* Tactical HUD Overlay */}
-      <View style={styles.hudOverlay}>
-        <View style={styles.hudHeader}>
-          <Text style={styles.hudTitle}>FOG OF WAR</Text>
-          <View style={styles.statusIndicator}>
-            <View style={[styles.statusDot, mapReady && styles.statusDotActive]} />
-            <Text style={styles.statusText}>
-              {mapReady ? 'TACTICAL VIEW ONLINE' : 'INITIALIZING...'}
-            </Text>
-          </View>
-          <View style={styles.statsRow}>
-            <Text style={styles.statsLabel}>TILES REVEALED:</Text>
-            <Text style={styles.statsValue}>{tilesRevealed}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Check-in Button */}
-      <View style={styles.checkInContainer}>
+      {/* Reveal Area Button */}
+      <View style={styles.buttonContainer}>
         <Pressable
-          style={[styles.checkInButton, !userLocation && styles.checkInButtonDisabled]}
+          style={({ pressed }) => [
+            styles.revealButton,
+            !userLocation && styles.revealButtonDisabled,
+            pressed && styles.revealButtonPressed,
+          ]}
           onPress={handleCheckIn}
           disabled={!userLocation}
         >
-          <Text style={styles.checkInButtonText}>
-            {userLocation ? '🎯 REVEAL AREA' : '📍 LOCATING...'}
+          <Text style={styles.revealButtonText}>
+            {userLocation ? 'Reveal Area' : 'Locating...'}
           </Text>
         </Pressable>
       </View>
@@ -359,16 +334,113 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: '#ffffff',
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1c1c1e',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  tilesCounter: {
+    backgroundColor: '#e3f2fd',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  tilesCounterText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2196f3',
   },
   map: {
     flex: 1,
   },
-  errorContainer: {
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 40,
+    left: 16,
+    right: 16,
+    zIndex: 10,
+  },
+  revealButton: {
+    backgroundColor: '#ffffff',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  revealButtonPressed: {
+    opacity: 0.8,
+  },
+  revealButtonDisabled: {
+    backgroundColor: '#e0e0e0',
+  },
+  revealButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1c1c1e',
+  },
+  userMarker: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userMarkerDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#2196f3',
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  errorScrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: '#f5f5f5',
+    padding: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
     padding: 20,
   },
   errorEmoji: {
@@ -376,175 +448,50 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   errorTitle: {
-    color: '#00ff88',
-    fontSize: 24,
-    fontWeight: 'bold',
+    color: '#1c1c1e',
+    fontSize: 22,
+    fontWeight: '700',
     marginBottom: 10,
     textAlign: 'center',
   },
   errorText: {
-    color: '#ff4444',
-    fontSize: 16,
+    color: '#757575',
+    fontSize: 15,
     marginBottom: 20,
     textAlign: 'center',
-  },
-  errorSubtext: {
-    color: '#888',
-    fontSize: 14,
-    textAlign: 'center',
+    lineHeight: 22,
   },
   infoBox: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#333',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
     width: '100%',
   },
   infoTitle: {
-    color: '#00ff88',
+    color: '#2196f3',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   infoText: {
-    color: '#ccc',
+    color: '#424242',
     fontSize: 14,
     lineHeight: 20,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   docsButton: {
-    backgroundColor: '#00ff88',
+    backgroundColor: '#2196f3',
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 12,
     marginTop: 10,
   },
   docsButtonText: {
-    color: '#000',
+    color: '#ffffff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     textAlign: 'center',
-  },
-  debugInfo: {
-    marginTop: 30,
-    padding: 15,
-    backgroundColor: '#0a0a0a',
-    borderWidth: 1,
-    borderColor: '#222',
-    borderRadius: 8,
-    width: '100%',
-  },
-  debugText: {
-    color: '#666',
-    fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    marginBottom: 5,
-  },
-  hudOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-  },
-  hudHeader: {
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#00ff88',
-  },
-  hudTitle: {
-    color: '#00ff88',
-    fontSize: 20,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
-  statusIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#666',
-    marginRight: 8,
-  },
-  statusDotActive: {
-    backgroundColor: '#00ff88',
-  },
-  statusText: {
-    color: '#888',
-    fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 255, 136, 0.2)',
-  },
-  statsLabel: {
-    color: '#00ff88',
-    fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    letterSpacing: 1,
-  },
-  statsValue: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
-  checkInContainer: {
-    position: 'absolute',
-    bottom: 40,
-    left: 20,
-    right: 20,
-  },
-  checkInButton: {
-    backgroundColor: '#00ff88',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#00ff88',
-    shadowColor: '#00ff88',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  checkInButtonDisabled: {
-    backgroundColor: '#333',
-    borderColor: '#666',
-    shadowColor: '#000',
-  },
-  checkInButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    letterSpacing: 1,
-  },
-  userMarker: {
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  userMarkerText: {
-    fontSize: 24,
   },
 });

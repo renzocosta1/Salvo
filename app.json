@@ -19,7 +19,8 @@
       "bundleIdentifier": "com.renzocosta.salvo",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Salvo needs your location to reveal hexagonal tiles on the tactical map as you move around.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Salvo needs your location to reveal hexagonal tiles on the tactical map as you move around."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Salvo needs your location to reveal hexagonal tiles on the tactical map as you move around.",
+        "NSContactsUsageDescription": "Salvo uses your contacts to help you find friends and invite them to join your party."
       }
     },
     "android": {
@@ -50,7 +51,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Salvo needs your location to reveal hexagonal tiles on the tactical map as you move around."
         }
-      ]
+      ],
+      "expo-contacts"
     ],
     "experiments": {
       "typedRoutes": true

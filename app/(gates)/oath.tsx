@@ -11,10 +11,12 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 
 export default function OathScreen() {
+  const router = useRouter();
   const { user, refetchProfile } = useAuth();
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -166,6 +168,9 @@ By scrolling to the bottom and pressing JOIN, you electronically sign this oath 
       }
 
       await refetchProfile(user.id);
+      
+      // Navigate to onboarding flow instead of main app
+      router.replace('/(onboarding)/personal-details');
     } catch (error) {
       console.error('Error signing oath:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
@@ -260,7 +265,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     color: '#ffffff',
-    fontFamily: 'monospace',
   },
   progressContainer: {
     marginBottom: 16,
@@ -275,22 +279,22 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: '#8b98a5',
-    letterSpacing: 1,
   },
   progressPercent: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#00ff88',
+    color: '#ffffff',
   },
   progressBarBackground: {
-    height: 6,
+    height: 8,
     backgroundColor: '#1c2631',
-    borderRadius: 3,
+    borderRadius: 4,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#00ff88',
+    backgroundColor: '#ffffff',
+    borderRadius: 4,
   },
   joinButton: {
     backgroundColor: '#ffffff',
@@ -305,8 +309,7 @@ const styles = StyleSheet.create({
   },
   joinButtonText: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#000000',
-    letterSpacing: 1,
+    fontWeight: '600',
+    color: '#0f1419',
   },
 });

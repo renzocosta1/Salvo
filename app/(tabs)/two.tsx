@@ -3,12 +3,14 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 
 interface ProfileData {
@@ -27,9 +29,6 @@ export default function ProfileScreen() {
   const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lookupId, setLookupId] = useState('');
-  const [lookupResult, setLookupResult] = useState<ProfileData | null>(null);
-  const [lookupLoading, setLookupLoading] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -59,56 +58,33 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleLookup = async () => {
-    if (!lookupId.trim()) return;
-
-    setLookupLoading(true);
-    setLookupResult(null);
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          display_name,
-          level,
-          xp,
-          rank:ranks(name, level_min, level_max)
-        `)
-        .eq('id', lookupId.trim())
-        .single();
-
-      if (error) throw error;
-      setLookupResult(data as ProfileData);
-    } catch (error) {
-      console.error('Error looking up user:', error);
-      setLookupResult(null);
-    } finally {
-      setLookupLoading(false);
-    }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.replace('/login');
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          router.replace('/login');
+        },
+      },
+    ]);
   };
 
   if (loading) {
     return (
-      <View className="flex-1 bg-tactical-bg justify-center items-center">
-        <ActivityIndicator size="large" color="#00ff88" />
-        <Text className="mt-4 text-sm font-mono tracking-wider" style={{ color: '#a0a0a0' }}>
-          LOADING PROFILE...
-        </Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#ffffff" />
+        <Text style={styles.loadingText}>Loading profile...</Text>
       </View>
     );
   }
 
   if (!profileData) {
     return (
-      <View className="flex-1 bg-tactical-bg justify-center items-center px-8">
-        <Text className="text-xl font-bold text-center" style={{ color: '#ff4444' }}>
-          PROFILE NOT FOUND
-        </Text>
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Profile Not Found</Text>
       </View>
     );
   }
@@ -120,143 +96,259 @@ export default function ProfileScreen() {
   const progressPercent = ((profileData.xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
 
   const rankName = profileData.rank?.name || 'Recruit';
-  const rankColor = 
-    rankName === 'Centurion' ? '#ffd700' :
-    rankName === 'Warrior' ? '#00ff88' :
-    '#a0a0a0';
 
   return (
-    <View className="flex-1 bg-tactical-bg">
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingTop: 60 }}>
-        {/* Header */}
-        <View className="mb-6">
-          <Text className="text-xs font-mono tracking-wider mb-2" style={{ color: '#a0a0a0' }}>
-            WARRIOR PROFILE
-          </Text>
-          <Text className="text-3xl font-bold tracking-tight" style={{ color: '#ffffff' }}>
-            {profileData.display_name || 'UNNAMED WARRIOR'}
-          </Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Avatar Section */}
+      <View style={styles.avatarSection}>
+        <View style={styles.avatar}>
+          <Ionicons name="person" size={48} color="#3498db" />
         </View>
+        <Text style={styles.displayName}>{profileData.display_name || 'Unnamed Warrior'}</Text>
+        <Text style={styles.rankBadge}>{rankName}</Text>
+      </View>
 
-        {/* Rank Badge */}
-        <View
-          className="mb-6 p-6 rounded-lg border-2"
-          style={{
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            borderColor: rankColor,
-          }}
-        >
-          <Text className="text-xs font-mono tracking-wider mb-2" style={{ color: '#a0a0a0' }}>
-            RANK
-          </Text>
-          <Text className="text-4xl font-bold tracking-tight" style={{ color: rankColor }}>
-            {rankName.toUpperCase()}
-          </Text>
-          <Text className="text-sm mt-2" style={{ color: '#a0a0a0' }}>
-            Level {profileData.rank?.level_min || 0} - {profileData.rank?.level_max || 4}
-          </Text>
+      {/* Stats Cards Grid */}
+      <View style={styles.statsGrid}>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{profileData.level}</Text>
+          <Text style={styles.statLabel}>Level</Text>
         </View>
-
-        {/* Level & XP */}
-        <View className="mb-6 p-6 rounded-lg" style={{ backgroundColor: '#1a1a1a' }}>
-          <View className="flex-row justify-between items-center mb-4">
-            <View>
-              <Text className="text-xs font-mono tracking-wider mb-1" style={{ color: '#a0a0a0' }}>
-                LEVEL
-              </Text>
-              <Text className="text-5xl font-bold" style={{ color: '#00ff88' }}>
-                {profileData.level}
-              </Text>
-            </View>
-            <View className="items-end">
-              <Text className="text-xs font-mono tracking-wider mb-1" style={{ color: '#a0a0a0' }}>
-                TOTAL XP
-              </Text>
-              <Text className="text-2xl font-bold" style={{ color: '#ffffff' }}>
-                {profileData.xp.toLocaleString()}
-              </Text>
-            </View>
-          </View>
-
-          {/* XP Progress Bar */}
-          <View className="mb-2">
-            <Text className="text-xs font-mono tracking-wider mb-2" style={{ color: '#a0a0a0' }}>
-              NEXT LEVEL: {xpToNextLevel.toLocaleString()} XP
-            </Text>
-            <View className="h-3 rounded-full overflow-hidden" style={{ backgroundColor: '#0a0a0a' }}>
-              <View
-                className="h-full rounded-full"
-                style={{
-                  backgroundColor: '#00ff88',
-                  width: `${Math.min(progressPercent, 100)}%`,
-                }}
-              />
-            </View>
-          </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{profileData.xp.toLocaleString()}</Text>
+          <Text style={styles.statLabel}>Total XP</Text>
         </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statValue}>{xpToNextLevel.toLocaleString()}</Text>
+          <Text style={styles.statLabel}>XP to Next</Text>
+        </View>
+      </View>
 
-        {/* Compare Stats */}
-        <View className="mb-6 p-6 rounded-lg" style={{ backgroundColor: '#1a1a1a' }}>
-          <Text className="text-xs font-mono tracking-wider mb-4" style={{ color: '#a0a0a0' }}>
-            COMPARE STATS
-          </Text>
-          <TextInput
-            className="mb-4 p-4 rounded-lg border-2 text-white font-mono"
-            style={{
-              backgroundColor: '#0a0a0a',
-              borderColor: '#2a2a2a',
-              color: '#ffffff',
-            }}
-            placeholder="Enter user ID..."
-            placeholderTextColor="#666666"
-            value={lookupId}
-            onChangeText={setLookupId}
+      {/* XP Progress */}
+      <View style={styles.progressSection}>
+        <View style={styles.progressHeader}>
+          <Text style={styles.progressLabel}>Next Level Progress</Text>
+          <Text style={styles.progressPercentage}>{Math.round(progressPercent)}%</Text>
+        </View>
+        <View style={styles.progressBarContainer}>
+          <View
+            style={[
+              styles.progressBarFill,
+              {
+                width: `${Math.min(progressPercent, 100)}%`,
+              },
+            ]}
           />
-          <Pressable
-            onPress={handleLookup}
-            disabled={lookupLoading || !lookupId.trim()}
-            className="py-4 rounded-lg items-center"
-            style={({ pressed }) => ({
-              backgroundColor: lookupLoading || !lookupId.trim() ? '#2a2a2a' : pressed ? '#00cc6a' : '#00ff88',
-              opacity: pressed ? 0.8 : 1,
-            })}
-          >
-            <Text className="text-lg font-bold tracking-wider" style={{ color: '#0a0a0a' }}>
-              {lookupLoading ? 'SEARCHING...' : 'LOOKUP'}
-            </Text>
-          </Pressable>
-
-          {/* Lookup Result */}
-          {lookupResult && (
-            <View className="mt-4 p-4 rounded-lg border-2" style={{ backgroundColor: '#0a0a0a', borderColor: '#2a2a2a' }}>
-              <Text className="text-lg font-bold mb-2" style={{ color: '#ffffff' }}>
-                {lookupResult.display_name || 'UNNAMED WARRIOR'}
-              </Text>
-              <Text className="text-sm mb-1" style={{ color: '#a0a0a0' }}>
-                Level {lookupResult.level} • {lookupResult.xp.toLocaleString()} XP
-              </Text>
-              <Text className="text-sm font-bold" style={{ color: '#00ff88' }}>
-                {lookupResult.rank?.name.toUpperCase() || 'RECRUIT'}
-              </Text>
-            </View>
-          )}
         </View>
+      </View>
 
-        {/* Sign Out Button */}
+      {/* Settings Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Settings</Text>
         <Pressable
-          onPress={handleSignOut}
-          className="py-4 rounded-lg items-center border-2"
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? '#1a1a1a' : '#0a0a0a',
-            borderColor: '#ff4444',
-            opacity: pressed ? 0.8 : 1,
-          })}
+          style={({ pressed }) => [styles.listItem, pressed && styles.listItemPressed]}
+          onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}
         >
-          <Text className="text-lg font-bold tracking-wider" style={{ color: '#ff4444' }}>
-            SIGN OUT
-          </Text>
+          <View style={styles.listItemLeft}>
+            <Ionicons name="person-outline" size={24} color="#8b98a5" />
+            <Text style={styles.listItemText}>Edit Profile</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#8b98a5" />
         </Pressable>
-      </ScrollView>
-    </View>
+
+        <Pressable
+          style={({ pressed }) => [styles.listItem, pressed && styles.listItemPressed]}
+          onPress={() => Alert.alert('Coming Soon', 'Notifications settings will be available soon')}
+        >
+          <View style={styles.listItemLeft}>
+            <Ionicons name="notifications-outline" size={24} color="#8b98a5" />
+            <Text style={styles.listItemText}>Notifications</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#8b98a5" />
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [styles.listItem, pressed && styles.listItemPressed]}
+          onPress={() => Alert.alert('Coming Soon', 'Privacy settings will be available soon')}
+        >
+          <View style={styles.listItemLeft}>
+            <Ionicons name="shield-outline" size={24} color="#8b98a5" />
+            <Text style={styles.listItemText}>Privacy</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#8b98a5" />
+        </Pressable>
+      </View>
+
+      {/* Sign Out Button */}
+      <Pressable style={styles.signOutButton} onPress={handleSignOut}>
+        <Text style={styles.signOutButtonText}>Sign Out</Text>
+      </Pressable>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f1419',
+  },
+  content: {
+    paddingTop: 60,
+    paddingBottom: 40,
+    paddingHorizontal: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#0f1419',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#8b98a5',
+  },
+  errorContainer: {
+    flex: 1,
+    backgroundColor: '#0f1419',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ff6b35',
+  },
+  avatarSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#1c2631',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  displayName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 8,
+  },
+  rankBadge: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3498db',
+    backgroundColor: '#1c2631',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#1c2631',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2a3744',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#8b98a5',
+  },
+  progressSection: {
+    backgroundColor: '#1c2631',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#2a3744',
+  },
+  progressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  progressLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  progressPercentage: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3498db',
+  },
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: '#0f1419',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#3498db',
+    borderRadius: 4,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 12,
+  },
+  listItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#1c2631',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#2a3744',
+  },
+  listItemPressed: {
+    backgroundColor: '#2a3744',
+  },
+  listItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  listItemText: {
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  signOutButton: {
+    backgroundColor: '#1c2631',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#ff6b35',
+  },
+  signOutButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ff6b35',
+  },
+});

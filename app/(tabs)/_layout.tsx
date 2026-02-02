@@ -18,11 +18,11 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#00ff88', // Hard Party Green
-        tabBarInactiveTintColor: '#a0a0a0',
+        tabBarActiveTintColor: '#2196f3',
+        tabBarInactiveTintColor: '#9e9e9e',
         tabBarStyle: {
-          backgroundColor: '#0a0a0a',
-          borderTopColor: '#2a2a2a',
+          backgroundColor: '#ffffff',
+          borderTopColor: '#e0e0e0',
           borderTopWidth: 1,
         },
         headerShown: false,
@@ -39,6 +39,13 @@ export default function TabLayout() {
         options={{
           title: 'Map',
           tabBarIcon: ({ color }) => <TabBarIcon name="map" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="invite"
+        options={{
+          title: 'Invite',
+          tabBarIcon: ({ color }) => <TabBarIcon name="user-plus" color={color} />,
         }}
       />
       {isLeader && (

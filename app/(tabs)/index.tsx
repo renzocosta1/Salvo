@@ -4,19 +4,27 @@ import { useDirectives } from '@/hooks/useDirectives';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 export default function CommandFeedScreen() {
   const { profile, signOut } = useAuth();
   const { directives, loading, error, refreshing, refresh } = useDirectives();
   const router = useRouter();
 
-
   // Guard: Don't render if no profile (prevents flash when redirecting to login)
   if (!profile) {
     return (
-      <View className="flex-1 bg-tactical-bg justify-center items-center">
-        <ActivityIndicator size="large" color="#00ff88" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#ffffff" />
       </View>
     );
   }
@@ -24,11 +32,9 @@ export default function CommandFeedScreen() {
   // Loading state
   if (loading && !refreshing) {
     return (
-      <View className="flex-1 bg-tactical-bg justify-center items-center">
-        <ActivityIndicator size="large" color="#00ff88" />
-        <Text className="mt-4 text-sm font-mono tracking-wider" style={{ color: '#a0a0a0' }}>
-          LOADING DIRECTIVES...
-        </Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#ffffff" />
+        <Text style={styles.loadingText}>Loading directives...</Text>
       </View>
     );
   }
@@ -36,82 +42,44 @@ export default function CommandFeedScreen() {
   // Error state
   if (error && !refreshing) {
     return (
-      <View className="flex-1 bg-tactical-bg justify-center items-center px-8">
-        <View className="w-20 h-20 rounded-full bg-tactical-bgSecondary border-2 items-center justify-center mb-6" style={{ borderColor: '#ff4444' }}>
-          <Text className="text-2xl font-bold" style={{ color: '#ff4444' }}>!</Text>
+      <View style={styles.errorContainer}>
+        <View style={styles.errorIcon}>
+          <Text style={styles.errorIconText}>!</Text>
         </View>
-        <Text className="text-xl font-bold text-center mb-2" style={{ color: '#ff4444' }}>
-          CONNECTION FAILED
-        </Text>
-        <Text className="text-center text-sm" style={{ color: '#a0a0a0' }}>
-          {error.message}
-        </Text>
+        <Text style={styles.errorTitle}>Connection Failed</Text>
+        <Text style={styles.errorMessage}>{error.message}</Text>
       </View>
     );
   }
 
   return (
-    <View 
-      className="flex-1 bg-tactical-bg"
-      style={{ flex: 1 }}
-    >
+    <View style={styles.container}>
       {/* Header */}
-      <View className="px-4 pb-4 border-b border-tactical-border" style={{ paddingTop: 60 }}>
-        <View className="flex-row items-center justify-between mb-2">
-          <Text 
-            className="text-3xl font-bold tracking-tight flex-1"
-            style={{ color: '#ffffff' }}
-          >
-            COMMAND FEED
-          </Text>
-          <Pressable
-            onPress={() => {
-              Alert.alert(
-                'Sign Out',
-                'Are you sure you want to sign out?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Sign Out',
-                    style: 'destructive',
-                    onPress: () => signOut(),
-                  },
-                ]
-              );
-            }}
-            className="px-4 py-2 rounded ml-3"
-            style={{ backgroundColor: '#ff4444' }}
-          >
-            <Text className="text-white text-xs font-bold">SIGN OUT</Text>
-          </Pressable>
-        </View>
-        <View className="flex-row items-center justify-between">
-          <Text className="text-sm" style={{ color: '#a0a0a0' }}>
-            {profile.role.toUpperCase()} • LEVEL {profile.level}
-          </Text>
-          <View className="flex-row items-center">
-            <View className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: '#00ff88' }} />
-            <Text className="text-xs font-mono tracking-wider" style={{ color: '#00ff88' }}>
-              LIVE
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.headerTitle}>Command Feed</Text>
+            <Text style={styles.headerSubtitle}>
+              {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)} • Level{' '}
+              {profile.level}
             </Text>
           </View>
+          <Pressable
+            onPress={() => {
+              Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Sign Out',
+                  style: 'destructive',
+                  onPress: () => signOut(),
+                },
+              ]);
+            }}
+            style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutButtonPressed]}
+          >
+            <Text style={styles.signOutButtonText}>Sign Out</Text>
+          </Pressable>
         </View>
-      </View>
-
-      {/* TEMPORARY: Test Mission Button */}
-      <View className="px-4 py-4">
-        <Pressable
-          onPress={() => router.push('/mission/4b4df90a-c0d5-4d7e-aaec-2e92204eff8f')}
-          className="py-4 rounded-lg items-center justify-center"
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? '#cc5428' : '#ff6b35',
-            opacity: pressed ? 0.9 : 1,
-          })}
-        >
-          <Text className="text-lg font-bold tracking-wider" style={{ color: '#ffffff' }}>
-            🎯 TEST MISSION (TEMP)
-          </Text>
-        </Pressable>
       </View>
 
       {/* Directive List */}
@@ -122,14 +90,14 @@ export default function CommandFeedScreen() {
           data={directives}
           renderItem={({ item }) => <DirectiveCard directive={item} />}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingTop: 16, paddingBottom: 32 }}
-          style={{ flex: 1 }}
+          contentContainerStyle={styles.listContent}
+          style={styles.list}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={refresh}
-              tintColor="#00ff88"
-              colors={['#00ff88']}
+              tintColor="#ffffff"
+              colors={['#ffffff']}
             />
           }
         />
@@ -137,3 +105,103 @@ export default function CommandFeedScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f1419', // Citizen dark blue-black
+  },
+  header: {
+    backgroundColor: '#0f1419',
+    paddingTop: 60,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2a3744', // Subtle border
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#ffffff', // White text
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#8b98a5', // Muted gray
+  },
+  signOutButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#1c2631', // Darker card background
+    borderRadius: 8,
+  },
+  signOutButtonPressed: {
+    opacity: 0.7,
+  },
+  signOutButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ff6b35', // Soft red/orange
+  },
+  list: {
+    flex: 1,
+  },
+  listContent: {
+    paddingTop: 16,
+    paddingBottom: 32,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#0f1419',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#8b98a5',
+  },
+  errorContainer: {
+    flex: 1,
+    backgroundColor: '#0f1419',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  errorIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#1c2631',
+    borderWidth: 2,
+    borderColor: '#ff6b35',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  errorIconText: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#ff6b35',
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorMessage: {
+    fontSize: 14,
+    color: '#8b98a5',
+    textAlign: 'center',
+  },
+});
