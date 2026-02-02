@@ -52,6 +52,8 @@ export function h3ToGeoJSON(h3Index: string): GeoJSON.Feature<GeoJSON.Polygon> {
       const lng = parseInt(match[2]) / 10000;
       const size = 0.003; // ~300m hexagon
       const coordinates = generateHexagon(lng, lat, size);
+      
+      
       return {
         type: 'Feature',
         properties: { h3Index },

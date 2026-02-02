@@ -1,61 +1,27 @@
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:1',message:'Module imports starting',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2'})}).catch(()=>{});
-// #endregion
-
 import * as Constants from 'expo-constants';
 import React, { useEffect, useState } from 'react';
 import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:4',message:'Before Location import attempt',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H5'})}).catch(()=>{});
-// #endregion
 
 let Location: any = null;
 let locationAvailable = false;
 
 try {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:try',message:'Attempting expo-location require',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H5'})}).catch(()=>{});
-  // #endregion
-  
   Location = require('expo-location');
   locationAvailable = true;
-  
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:success',message:'expo-location loaded successfully',data:{locationAvailable:true,hasRequestPermissions:typeof Location?.requestForegroundPermissionsAsync==='function'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-  // #endregion
 } catch (error) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:catch',message:'expo-location FAILED to load',data:{error:error?.toString(),errorName:error?.name,errorMessage:error?.message,locationAvailable:false},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3'})}).catch(()=>{});
-  // #endregion
   console.warn('⚠️ Location module not available:', error);
 }
 
 import { coordsToH3, h3ArrayToGeoJSON } from '../../lib/h3Utils';
 import { supabase } from '../../lib/supabase';
 
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:6',message:'Map module import start',data:{platform:Platform.OS},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-// #endregion
-
 let Mapbox: any = null;
 let mapboxAvailable = false;
 
 try {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:14',message:'Attempting Mapbox import',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
-  
   Mapbox = require('@rnmapbox/maps').default;
   mapboxAvailable = true;
-  
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:21',message:'Mapbox import SUCCESS',data:{mapboxAvailable:true,hasSetAccessToken:typeof Mapbox?.setAccessToken==='function'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
 } catch (error) {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:27',message:'Mapbox import FAILED',data:{error:error?.toString(),mapboxAvailable:false},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1'})}).catch(()=>{});
-  // #endregion
   console.warn('⚠️ Mapbox not available:', error);
 }
 
@@ -65,13 +31,8 @@ const MAPBOX_ACCESS_TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
 if (mapboxAvailable && Mapbox) {
   try {
     Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:41',message:'Mapbox token set',data:{hasToken:!!MAPBOX_ACCESS_TOKEN},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
   } catch (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:46',message:'Mapbox setAccessToken failed',data:{error:error?.toString()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
+    console.error('Failed to set Mapbox token:', error);
   }
 }
 
@@ -84,29 +45,17 @@ export default function MapScreen() {
 
   // Request location permissions and get user location
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:useEffect-location',message:'Location useEffect triggered',data:{locationAvailable,hasLocation:!!Location},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H5'})}).catch(()=>{});
-    // #endregion
     
     if (!locationAvailable || !Location) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:location-skip',message:'Location not available, skipping permission request',data:{locationAvailable,Location:!!Location},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H2,H3'})}).catch(()=>{});
-      // #endregion
       console.log('⚠️ Location module not available');
       return;
     }
     
     (async () => {
       try {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:request-perm',message:'Requesting location permissions',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4,H5'})}).catch(()=>{});
-        // #endregion
         
         const { status } = await Location.requestForegroundPermissionsAsync();
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:perm-result',message:'Permission request result',data:{status},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-        // #endregion
         
         if (status !== 'granted') {
           console.log('Location permission denied');
@@ -120,15 +69,9 @@ export default function MapScreen() {
         ];
         setUserLocation(coords);
         
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:location-success',message:'User location obtained',data:{coords},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
-        // #endregion
         
         console.log('📍 User location:', coords);
       } catch (error) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/cf7b998a-2ef0-40b8-a892-f188ac9947b0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:location-error',message:'Location error',data:{error:error?.toString()},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4,H5'})}).catch(()=>{});
-        // #endregion
         console.error('Location error:', error);
       }
     })();
@@ -136,8 +79,10 @@ export default function MapScreen() {
 
   // Subscribe to Supabase realtime updates for h3_tiles
   useEffect(() => {
+    
     // Fetch initial revealed tiles
     const fetchRevealedTiles = async () => {
+      
       const { data, error } = await supabase
         .from('h3_tiles')
         .select('h3_index');
@@ -151,6 +96,8 @@ export default function MapScreen() {
         const indices = data.map(row => row.h3_index);
         setRevealedH3Tiles(indices);
         setTilesRevealed(indices.length);
+        
+        
         console.log(`🗺️ Loaded ${indices.length} revealed tiles`);
       }
     };
@@ -168,13 +115,21 @@ export default function MapScreen() {
           table: 'h3_tiles',
         },
         (payload: any) => {
+          
           const newH3Index = payload.new.h3_index;
           console.log('🆕 New tile revealed:', newH3Index);
-          setRevealedH3Tiles(prev => [...new Set([...prev, newH3Index])]);
+          setRevealedH3Tiles(prev => {
+            const updated = [...new Set([...prev, newH3Index])];
+            
+            
+            return updated;
+          });
           setTilesRevealed(prev => prev + 1);
         }
       )
-      .subscribe();
+      .subscribe((status: string) => {
+        console.log('🔔 Realtime subscription status:', status);
+      });
 
     return () => {
       channel.unsubscribe();
@@ -182,9 +137,6 @@ export default function MapScreen() {
   }, []);
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:58',message:'MapScreen mounted',data:{mapboxAvailable,isExpoGo,executionEnv:Constants.default?.executionEnvironment,hasToken:!!MAPBOX_ACCESS_TOKEN},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H1,H4'})}).catch(()=>{});
-    // #endregion
     
     if (!MAPBOX_ACCESS_TOKEN) {
       console.error('❌ MAPBOX_ACCESS_TOKEN is not set in .env file');
@@ -203,6 +155,7 @@ export default function MapScreen() {
     const [lng, lat] = userLocation;
     const h3Index = coordsToH3(lat, lng);
 
+    
     console.log(`🎯 Checking in at H3: ${h3Index}`);
 
     // Get current user ID
@@ -213,23 +166,41 @@ export default function MapScreen() {
     }
 
     // Insert into Supabase (will trigger realtime update)
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('check_ins')
       .insert({
         user_id: user.id,
         h3_index: h3Index,
         event_type: 'check_in',
-      });
+      })
+      .select();
 
     if (error) {
       console.error('Check-in error:', error);
       Alert.alert('Check-in Failed', error.message);
     } else {
+      
+      console.log('✅ Check-in successful!', data);
       Alert.alert(
         '✅ Area Revealed!',
         `You discovered hexagon ${h3Index.slice(0, 8)}...`,
         [{ text: 'OK' }]
       );
+      
+      // Manually refetch tiles as a backup (in case realtime doesn't fire)
+      setTimeout(async () => {
+        const { data: tilesData } = await supabase
+          .from('h3_tiles')
+          .select('h3_index');
+        if (tilesData) {
+          const indices = tilesData.map(row => row.h3_index);
+          
+          
+          setRevealedH3Tiles(indices);
+          setTilesRevealed(indices.length);
+          console.log(`🔄 Manually refetched ${indices.length} tiles`);
+        }
+      }, 1000);
     }
   };
 
@@ -296,6 +267,7 @@ export default function MapScreen() {
 
   // Convert revealed H3 tiles to GeoJSON
   const revealedGeoJSON = h3ArrayToGeoJSON(revealedH3Tiles);
+  
 
   // Mapbox is available, render the map
   return (
@@ -305,9 +277,6 @@ export default function MapScreen() {
         styleURL="mapbox://styles/mapbox/dark-v11"
         onDidFinishLoadingMap={() => {
           setMapReady(true);
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:141',message:'Map loaded successfully',data:{mapReady:true},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H4'})}).catch(()=>{});
-          // #endregion
           console.log('🗺️ Map loaded successfully');
         }}
       >
