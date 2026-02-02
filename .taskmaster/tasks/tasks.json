@@ -206,7 +206,7 @@
             "description": "Configure the MapboxGL component with a 3D tilted perspective suitable for tactical viewing.",
             "dependencies": [],
             "details": "Install and initialize @rnmapbox/maps. Set the camera configuration with a pitch of 45-60 degrees and a zoom level optimized for city-scale tactical movement. Use a dark-themed base style.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify that the map renders on the mobile device with a visible 3D tilt and tactical dark styling."
           },
           {
