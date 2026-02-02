@@ -2,6 +2,7 @@
   "expo": {
     "name": "Salvo",
     "slug": "Salvo",
+    "owner": "renzocosta",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -14,9 +15,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.renzocosta.salvo"
     },
     "android": {
+      "package": "com.renzocosta.salvo",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, Text, View, ScrollView, Pressable, Linking } from 'react-native';
 import * as Constants from 'expo-constants';
+import React, { useEffect, useState } from 'react';
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 // #region agent log
 fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'map.tsx:6',message:'Map module import start',data:{platform:Platform.OS},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'H5'})}).catch(()=>{});
