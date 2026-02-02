@@ -29,14 +29,29 @@ async function syncCheckIns(): Promise<number> {
     return 0;
   }
   
-  console.log(`📤 Syncing ${pending.length} pending check-ins...`);
+  // Get current authenticated user
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    console.error('❌ Not authenticated, cannot sync check-ins');
+    return 0;
+  }
+  
+  // Filter to only check-ins for the current user (RLS requirement)
+  const userCheckIns = pending.filter(ci => ci.user_id === user.id);
+  
+  if (userCheckIns.length === 0) {
+    console.log('📊 No check-ins to sync for current user');
+    return 0;
+  }
+  
+  console.log(`📤 Syncing ${userCheckIns.length} pending check-ins for user ${user.id}...`);
   
   try {
     // Batch insert to Supabase
     const { data, error } = await supabase
       .from('check_ins')
       .insert(
-        pending.map(ci => ({
+        userCheckIns.map(ci => ({
           user_id: ci.user_id,
           h3_index: ci.h3_index,
           event_type: ci.event_type,
@@ -51,11 +66,11 @@ async function syncCheckIns(): Promise<number> {
     }
     
     // Mark as synced in SQLite
-    const ids = pending.map(ci => ci.id!);
+    const ids = userCheckIns.map(ci => ci.id!);
     await markCheckInsSynced(ids);
     
-    console.log(`✅ Synced ${pending.length} check-ins successfully`);
-    return pending.length;
+    console.log(`✅ Synced ${userCheckIns.length} check-ins successfully`);
+    return userCheckIns.length;
   } catch (error) {
     console.error('Sync check-ins error:', error);
     throw error;
@@ -72,35 +87,70 @@ async function syncSalvos(): Promise<number> {
     return 0;
   }
   
-  console.log(`📤 Syncing ${pending.length} pending salvos...`);
+  // Get current authenticated user
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    console.error('❌ Not authenticated, cannot sync salvos');
+    return 0;
+  }
   
-  try {
-    // Batch insert to Supabase
-    const { data, error } = await supabase
-      .from('salvos')
-      .insert(
-        pending.map(salvo => ({
+  // Filter to only salvos for the current user (RLS requirement)
+  const userSalvos = pending.filter(salvo => salvo.user_id === user.id);
+  
+  if (userSalvos.length === 0) {
+    console.log('📊 No salvos to sync for current user');
+    return 0;
+  }
+  
+  console.log(`📤 Syncing ${userSalvos.length} pending salvos for user ${user.id}...`);
+  
+  // Insert salvos one at a time to handle rate limits gracefully
+  const syncedIds: number[] = [];
+  let successCount = 0;
+  
+  for (const salvo of userSalvos) {
+    try {
+      const { error } = await supabase
+        .from('salvos')
+        .insert({
           directive_id: salvo.directive_id,
           user_id: salvo.user_id,
-        }))
-      )
-      .select('id');
-    
-    if (error) {
-      console.error('❌ Failed to sync salvos:', error);
-      throw error;
+        });
+      
+      if (error) {
+        // Check if it's a rate limit error
+        if (error.code === '42501' || error.message?.includes('rate limit')) {
+          console.warn(`⏸️ Rate limit hit for salvo ${salvo.id}, will retry later`);
+          // Don't mark as synced, leave in queue for next sync
+          continue;
+        }
+        
+        // Other errors (RLS violation, etc.)
+        console.error(`❌ Failed to sync salvo ${salvo.id}:`, error);
+        // Don't mark as synced, leave in queue
+        continue;
+      }
+      
+      // Success! Mark for synced
+      syncedIds.push(salvo.id!);
+      successCount++;
+    } catch (err) {
+      console.error(`❌ Unexpected error syncing salvo ${salvo.id}:`, err);
+      // Don't mark as synced
     }
-    
-    // Mark as synced in SQLite
-    const ids = pending.map(salvo => salvo.id!);
-    await markSalvosSynced(ids);
-    
-    console.log(`✅ Synced ${pending.length} salvos successfully`);
-    return pending.length;
-  } catch (error) {
-    console.error('Sync salvos error:', error);
-    throw error;
   }
+  
+  // Mark successfully synced salvos
+  if (syncedIds.length > 0) {
+    await markSalvosSynced(syncedIds);
+    console.log(`✅ Synced ${successCount} salvos successfully`);
+  }
+  
+  if (successCount < userSalvos.length) {
+    console.log(`⚠️ ${userSalvos.length - successCount} salvos remain in queue (rate limited or errors)`);
+  }
+  
+  return successCount;
 }
 
 /**
