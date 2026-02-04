@@ -5,7 +5,7 @@ Salvo Phase 2: Political Engagement Platform transforms the existing tactical co
 # Core Features  
 **Mission Creation Dropdown System**: Captains create missions via intuitive dropdown menu with 7 types: Recruit Friends (100 XP), Signal Boost (50 XP), Raid Comments (75 XP), Phone/Email Protest (150 XP), PFP Change (25 XP), Event Attendance (100 XP), Voter Registration (150 XP). Each type auto-assigns verification method (photo/screenshot/manual) and fixed XP. Dynamic form shows relevant fields: URLs for social missions, scripts for phone protests, keywords for raids. Scope selector: District/County/State/National. No more manual XP entry - all standardized.
 
-**Address-to-District Auto-Assignment**: Onboarding includes address entry screen (after age/gender, before feature selection). Mapbox Geocoding API converts address → lat/lng → Maryland Legislative District + County + Congressional District. Users auto-assigned to correct legislative_district for scoped missions and notifications. Replaces warrior_bands concept with geographic hierarchy. Captains manually assigned per district after interviews. Scalable data model supports multi-state expansion (Florida, South Carolina, etc.).
+**Address-to-District Auto-Assignment**: Onboarding includes address entry screen (after age/gender, before feature selection). Mapbox Geocoding API converts address → lat/lng → Maryland Legislative District + County + Congressional District. Users auto-assigned to correct legislative_district for scoped missions and notifications. Replaces warrior_bands concept with geographic hierarchy. **Role Hierarchy**: National → State → County → Captain (District) → Warrior (User). **Captain Assignment**: County leaders, State leaders, or National leaders assign Captains to districts. Once assigned, Captain is the **sole person** sending missions for their Legislative District. County leaders can send missions to specific districts within their county OR to entire county. Scalable data model supports full Maryland (all 47 districts, 23 counties) with initial focus on Montgomery County + MD-6, then multi-state expansion (Florida, South Carolina, etc.).
 
 **Digital Ballot Voting Guide**: "Main Quest" screen displays replica of user's local ballot with endorsed candidates highlighted in Neon Green. Leadership creates ballots per election/district. Down-ballot races shown (Governor, Senate, House, County Exec, School Board, etc.). Feels like "voting for your team to win." Users commit to vote for endorsed candidates. Completionist badge: High XP only if user verifies voting for ALL endorsed down-ballot seats. Critical for driving turnout on actual election day.
 
@@ -20,14 +20,18 @@ Salvo Phase 2: Political Engagement Platform transforms the existing tactical co
 # User Experience  
 **User Personas**: 
 - **Warrior (Voter)**: Age 18-65, politically engaged, wants to help "their team win." Completes missions, recruits friends, keeps notifications on to never miss election intel. Needs simple, clear instructions and instant gratification (XP/rank).
-- **Captain (District Leader)**: Runs legislative district (e.g., Maryland District 15). Creates missions for their district, recruits members, monitors completion rates. Needs easy mission creation UI and visibility into district stats.
-- **General (State Leadership)**: Oversees state-wide strategy. Creates ballots with endorsed candidates, assigns Captains, launches state-wide missions. Needs admin tools for ballot creation and Captain management.
+- **Captain (District Leader)**: Assigned by County/State/National leaders. Runs ONE legislative district (e.g., Maryland District 15). **Sole person** creating missions for their district. Monitors district stats, recruits members. Needs easy mission creation UI.
+- **County Leader**: Oversees entire county (e.g., Montgomery County). Assigns Captains to districts within county. Can send missions to specific districts OR entire county. Monitors county-wide stats.
+- **State Leader**: Oversees entire state (e.g., Maryland). Assigns County leaders and Captains. Creates ballots with endorsed candidates. Can send missions to specific districts, counties, OR entire state. Launches state-wide initiatives.
+- **National Leader**: Top of hierarchy. Oversees all states. Assigns State leaders. Can send missions anywhere. Creates national campaigns.
 
 **Key User Flows**:
 1. **New User Onboarding**: Sign up → Oath screen → Personal details (age/gender) → **Address entry (NEW)** → Feature preferences → **Security Clearance Mission (verify voter registration - FUTURE)** → Main app
-2. **Captain Creates Mission**: HQ Tab → Missions → Dropdown selects "Signal Boost" → Enters target URL, description, selects platform → Selects scope (District/County/State) → Auto-shows XP reward (50 XP) → Create Mission → Appears in Command Feed for scoped users
-3. **Warrior Completes Mission**: Views Command Feed → Taps "SIGNAL BOOST: Share this post" → Taps "Open Link" → Twitter opens → User likes/retweets post → Returns to app → Taps "Upload Proof" → Takes screenshot → Submits → Gemini verifies keyword/engagement → XP awarded → Notification sent
-4. **Election Day Flow**: User receives notification "ELECTION DAY: Vote for our team!" → Opens Main Quest (Ballot Guide) → Sees endorsed candidates in Neon Green for all races → Goes to polls → Votes for endorsed candidates → Returns to app → Uploads "I Voted" sticker photo → Verifies voting for all endorsed races → Receives Completionist Badge + High XP
+2. **County Leader Assigns Captain**: HQ Tab → Leadership → View Districts → Selects "Maryland District 15" → Taps "Assign Captain" → Search users in district → Selects user → Confirms → User promoted to Captain role → Captain receives notification → Captain can now create missions for District 15
+3. **Captain Creates Mission**: HQ Tab → Missions → Dropdown selects "Signal Boost" → Enters target URL, description, selects platform → Scope auto-set to "District" (Captain's district) → Auto-shows XP reward (50 XP) → Create Mission → Appears in Command Feed for users in District 15
+4. **County Leader Creates County-Wide Mission**: HQ Tab → Missions → Dropdown selects "Voter Registration" → Enters description → Selects scope "County" (Montgomery County) → Auto-shows XP reward (150 XP) → Create Mission → Appears in Command Feed for ALL users in Montgomery County
+5. **Warrior Completes Mission**: Views Command Feed → Taps "SIGNAL BOOST: Share this post" → Taps "Open Link" → Twitter opens → User likes/retweets post → Returns to app → Taps "Upload Proof" → Takes screenshot → Submits → Gemini verifies keyword/engagement → XP awarded → Notification sent
+6. **Election Day Flow**: User receives notification "ELECTION DAY: Vote for our team!" → Opens Main Quest (Ballot Guide) → Sees endorsed candidates in Neon Green for all races → Goes to polls → Votes for endorsed candidates → Returns to app → Uploads "I Voted" sticker photo → Verifies voting for all endorsed races → Receives Completionist Badge + High XP
 
 **UI/UX Considerations**:
 - **Citizen-style Dark Theme**: Already implemented. Maintain consistency across all new screens.
@@ -57,6 +61,18 @@ ALTER TABLE profiles ADD COLUMN latitude NUMERIC;
 ALTER TABLE profiles ADD COLUMN longitude NUMERIC;
 ALTER TABLE profiles ADD COLUMN geocoded_at TIMESTAMPTZ;
 
+-- Update profiles table to support new leadership roles
+-- Existing role column: CHECK (role IN ('general', 'captain', 'warrior'))
+-- Update to: CHECK (role IN ('national_leader', 'state_leader', 'county_leader', 'captain', 'warrior'))
+ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+ALTER TABLE profiles ADD CONSTRAINT profiles_role_check CHECK (role IN (
+  'national_leader', 'state_leader', 'county_leader', 'captain', 'warrior'
+));
+
+-- Add leadership scope tracking to profiles
+ALTER TABLE profiles ADD COLUMN leadership_state TEXT; -- e.g., "Maryland" for state leaders
+ALTER TABLE profiles ADD COLUMN leadership_county TEXT; -- e.g., "Montgomery" for county leaders
+
 -- Create legislative_districts table (replaces warrior_bands for geographic hierarchy)
 CREATE TABLE legislative_districts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -64,7 +80,9 @@ CREATE TABLE legislative_districts (
   county TEXT NOT NULL, -- e.g., "Montgomery", "Miami-Dade"
   district_name TEXT NOT NULL, -- e.g., "District 15", "District 27"
   district_code TEXT NOT NULL, -- e.g., "MD-15", "FL-27"
-  captain_id UUID REFERENCES auth.users(id),
+  captain_id UUID REFERENCES auth.users(id), -- The assigned captain
+  assigned_by UUID REFERENCES auth.users(id), -- Who assigned this captain (County/State/National leader)
+  assigned_at TIMESTAMPTZ, -- When captain was assigned
   party_id UUID NOT NULL REFERENCES parties(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(state, county, district_name)
@@ -203,25 +221,42 @@ CREATE TABLE ballot_commitments (
 
 **Phase 1: Database Foundation & Address System** (Critical Path)
 - Create and run migration SQL to add all new tables and columns
+- Update profiles.role constraint to include new leadership roles (national_leader, state_leader, county_leader, captain, warrior)
 - Seed mission_type_xp lookup table with fixed XP values
-- Create legislative_districts table and seed Montgomery County districts (District 14, 15, 16, 17, 18, 19, 20)
+- Create legislative_districts table and seed **ALL 47 Maryland legislative districts** across all 23 counties (Montgomery, Baltimore, Anne Arundel, etc.)
+- **Initial focus**: Montgomery County (Districts 14-20) + MD-6 Congressional District, but infrastructure supports statewide expansion
 - Add address entry screen to onboarding flow (after personal-details, before feature-selection)
-- Integrate Mapbox Geocoding API: Address form → API call → lat/lng → district lookup
+- Integrate Mapbox Geocoding API: Address form → API call → lat/lng → Maryland district lookup (all 47 districts)
 - Auto-assign users to legislative_district_id based on geocoded address
 - Update auth guard to include address verification step
-- Fallback UI: If geocoding fails, show manual district selector dropdown
+- Fallback UI: If geocoding fails, show manual district selector dropdown (all 47 districts available)
 
-**Phase 2: Mission Creation UI (HQ Tab Enhancement)** (Critical Path)
+**Phase 2: Captain Assignment System** (Critical Path - Leadership Tools)
+- Create "Leadership" tab in HQ screen (visible only to county_leader, state_leader, national_leader roles)
+- **County Leader UI**: View all districts in their county → Select district → Search users in that district → Assign as Captain → Updates legislative_districts.captain_id, assigned_by, assigned_at
+- **State Leader UI**: View all counties in their state → Drill down to districts → Assign Captains OR assign County Leaders
+- **National Leader UI**: View all states → Drill down to states/counties/districts → Assign leaders at any level
+- RLS policies: Only users with leadership role at correct scope can assign captains (e.g., County Leader can only assign captains in their county)
+- Captain receives notification when assigned: "You've been assigned as Captain of Maryland District 15"
+- Once assigned, user's role automatically updated to 'captain' and warrior_band_id set to legislative_district_id
+- **Assignment validation**: Cannot assign same captain to multiple districts (one captain = one district)
+- **Reassignment support**: County/State/National leaders can reassign captains (unassign current, assign new)
+
+**Phase 3: Mission Creation UI (HQ Tab Enhancement)** (Critical Path)
 - Update command-center screen to add "Missions" tab (alongside Directives and Bands)
 - Build mission type dropdown component with 7 options
 - Implement dynamic form fields that change based on selected mission type
-- Add scope level selector (District/County/State/National) with smart defaults
+- **Scope level selector logic** (role-based):
+  - **Captain**: Scope auto-set to "District" (their assigned district only, cannot change)
+  - **County Leader**: Scope options: "Specific District" (dropdown of districts in county) OR "Entire County"
+  - **State Leader**: Scope options: "Specific District", "Specific County" (dropdown), OR "Entire State"
+  - **National Leader**: Scope options: "Specific District", "Specific County", "Specific State" (dropdown), OR "National"
 - Auto-populate XP reward and verification method from database (read-only display)
-- Create mission function: Validate fields → Insert into directives with mission_type, scope_level, target fields
+- Create mission function: Validate fields → Insert into directives with mission_type, scope_level, target_legislative_district_id (if specific district), target_county (if county), target_state (if state)
 - Update Command Feed (index screen) to show mission cards with mission-specific UI (e.g., "Open Link" button for social missions)
-- Filter missions by user's scope (show missions for their district, county, state, and national)
+- **Filter missions by user's scope**: Show missions for their district + county + state + national (hierarchical visibility)
 
-**Phase 3: Easy Link Opening for Social Missions** (Quick Win)
+**Phase 4: Easy Link Opening for Social Missions** (Quick Win)
 - Add expo-web-browser and expo-linking to package.json
 - Create openMissionLink utility function with deep link support
 - Update mission cards in Command Feed to show "Open Link" button for SIGNAL_BOOST and RAID_COMMENTS types
@@ -229,7 +264,7 @@ CREATE TABLE ballot_commitments (
 - Fallback to in-app browser if native app not installed
 - Test with real Twitter, Reddit, Instagram URLs
 
-**Phase 4: Mission Verification Enhancements** (Build on existing)
+**Phase 5: Mission Verification Enhancements** (Build on existing)
 - Extend existing Gemini Edge Function to handle new mission types
 - RAID_COMMENTS: Check screenshot for raid_keyword presence
 - PFP_CHANGE: Verify screenshot shows new profile picture matching pfp_description
@@ -239,7 +274,7 @@ CREATE TABLE ballot_commitments (
 - VOTER_REGISTRATION: Verify photo shows forms (use existing photo verification)
 - RECRUIT_FRIENDS: Track via invite codes (already implemented)
 
-**Phase 5: Digital Ballot Voting Guide** (High Impact)
+**Phase 6: Digital Ballot Voting Guide** (High Impact)
 - Create Main Quest screen (new tab or route)
 - Build ballot UI: Replica of real ballot design with race titles and candidate names
 - Fetch user's ballot based on legislative_district_id and upcoming election_date
@@ -250,7 +285,7 @@ CREATE TABLE ballot_commitments (
 - "I Voted" proof upload: Photo of "I Voted" sticker or ballot
 - Completionist badge logic: Award high XP (e.g., 500 XP) if user verifies voting for ALL endorsed candidates
 
-**Phase 6: Ballot Management UI (General/State Leadership)** (Admin Tool)
+**Phase 7: Ballot Management UI (State/National Leadership)** (Admin Tool)
 - Create admin screen for General/State leadership only (role-gated)
 - "Create Ballot" form: Select state, county, district, election date, election name
 - "Add Race" form: Race title, position order
@@ -259,7 +294,7 @@ CREATE TABLE ballot_commitments (
 - "Publish Ballot" button: Makes ballot active for users
 - List all ballots with edit/delete options
 
-**Phase 7: Notification Discipline & Strategy** (Retention Focus)
+**Phase 8: Notification Discipline & Strategy** (Retention Focus)
 - Track notification permission status in user_preferences table
 - Add notification permission prompt after onboarding (or defer to first mission)
 - Onboarding warning screen: "Disabling notifications means missing critical election night intel. Keep them ON to never miss an election."
@@ -272,7 +307,7 @@ CREATE TABLE ballot_commitments (
 - Notification preferences UI: Let users choose frequency (All, Important Only, Election Day Only, Off)
 - Analytics dashboard: Track notification opt-in rate per district/state
 
-**Phase 8: Map Territory Game (Stretch Goal - Optional)** (Nice-to-Have)
+**Phase 9: Map Territory Game (Stretch Goal - Optional)** (Nice-to-Have)
 - Increase H3 resolution from Res 9 to Res 7 or 8 (larger hexes)
 - Create territory_claims table: hex_h3_index, claimed_by_party_id, claimed_at, status
 - Leadership UI: Mark hexes as "enemy territory" (red) or "our territory" (green)
@@ -281,7 +316,7 @@ CREATE TABLE ballot_commitments (
 - Territory leaderboard: Which districts control most territory
 - **If too complex or timeline too tight, skip this entire phase**
 
-**Phase 9: Multi-State Expansion Prep** (Scalability)
+**Phase 10: Multi-State Expansion Prep** (Scalability)
 - Create Florida legislative district lookup table
 - Create South Carolina legislative district lookup table
 - Update address geocoding to detect state and use correct lookup
@@ -289,7 +324,7 @@ CREATE TABLE ballot_commitments (
 - State-scoped missions: Only users in that state see state missions
 - Test end-to-end flow with Florida and South Carolina addresses
 
-**Phase 10: Testing & Launch Prep** (Production Readiness)
+**Phase 11: Testing & Launch Prep** (Production Readiness)
 - End-to-end testing: New user onboarding → Address entry → Mission creation → Mission completion → Ballot voting guide → Verification
 - Performance testing: 10,000+ users, 1,000+ missions, real-time updates
 - Notification testing: Ensure valuable, not spammy
@@ -301,27 +336,34 @@ CREATE TABLE ballot_commitments (
 
 # Logical Dependency Chain
 
-**Foundation Must Come First**: Phase 1 (Database & Address System) is blocking for everything else. Cannot create missions without legislative_districts table. Cannot auto-assign users without address geocoding.
+**Foundation Must Come First**: Phase 1 (Database & Address System) is blocking for everything else. Cannot create missions without legislative_districts table. Cannot assign captains without districts. Cannot auto-assign users without address geocoding.
 
-**Mission Creation Before Verification**: Phase 2 (Mission Creation UI) must precede Phase 4 (Verification Enhancements). Cannot verify missions that don't exist yet.
+**Captain Assignment Before Mission Creation**: Phase 2 (Captain Assignment System) must come after Phase 1 but before Phase 3. County/State/National leaders need to assign Captains to districts before Captains can create missions. This is the chain of command.
 
-**Link Opening Can Be Parallel**: Phase 3 (Easy Link Opening) can be built alongside Phase 2. Just UI enhancement, no database dependencies.
+**Mission Creation After Captain Assignment**: Phase 3 (Mission Creation UI) requires Phase 2 to be complete. Cannot create missions without captains assigned to districts.
 
-**Ballot System Depends on Districts**: Phase 5 (Digital Ballot) requires Phase 1 (legislative_districts) to be complete so we can scope ballots per district.
+**Link Opening Can Be Parallel**: Phase 4 (Easy Link Opening) can be built alongside Phase 3. Just UI enhancement, no database dependencies.
 
-**Ballot Management Depends on Ballot Display**: Phase 6 (Ballot Management UI) should come after Phase 5 (Ballot Display) so admins can see what they're creating.
+**Mission Verification After Mission Creation**: Phase 5 (Verification Enhancements) must come after Phase 3. Cannot verify missions that don't exist yet.
 
-**Notifications Can Wait**: Phase 7 (Notification Discipline) can come later. App works without push notifications. Focus on core mission system first.
+**Ballot System Depends on Districts**: Phase 6 (Digital Ballot) requires Phase 1 (legislative_districts) to be complete so we can scope ballots per district. Can be built in parallel with Phases 2-5.
 
-**Map Territory Game is Optional**: Phase 8 can be skipped entirely if timeline is tight. Map improvements are nice-to-have, not critical path.
+**Ballot Management After Ballot Display**: Phase 7 (Ballot Management UI) should come after Phase 6 (Ballot Display) so State/National leaders can see what they're creating.
 
-**Multi-State Expansion After MVP**: Phase 9 (Florida/South Carolina) should come after Montgomery County is working perfectly. Don't scale broken features.
+**Notifications Can Wait**: Phase 8 (Notification Discipline) can come later. App works without push notifications. Focus on core mission system first.
 
-**Testing Throughout**: Phase 10 (Testing) should happen continuously, not just at the end. Test each phase as it's built.
+**Map Territory Game is Optional**: Phase 9 can be skipped entirely if timeline is tight. Map improvements are nice-to-have, not critical path.
 
-**Critical Path for MVP Launch**: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 10 (Testing). Everything else is parallel or deferred.
+**Multi-State Expansion After Maryland MVP**: Phase 10 (Florida/South Carolina) should come after Montgomery County + all Maryland is working perfectly. Don't scale broken features. Maryland infrastructure already supports 47 districts.
 
-**Quick Wins for Captain Buy-In**: Get Phase 2 (Mission Creation) and Phase 3 (Link Opening) working ASAP. Captains need to see mission creation UI to get excited. Show them "Look how easy it is to create a mission!"
+**Testing Throughout**: Phase 11 (Testing) should happen continuously, not just at the end. Test each phase as it's built.
+
+**Critical Path for MVP Launch**: Phase 1 (Database) → Phase 2 (Captain Assignment) → Phase 3 (Mission Creation) → Phase 4 (Link Opening) → Phase 5 (Verification) → Phase 6 (Ballot) → Phase 7 (Ballot Management) → Phase 11 (Testing). Everything else is parallel or deferred.
+
+**Quick Wins for Leadership Buy-In**: 
+- Get Phase 2 (Captain Assignment) working to show County/State leaders "You can easily assign captains to districts"
+- Get Phase 3 (Mission Creation) working to show Captains "Look how easy it is to create a mission!"
+- Get Phase 4 (Link Opening) working to show Warriors "One tap to raid target posts!"
 
 # Risks and Mitigations  
 
@@ -382,43 +424,72 @@ EVENT_ATTENDANCE → photo (Gemini checks for event context)
 VOTER_REGISTRATION → photo (Gemini checks for forms)
 ```
 
-**Geographic Hierarchy Structure**:
+**Role & Geographic Hierarchy Structure**:
 ```
-National (All users)
-  ↓
-State (Maryland, Florida, South Carolina)
-  ↓
-County (Montgomery, Miami-Dade, Charleston)
-  ↓
-Legislative District (MD-15, FL-27, SC-1)
-  ↓
-Users (auto-assigned by address)
+National Leader (Top of chain of command)
+  ↓ assigns
+State Leader (e.g., Maryland)
+  ↓ assigns
+County Leader (e.g., Montgomery County)
+  ↓ assigns
+Captain (ONE Legislative District, e.g., MD-15)
+  ↓ creates missions for
+Warrior (User auto-assigned by address)
+
+Leadership Assignment Authority:
+- National Leader: Can assign State Leaders, County Leaders, or Captains anywhere
+- State Leader: Can assign County Leaders or Captains within their state
+- County Leader: Can assign Captains within their county
+- Captain: Cannot assign anyone, only creates missions for their district
+- Warrior: No assignment authority
 ```
 
 **Notification Scope Logic**:
 ```
 User receives notifications for:
-- Their Legislative District missions (e.g., MD-15)
-- Their County missions (e.g., Montgomery County)
-- Their State missions (e.g., Maryland)
-- National missions (e.g., presidential race)
+- Their Legislative District missions (created by their Captain)
+- Their County missions (created by County Leader)
+- Their State missions (created by State Leader)
+- National missions (created by National Leader)
 
-Example: User in MD-15, Montgomery County, Maryland receives:
-- District missions from their Captain
-- County missions from County leadership
-- State missions from Maryland General
-- National missions from National leadership
+Example: Warrior in MD-15, Montgomery County, Maryland receives:
+- District missions from Captain of MD-15
+- County missions from Montgomery County Leader
+- State missions from Maryland State Leader
+- National missions from National Leader
+
+Mission Visibility by Role:
+- Captain: Can ONLY create missions for their assigned district
+- County Leader: Can create missions for specific districts in their county OR entire county
+- State Leader: Can create missions for specific districts, counties, OR entire state
+- National Leader: Can create missions for any scope
 ```
 
-**Montgomery County Legislative Districts** (Target for initial launch):
+**Maryland Legislative Districts** (All 47 districts seeded, Montgomery County + MD-6 priority):
 ```
-District 14 (Germantown, Clarksburg)
-District 15 (Gaithersburg, Kentlands)
-District 16 (Olney, Brookeville)
-District 17 (Potomac, Bethesda)
-District 18 (Chevy Chase, Kensington)
-District 19 (Silver Spring, Montgomery Hills)
-District 20 (Takoma Park, Langley Park)
+Montgomery County (Initial Target):
+- District 14 (Germantown, Clarksburg)
+- District 15 (Gaithersburg, Kentlands)
+- District 16 (Olney, Brookeville)
+- District 17 (Potomac, Bethesda)
+- District 18 (Chevy Chase, Kensington)
+- District 19 (Silver Spring, Montgomery Hills)
+- District 20 (Takoma Park, Langley Park)
+
+Other Counties (Infrastructure ready for expansion):
+- Baltimore County: Districts 7, 8, 10, 11, 42, 44
+- Anne Arundel County: Districts 30, 31, 32, 33
+- Prince George's County: Districts 21, 22, 23, 24, 25, 26, 27, 47
+- Howard County: Districts 9, 12, 13
+- Frederick County: Districts 3, 4
+- Harford County: Districts 6, 34A, 34B
+- Carroll County: District 5
+- Baltimore City: Districts 40, 41, 43, 45, 46
+- ... (and 15 more counties with their respective districts)
+
+Total: All 47 Maryland Legislative Districts seeded in database
+Focus: Montgomery County + MD-6 Congressional District for initial launch
+Expansion: Ready to scale to any Maryland county immediately
 ```
 
 **Ballot Example Structure** (For Montgomery County 2026 Primary):
