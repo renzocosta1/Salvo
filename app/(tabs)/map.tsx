@@ -269,7 +269,7 @@ export default function MapScreen() {
 
       <Mapbox.MapView
         style={styles.map}
-        styleURL="mapbox://styles/mapbox/light-v11"
+        styleURL="mapbox://styles/mapbox/dark-v11"
         onDidFinishLoadingMap={() => {
           setMapReady(true);
           console.log('🗺️ Map loaded successfully');
@@ -334,7 +334,7 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0f1419',
   },
   header: {
     position: 'absolute',
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#0f1419',
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingBottom: 16,
     paddingHorizontal: 16,
@@ -350,17 +350,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#2a3744',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1c1c1e',
+    color: '#ffffff',
   },
   headerRight: {
     flexDirection: 'row',
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   tilesCounter: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: '#1c2631',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
   tilesCounterText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2196f3',
+    color: '#3498db',
   },
   map: {
     flex: 1,
@@ -389,13 +389,13 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   revealButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#3498db',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
@@ -403,12 +403,12 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   revealButtonDisabled: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#2a3744',
   },
   revealButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1c1c1e',
+    color: '#ffffff',
   },
   userMarker: {
     width: 24,

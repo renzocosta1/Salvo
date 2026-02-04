@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
   },
   accessDeniedContainer: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0f1419',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
@@ -419,13 +419,13 @@ const styles = StyleSheet.create({
   accessDeniedTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1c1c1e',
+    color: '#ffffff',
     textAlign: 'center',
     marginBottom: 12,
   },
   accessDeniedText: {
     fontSize: 15,
-    color: '#757575',
+    color: '#8b98a5',
     textAlign: 'center',
     lineHeight: 22,
   },

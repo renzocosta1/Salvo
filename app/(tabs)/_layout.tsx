@@ -18,11 +18,11 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#2196f3',
-        tabBarInactiveTintColor: '#9e9e9e',
+        tabBarActiveTintColor: '#ffffff', // White for active tab
+        tabBarInactiveTintColor: '#8b98a5', // Muted gray for inactive
         tabBarStyle: {
-          backgroundColor: '#ffffff',
-          borderTopColor: '#e0e0e0',
+          backgroundColor: '#0f1419', // Dark blue-black background
+          borderTopColor: '#2a3744', // Subtle dark border
           borderTopWidth: 1,
         },
         headerShown: false,
@@ -48,15 +48,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="user-plus" color={color} />,
         }}
       />
-      {isLeader && (
-        <Tabs.Screen
-          name="command-center"
-          options={{
-            title: 'HQ',
-            tabBarIcon: ({ color }) => <TabBarIcon name="star" color={color} />,
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="command-center"
+        options={{
+          title: 'HQ',
+          tabBarIcon: ({ color }) => <TabBarIcon name="star" color={color} />,
+          href: isLeader ? '/(tabs)/command-center' : null,
+        }}
+      />
       <Tabs.Screen
         name="two"
         options={{

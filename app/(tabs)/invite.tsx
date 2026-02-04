@@ -101,7 +101,7 @@ export default function InviteScreen() {
 
       {/* Share Button */}
       <Pressable style={styles.shareButton} onPress={handleShare}>
-        <Ionicons name="share-social" size={20} color="#0f1419" />
+        <Ionicons name="share-social" size={20} color="#ffffff" />
         <Text style={styles.shareButtonText}>Share Invite Link</Text>
       </Pressable>
 
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   shareButton: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#3498db', // Blue accent
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   shareButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#0f1419',
+    color: '#ffffff', // White text
   },
   statsSection: {
     marginBottom: 32,

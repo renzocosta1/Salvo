@@ -60,8 +60,9 @@ dev-debug.log
 *.sw?
 # OS specific
 
+.env.backup
+*.backup
+
 # Task files
 # tasks.json
 # tasks/ 
-.env.backup
-*.backup
