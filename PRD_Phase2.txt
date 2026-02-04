@@ -1,0 +1,488 @@
+<context>
+# Overview  
+Salvo Phase 2: Political Engagement Platform transforms the existing tactical coordination app into a real-world voter mobilization tool for the 2026 midterm elections. Built on top of the working MVP (auth, directives, map, offline sync), this phase adds: mission creation dropdown for Captains, address-to-district auto-assignment, digital ballot voting guide, notification discipline strategy, and easy social media link opening. Primary target: 10,000+ verified voters in Montgomery County, Maryland. Designed for scalability to Florida Governor race, South Carolina races, and nationwide expansion. Success metric: High notification opt-in rate (>80%), active mission completion, voter registration increases, and election day turnout.
+
+# Core Features  
+**Mission Creation Dropdown System**: Captains create missions via intuitive dropdown menu with 7 types: Recruit Friends (100 XP), Signal Boost (50 XP), Raid Comments (75 XP), Phone/Email Protest (150 XP), PFP Change (25 XP), Event Attendance (100 XP), Voter Registration (150 XP). Each type auto-assigns verification method (photo/screenshot/manual) and fixed XP. Dynamic form shows relevant fields: URLs for social missions, scripts for phone protests, keywords for raids. Scope selector: District/County/State/National. No more manual XP entry - all standardized.
+
+**Address-to-District Auto-Assignment**: Onboarding includes address entry screen (after age/gender, before feature selection). Mapbox Geocoding API converts address → lat/lng → Maryland Legislative District + County + Congressional District. Users auto-assigned to correct legislative_district for scoped missions and notifications. Replaces warrior_bands concept with geographic hierarchy. Captains manually assigned per district after interviews. Scalable data model supports multi-state expansion (Florida, South Carolina, etc.).
+
+**Digital Ballot Voting Guide**: "Main Quest" screen displays replica of user's local ballot with endorsed candidates highlighted in Neon Green. Leadership creates ballots per election/district. Down-ballot races shown (Governor, Senate, House, County Exec, School Board, etc.). Feels like "voting for your team to win." Users commit to vote for endorsed candidates. Completionist badge: High XP only if user verifies voting for ALL endorsed down-ballot seats. Critical for driving turnout on actual election day.
+
+**Notification Discipline & Retention**: Notifications are valuable intelligence, not spam. Only send: (1) New missions in user's scope, (2) Election day reminders (not daily spam), (3) Critical updates (e.g., Polymarket odds shifts >3% - future), (4) Mission verification results. Onboarding warning: "Disabling notifications means missing critical election night intel." Track notification permission status. Goal: >80% opt-in rate year-round. Users WANT notifications because they're election-critical.
+
+**Easy Social Media Link Opening**: Signal Boost and Raid missions include one-tap clickable URLs. Opens Twitter/X, Reddit, Instagram, YouTube in native app (if installed) or in-app browser via expo-web-browser. Mission cards show "Open Link" button. Deep link support for major platforms. Makes "raiding" target posts/comment sections frictionless. Users can engage with content in seconds.
+
+**Map Territory Game (Stretch Goal - Optional)**: Increase H3 resolution from Res 9 to Res 7-8 (larger hexes for "conquer" feel). Leadership (County/State level) can mark "enemy territory" hexes (opponent strongholds, polling places). Users check in to "siege" and convert hexes to team color. Daily/weekly competitive game. If too complex for timeline, remove this feature entirely. Map improvements are nice-to-have, not critical path.
+
+**Scalable Multi-State Architecture**: Database schema supports multiple states, counties, districts. Maryland first (Montgomery County), then expand to Florida (Governor race), South Carolina, and beyond. Geographic hierarchy: State → County → Legislative District → Users. Captains can be assigned per state/district. Missions can be scoped to specific states. National missions reach all users. Built for nationwide scale from day one.
+
+# User Experience  
+**User Personas**: 
+- **Warrior (Voter)**: Age 18-65, politically engaged, wants to help "their team win." Completes missions, recruits friends, keeps notifications on to never miss election intel. Needs simple, clear instructions and instant gratification (XP/rank).
+- **Captain (District Leader)**: Runs legislative district (e.g., Maryland District 15). Creates missions for their district, recruits members, monitors completion rates. Needs easy mission creation UI and visibility into district stats.
+- **General (State Leadership)**: Oversees state-wide strategy. Creates ballots with endorsed candidates, assigns Captains, launches state-wide missions. Needs admin tools for ballot creation and Captain management.
+
+**Key User Flows**:
+1. **New User Onboarding**: Sign up → Oath screen → Personal details (age/gender) → **Address entry (NEW)** → Feature preferences → **Security Clearance Mission (verify voter registration - FUTURE)** → Main app
+2. **Captain Creates Mission**: HQ Tab → Missions → Dropdown selects "Signal Boost" → Enters target URL, description, selects platform → Selects scope (District/County/State) → Auto-shows XP reward (50 XP) → Create Mission → Appears in Command Feed for scoped users
+3. **Warrior Completes Mission**: Views Command Feed → Taps "SIGNAL BOOST: Share this post" → Taps "Open Link" → Twitter opens → User likes/retweets post → Returns to app → Taps "Upload Proof" → Takes screenshot → Submits → Gemini verifies keyword/engagement → XP awarded → Notification sent
+4. **Election Day Flow**: User receives notification "ELECTION DAY: Vote for our team!" → Opens Main Quest (Ballot Guide) → Sees endorsed candidates in Neon Green for all races → Goes to polls → Votes for endorsed candidates → Returns to app → Uploads "I Voted" sticker photo → Verifies voting for all endorsed races → Receives Completionist Badge + High XP
+
+**UI/UX Considerations**:
+- **Citizen-style Dark Theme**: Already implemented. Maintain consistency across all new screens.
+- **Mission Creation Must Be Dead Simple**: Dropdown, dynamic fields, one-click create. No room for Captain error.
+- **Ballot Guide Must Feel Like Real Ballot**: Mirror actual ballot design. Neon Green highlights make endorsements obvious. "Vote for our team" framing.
+- **Notifications Must Feel Valuable**: Short, urgent, action-oriented. "New mission in your district" not "Hey check out the app!"
+- **One-Tap Actions**: Open link, upload proof, verify mission. Minimize friction at every step.
+</context>
+
+<PRD>
+# Technical Architecture  
+
+**Database Schema Additions** (Build on existing schema):
+
+```sql
+-- Add address/district fields to profiles table
+ALTER TABLE profiles ADD COLUMN address_line1 TEXT;
+ALTER TABLE profiles ADD COLUMN address_line2 TEXT;
+ALTER TABLE profiles ADD COLUMN city TEXT;
+ALTER TABLE profiles ADD COLUMN state TEXT;
+ALTER TABLE profiles ADD COLUMN zip_code TEXT;
+ALTER TABLE profiles ADD COLUMN county TEXT;
+ALTER TABLE profiles ADD COLUMN legislative_district TEXT;
+ALTER TABLE profiles ADD COLUMN congressional_district TEXT;
+ALTER TABLE profiles ADD COLUMN legislative_district_id UUID;
+ALTER TABLE profiles ADD COLUMN latitude NUMERIC;
+ALTER TABLE profiles ADD COLUMN longitude NUMERIC;
+ALTER TABLE profiles ADD COLUMN geocoded_at TIMESTAMPTZ;
+
+-- Create legislative_districts table (replaces warrior_bands for geographic hierarchy)
+CREATE TABLE legislative_districts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  state TEXT NOT NULL, -- e.g., "Maryland", "Florida", "South Carolina"
+  county TEXT NOT NULL, -- e.g., "Montgomery", "Miami-Dade"
+  district_name TEXT NOT NULL, -- e.g., "District 15", "District 27"
+  district_code TEXT NOT NULL, -- e.g., "MD-15", "FL-27"
+  captain_id UUID REFERENCES auth.users(id),
+  party_id UUID NOT NULL REFERENCES parties(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(state, county, district_name)
+);
+
+-- Add mission type fields to directives table
+ALTER TABLE directives ADD COLUMN mission_type TEXT CHECK (mission_type IN (
+  'RECRUIT_FRIENDS', 
+  'SIGNAL_BOOST', 
+  'RAID_COMMENTS', 
+  'PHONE_EMAIL_PROTEST', 
+  'PFP_CHANGE', 
+  'EVENT_ATTENDANCE', 
+  'VOTER_REGISTRATION'
+));
+ALTER TABLE directives ADD COLUMN verification_method TEXT CHECK (verification_method IN (
+  'photo', 'screenshot', 'social_api', 'manual', 'invite_code'
+));
+ALTER TABLE directives ADD COLUMN xp_reward INT NOT NULL DEFAULT 50;
+ALTER TABLE directives ADD COLUMN scope_level TEXT CHECK (scope_level IN (
+  'district', 'county', 'state', 'national'
+)) NOT NULL DEFAULT 'district';
+ALTER TABLE directives ADD COLUMN target_legislative_district_id UUID REFERENCES legislative_districts(id);
+ALTER TABLE directives ADD COLUMN target_county TEXT;
+ALTER TABLE directives ADD COLUMN target_state TEXT;
+ALTER TABLE directives ADD COLUMN social_platform TEXT; -- e.g., "twitter", "reddit", "instagram"
+ALTER TABLE directives ADD COLUMN target_url TEXT; -- URL for signal boost/raid missions
+ALTER TABLE directives ADD COLUMN raid_keyword TEXT; -- Keyword to verify in raid screenshots
+ALTER TABLE directives ADD COLUMN pfp_description TEXT; -- Description for PFP change missions
+ALTER TABLE directives ADD COLUMN phone_email_target TEXT; -- Phone/email for protest missions
+ALTER TABLE directives ADD COLUMN phone_email_script TEXT; -- Script/talking points
+
+-- Mission type XP lookup table (fixed values, leaders cannot change)
+CREATE TABLE mission_type_xp (
+  mission_type TEXT PRIMARY KEY,
+  xp_reward INT NOT NULL,
+  verification_method TEXT NOT NULL
+);
+
+INSERT INTO mission_type_xp (mission_type, xp_reward, verification_method) VALUES
+  ('RECRUIT_FRIENDS', 100, 'invite_code'),
+  ('SIGNAL_BOOST', 50, 'screenshot'),
+  ('RAID_COMMENTS', 75, 'screenshot'),
+  ('PHONE_EMAIL_PROTEST', 150, 'screenshot'),
+  ('PFP_CHANGE', 25, 'screenshot'),
+  ('EVENT_ATTENDANCE', 100, 'photo'),
+  ('VOTER_REGISTRATION', 150, 'photo');
+
+-- Ballot system tables
+CREATE TABLE mission_ballots (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  state TEXT NOT NULL,
+  county TEXT,
+  legislative_district TEXT,
+  election_date DATE NOT NULL,
+  election_name TEXT NOT NULL, -- e.g., "2026 Maryland Primary"
+  created_by UUID NOT NULL REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE ballot_endorsements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  ballot_id UUID NOT NULL REFERENCES mission_ballots(id) ON DELETE CASCADE,
+  race_title TEXT NOT NULL, -- e.g., "Governor", "State Senate District 15", "County Executive"
+  candidate_name TEXT NOT NULL,
+  candidate_party TEXT,
+  position_order INT NOT NULL, -- Order on ballot (top to bottom)
+  is_endorsed BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- User ballot commitments (track who committed to vote for endorsed candidates)
+CREATE TABLE ballot_commitments (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  ballot_id UUID NOT NULL REFERENCES mission_ballots(id) ON DELETE CASCADE,
+  endorsement_id UUID NOT NULL REFERENCES ballot_endorsements(id) ON DELETE CASCADE,
+  committed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  verified_at TIMESTAMPTZ,
+  verification_photo_url TEXT,
+  UNIQUE(user_id, endorsement_id)
+);
+```
+
+**API Integrations**:
+- **Mapbox Geocoding API**: Already have token (`EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`). Use Geocoding API endpoint: `https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?access_token=...`. Returns lat/lng. Then map to Maryland district using lookup table.
+- **Google Gemini 1.5 Flash**: Already integrated via Edge Function. Extend to verify raid keywords in screenshots, PFP changes, etc.
+- **Social Media APIs** (Future): Twitter/X API for automatic verification. For MVP, use screenshot verification.
+
+**Geographic Lookup System**:
+- Create `maryland_district_lookup.json` with polygon boundaries for each legislative district (can use Maryland Open Data or manual entry for Montgomery County first)
+- Simple point-in-polygon check: Given lat/lng, find which district polygon contains it
+- Scalable to Florida, South Carolina by adding more lookup files per state
+- Fallback: If geocoding fails or district not found, allow manual district selection
+
+**Notification Scope Logic** (when push notifications implemented):
+- User's legislative_district_id → receives District-level missions
+- User's county → receives County-level missions
+- User's state → receives State-level missions
+- All users → receive National-level missions
+- Notification channels: One channel per scope level
+
+**Mission Creation Flow**:
+1. Captain opens HQ Tab → Missions
+2. Dropdown selects mission type (e.g., "SIGNAL_BOOST")
+3. Form dynamically shows relevant fields:
+   - SIGNAL_BOOST: target_url, social_platform, description
+   - RAID_COMMENTS: target_url, raid_keyword, social_platform, description
+   - PHONE_EMAIL_PROTEST: phone_email_target, phone_email_script, description
+   - PFP_CHANGE: pfp_description, duration, description
+   - RECRUIT_FRIENDS: description only
+   - EVENT_ATTENDANCE: description, optional geofence
+   - VOTER_REGISTRATION: description
+4. Scope selector: District (current district) / County / State / National
+5. Auto-populate xp_reward and verification_method from mission_type_xp table (read-only)
+6. Click "Create Mission" → Insert into directives table with mission_type, scope_level, target fields
+7. Mission appears in Command Feed for users in scope
+
+**Link Opening System**:
+- Use `expo-web-browser` for in-app browser
+- Use `expo-linking` for deep links to native apps
+- URL scheme detection: `twitter://`, `reddit://`, etc.
+- Mission cards show "Open Link" button that calls:
+  ```typescript
+  const openMissionLink = async (url: string) => {
+    const canOpen = await Linking.canOpenURL(url);
+    if (canOpen) {
+      await Linking.openURL(url); // Opens native app
+    } else {
+      await WebBrowser.openBrowserAsync(url); // Opens in-app browser
+    }
+  };
+  ```
+
+# Development Roadmap  
+
+**Phase 1: Database Foundation & Address System** (Critical Path)
+- Create and run migration SQL to add all new tables and columns
+- Seed mission_type_xp lookup table with fixed XP values
+- Create legislative_districts table and seed Montgomery County districts (District 14, 15, 16, 17, 18, 19, 20)
+- Add address entry screen to onboarding flow (after personal-details, before feature-selection)
+- Integrate Mapbox Geocoding API: Address form → API call → lat/lng → district lookup
+- Auto-assign users to legislative_district_id based on geocoded address
+- Update auth guard to include address verification step
+- Fallback UI: If geocoding fails, show manual district selector dropdown
+
+**Phase 2: Mission Creation UI (HQ Tab Enhancement)** (Critical Path)
+- Update command-center screen to add "Missions" tab (alongside Directives and Bands)
+- Build mission type dropdown component with 7 options
+- Implement dynamic form fields that change based on selected mission type
+- Add scope level selector (District/County/State/National) with smart defaults
+- Auto-populate XP reward and verification method from database (read-only display)
+- Create mission function: Validate fields → Insert into directives with mission_type, scope_level, target fields
+- Update Command Feed (index screen) to show mission cards with mission-specific UI (e.g., "Open Link" button for social missions)
+- Filter missions by user's scope (show missions for their district, county, state, and national)
+
+**Phase 3: Easy Link Opening for Social Missions** (Quick Win)
+- Add expo-web-browser and expo-linking to package.json
+- Create openMissionLink utility function with deep link support
+- Update mission cards in Command Feed to show "Open Link" button for SIGNAL_BOOST and RAID_COMMENTS types
+- Support URL schemes: twitter://, reddit://, instagram://, youtube://
+- Fallback to in-app browser if native app not installed
+- Test with real Twitter, Reddit, Instagram URLs
+
+**Phase 4: Mission Verification Enhancements** (Build on existing)
+- Extend existing Gemini Edge Function to handle new mission types
+- RAID_COMMENTS: Check screenshot for raid_keyword presence
+- PFP_CHANGE: Verify screenshot shows new profile picture matching pfp_description
+- SIGNAL_BOOST: Verify screenshot shows engagement (like/share/retweet)
+- PHONE_EMAIL_PROTEST: Verify screenshot shows call log or email sent
+- EVENT_ATTENDANCE: Verify photo shows event (use existing photo verification)
+- VOTER_REGISTRATION: Verify photo shows forms (use existing photo verification)
+- RECRUIT_FRIENDS: Track via invite codes (already implemented)
+
+**Phase 5: Digital Ballot Voting Guide** (High Impact)
+- Create Main Quest screen (new tab or route)
+- Build ballot UI: Replica of real ballot design with race titles and candidate names
+- Fetch user's ballot based on legislative_district_id and upcoming election_date
+- Highlight endorsed candidates (is_endorsed = true) in Neon Green
+- Show race titles in order (position_order)
+- "Commit to Vote" button per race → Insert into ballot_commitments
+- Track completionist progress: How many endorsed candidates user committed to
+- "I Voted" proof upload: Photo of "I Voted" sticker or ballot
+- Completionist badge logic: Award high XP (e.g., 500 XP) if user verifies voting for ALL endorsed candidates
+
+**Phase 6: Ballot Management UI (General/State Leadership)** (Admin Tool)
+- Create admin screen for General/State leadership only (role-gated)
+- "Create Ballot" form: Select state, county, district, election date, election name
+- "Add Race" form: Race title, position order
+- "Add Candidate" form: Candidate name, party, is_endorsed checkbox
+- "Preview Ballot" view: See how ballot will look to voters
+- "Publish Ballot" button: Makes ballot active for users
+- List all ballots with edit/delete options
+
+**Phase 7: Notification Discipline & Strategy** (Retention Focus)
+- Track notification permission status in user_preferences table
+- Add notification permission prompt after onboarding (or defer to first mission)
+- Onboarding warning screen: "Disabling notifications means missing critical election night intel. Keep them ON to never miss an election."
+- Notification scheduling logic (when push notifications enabled):
+  - New mission in user's scope → Immediate push
+  - Mission verification result → Immediate push
+  - Election day reminder → Send day before, morning of, and 2 hours before polls close
+  - Weekly digest → Sunday evening (opt-in only)
+  - Critical updates → Only for major events (Polymarket odds shifts >3%, candidate drops out, etc.)
+- Notification preferences UI: Let users choose frequency (All, Important Only, Election Day Only, Off)
+- Analytics dashboard: Track notification opt-in rate per district/state
+
+**Phase 8: Map Territory Game (Stretch Goal - Optional)** (Nice-to-Have)
+- Increase H3 resolution from Res 9 to Res 7 or 8 (larger hexes)
+- Create territory_claims table: hex_h3_index, claimed_by_party_id, claimed_at, status
+- Leadership UI: Mark hexes as "enemy territory" (red) or "our territory" (green)
+- Update map screen to show territory colors (enemy red, ours green, unclaimed dark)
+- Siege mechanic: Track check-ins per hex, convert enemy hex to ours after threshold (e.g., 50 check-ins within 7 days)
+- Territory leaderboard: Which districts control most territory
+- **If too complex or timeline too tight, skip this entire phase**
+
+**Phase 9: Multi-State Expansion Prep** (Scalability)
+- Create Florida legislative district lookup table
+- Create South Carolina legislative district lookup table
+- Update address geocoding to detect state and use correct lookup
+- Allow Generals to create parties per state (e.g., "Hard Party - Florida", "Hard Party - South Carolina")
+- State-scoped missions: Only users in that state see state missions
+- Test end-to-end flow with Florida and South Carolina addresses
+
+**Phase 10: Testing & Launch Prep** (Production Readiness)
+- End-to-end testing: New user onboarding → Address entry → Mission creation → Mission completion → Ballot voting guide → Verification
+- Performance testing: 10,000+ users, 1,000+ missions, real-time updates
+- Notification testing: Ensure valuable, not spammy
+- Captain training: Real Montgomery County captains test mission creation UI, provide feedback
+- Database backups and disaster recovery plan
+- App Store and Google Play Store deployment
+- Beta testing with 100 real Montgomery County users
+- Launch countdown: 90 days before 2026 Primary (allows time to recruit and train users)
+
+# Logical Dependency Chain
+
+**Foundation Must Come First**: Phase 1 (Database & Address System) is blocking for everything else. Cannot create missions without legislative_districts table. Cannot auto-assign users without address geocoding.
+
+**Mission Creation Before Verification**: Phase 2 (Mission Creation UI) must precede Phase 4 (Verification Enhancements). Cannot verify missions that don't exist yet.
+
+**Link Opening Can Be Parallel**: Phase 3 (Easy Link Opening) can be built alongside Phase 2. Just UI enhancement, no database dependencies.
+
+**Ballot System Depends on Districts**: Phase 5 (Digital Ballot) requires Phase 1 (legislative_districts) to be complete so we can scope ballots per district.
+
+**Ballot Management Depends on Ballot Display**: Phase 6 (Ballot Management UI) should come after Phase 5 (Ballot Display) so admins can see what they're creating.
+
+**Notifications Can Wait**: Phase 7 (Notification Discipline) can come later. App works without push notifications. Focus on core mission system first.
+
+**Map Territory Game is Optional**: Phase 8 can be skipped entirely if timeline is tight. Map improvements are nice-to-have, not critical path.
+
+**Multi-State Expansion After MVP**: Phase 9 (Florida/South Carolina) should come after Montgomery County is working perfectly. Don't scale broken features.
+
+**Testing Throughout**: Phase 10 (Testing) should happen continuously, not just at the end. Test each phase as it's built.
+
+**Critical Path for MVP Launch**: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 10 (Testing). Everything else is parallel or deferred.
+
+**Quick Wins for Captain Buy-In**: Get Phase 2 (Mission Creation) and Phase 3 (Link Opening) working ASAP. Captains need to see mission creation UI to get excited. Show them "Look how easy it is to create a mission!"
+
+# Risks and Mitigations  
+
+**Risk: Notification Opt-Out Hurts Turnout**
+- Mitigation: Make notifications extremely valuable, not annoying. Only send election-critical info. Track opt-out rate as key metric. A/B test notification content. Warn users during onboarding. Aim for >80% opt-in rate.
+
+**Risk: District Data Accuracy for Maryland**
+- Mitigation: Start with Montgomery County only (6 districts). Use simple lookup table. Can enhance with full GeoJSON dataset later. Fallback to manual district selection if geocoding fails. Test with real Montgomery County addresses.
+
+**Risk: Captain Confusion with Mission Creation UI**
+- Mitigation: Make dropdown dead simple. Dynamic form fields reduce errors. Clear tooltips and examples. Test with real captains before launch. Provide training videos. In-app help text for each mission type.
+
+**Risk: Screenshot Verification False Positives/Negatives**
+- Mitigation: Use Gemini 1.5 Flash with strict prompts. Include raid_keyword check for raids. Manual review fallback for disputed verifications. Allow users to appeal rejected proofs. Captain can manually approve if AI fails.
+
+**Risk: Map Territory Game Too Complex**
+- Mitigation: Mark as optional Phase 8. Can remove entirely if not feasible. Focus on core mission system first. Map improvements are nice-to-have. Don't let perfect be enemy of good.
+
+**Risk: Address Privacy Concerns**
+- Mitigation: Clear privacy policy during address entry. Explain it's only for district assignment. Do not share addresses with other users. Store lat/lng rounded to 3 decimal places (reduces precision to ~100m). Optional: Allow manual district selection if user doesn't want to share address.
+
+**Risk: Election Day Reliability**
+- Mitigation: App must work perfectly on election day. Offline queue system already exists. Extensive load testing before launch. Database backups. Disaster recovery plan. Test with 10,000+ users. Monitor server load on election day.
+
+**Risk: Multi-State Scaling Challenges**
+- Mitigation: Build Maryland first, scale after proven. Separate legislative_districts per state. Test Florida and South Carolina thoroughly before launch. Don't rush multi-state until Montgomery County is stable.
+
+**Risk: Captain Recruitment and Training**
+- Mitigation: Manual Captain assignment after interviews. Provide training materials (videos, PDFs). Test mission creation UI with real captains. Gather feedback early. Make UI so simple that minimal training is needed.
+
+**Risk: Ballot Endorsement Accuracy**
+- Mitigation: General/State leadership manually creates ballots. Double-check candidate names and races. Preview ballot before publishing. Allow edits after publishing. Verify ballot matches official sample ballot. Legal review of endorsement language.
+
+**Risk: Timeline Too Aggressive for 2026 Primary**
+- Mitigation: Focus on Montgomery County MVP only. Defer Florida and South Carolina to later. Skip map territory game if needed. Launch 90 days before primary to allow user recruitment. Start with core mission system, iterate based on feedback.
+
+# Appendix  
+
+**Mission Type XP Values** (Fixed, leaders cannot customize):
+```
+RECRUIT_FRIENDS: 100 XP (verification: invite_code tracking)
+SIGNAL_BOOST: 50 XP (verification: screenshot)
+RAID_COMMENTS: 75 XP (verification: screenshot with keyword check)
+PHONE_EMAIL_PROTEST: 150 XP (verification: screenshot)
+PFP_CHANGE: 25 XP (verification: screenshot)
+EVENT_ATTENDANCE: 100 XP (verification: photo)
+VOTER_REGISTRATION: 150 XP (verification: photo)
+```
+
+**Verification Method Auto-Assignment**:
+```
+RECRUIT_FRIENDS → invite_code (track via invites table)
+SIGNAL_BOOST → screenshot (Gemini checks for engagement UI)
+RAID_COMMENTS → screenshot (Gemini checks for raid_keyword presence)
+PHONE_EMAIL_PROTEST → screenshot (Gemini checks for call log or email)
+PFP_CHANGE → screenshot (Gemini checks for profile picture)
+EVENT_ATTENDANCE → photo (Gemini checks for event context)
+VOTER_REGISTRATION → photo (Gemini checks for forms)
+```
+
+**Geographic Hierarchy Structure**:
+```
+National (All users)
+  ↓
+State (Maryland, Florida, South Carolina)
+  ↓
+County (Montgomery, Miami-Dade, Charleston)
+  ↓
+Legislative District (MD-15, FL-27, SC-1)
+  ↓
+Users (auto-assigned by address)
+```
+
+**Notification Scope Logic**:
+```
+User receives notifications for:
+- Their Legislative District missions (e.g., MD-15)
+- Their County missions (e.g., Montgomery County)
+- Their State missions (e.g., Maryland)
+- National missions (e.g., presidential race)
+
+Example: User in MD-15, Montgomery County, Maryland receives:
+- District missions from their Captain
+- County missions from County leadership
+- State missions from Maryland General
+- National missions from National leadership
+```
+
+**Montgomery County Legislative Districts** (Target for initial launch):
+```
+District 14 (Germantown, Clarksburg)
+District 15 (Gaithersburg, Kentlands)
+District 16 (Olney, Brookeville)
+District 17 (Potomac, Bethesda)
+District 18 (Chevy Chase, Kensington)
+District 19 (Silver Spring, Montgomery Hills)
+District 20 (Takoma Park, Langley Park)
+```
+
+**Ballot Example Structure** (For Montgomery County 2026 Primary):
+```
+Race 1: Governor (position_order: 1)
+  - Candidate A (endorsed: true) ← Neon Green highlight
+  - Candidate B (endorsed: false)
+
+Race 2: U.S. Senate (position_order: 2)
+  - Candidate C (endorsed: true) ← Neon Green highlight
+  - Candidate D (endorsed: false)
+
+Race 3: U.S. House MD-6 (position_order: 3)
+  - Candidate E (endorsed: true) ← Neon Green highlight
+  - Candidate F (endorsed: false)
+
+Race 4: State Senate District 15 (position_order: 4)
+  - Candidate G (endorsed: true) ← Neon Green highlight
+  - Candidate H (endorsed: false)
+
+Race 5: Montgomery County Executive (position_order: 5)
+  - Candidate I (endorsed: true) ← Neon Green highlight
+  - Candidate J (endorsed: false)
+```
+
+**Notification Strategy Examples**:
+```
+✅ GOOD Notification: "New mission in District 15: Signal Boost - Share the town hall post"
+❌ BAD Notification: "Hey! Check out the app! We have new stuff!"
+
+✅ GOOD Notification: "ELECTION DAY: Polls close in 2 hours. Vote for our team!"
+❌ BAD Notification: "Daily reminder: You should vote sometime!"
+
+✅ GOOD Notification: "Mission verified! +50 XP. You're 50 XP from Centurion!"
+❌ BAD Notification: "Thanks for participating!"
+
+✅ GOOD Notification: "ALERT: Candidate Jones dropped out. Check updated ballot."
+❌ BAD Notification: "We have updates. Check the app."
+```
+
+**Scalability Plan for Multi-State Expansion**:
+```
+Phase 1: Montgomery County, Maryland (6 districts, target 10,000 users)
+Phase 2: Full Maryland (47 districts, target 50,000 users)
+Phase 3: Florida Governor race (40 districts, target 100,000 users)
+Phase 4: South Carolina races (46 districts, target 50,000 users)
+Phase 5: Nationwide (all states, target 1,000,000+ users)
+```
+
+**Technical Stack Summary** (Building on existing):
+```
+Frontend: Expo, React Native, Expo Router, Nativewind (already built ✅)
+Backend: Supabase PostgreSQL, Auth, Realtime, Storage (already built ✅)
+Maps: Mapbox + H3 (already built ✅)
+AI: Google Gemini 1.5 Flash (already built ✅)
+Offline: expo-sqlite (already built ✅)
+
+NEW Additions for Phase 2:
+- expo-web-browser (link opening)
+- expo-linking (deep links)
+- Mapbox Geocoding API (address → district)
+- District lookup tables (Maryland, Florida, South Carolina)
+- Mission creation UI (dropdown system)
+- Ballot system (digital voting guide)
+- Notification strategy (discipline & retention)
+```
+</PRD>
