@@ -9,12 +9,12 @@
         "testStrategy": "Verify schema updates in Supabase Dashboard. Ensure foreign key constraints and UNIQUE constraints (e.g., user_id on election_day_verifications) are correctly applied. Test row insertion for each new table.",
         "priority": "high",
         "dependencies": [],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "complexity": 4,
         "recommendedSubtasks": 5,
         "expansionPrompt": "Break down the SQL migrations into separate subtasks for each table modification: profiles updates, md_ballots/md_ballot_races/md_ballot_candidates creation, user_ballot_commitments and election_day_verifications, synced_contacts, and directives columns. Include subtasks for constraint verification and initial testing.",
-        "updatedAt": "2026-02-05T01:47:06.988Z"
+        "updatedAt": "2026-02-05T01:47:20.472Z"
       },
       {
         "id": "22",
@@ -383,9 +383,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-05T01:47:06.989Z",
+      "lastModified": "2026-02-05T01:47:20.476Z",
       "taskCount": 10,
-      "completedCount": 0,
+      "completedCount": 1,
       "tags": [
         "master"
       ]
