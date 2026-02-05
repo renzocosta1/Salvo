@@ -1,93 +1,93 @@
 {
 	"meta": {
-		"generatedAt": "2026-02-04T04:22:11.759Z",
+		"generatedAt": "2026-02-05T01:33:58.593Z",
 		"tasksAnalyzed": 10,
 		"totalTasks": 10,
 		"analysisCount": 10,
 		"thresholdScore": 5,
 		"projectName": "Task Master",
-		"usedResearch": false
+		"usedResearch": true
 	},
 	"complexityAnalysis": [
 		{
-			"taskId": 11,
-			"taskTitle": "Database Schema Expansion & Seed Data",
-			"complexityScore": 5,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Break down the schema expansion into specific SQL migration files: 1) Profile table updates and enum modifications, 2) Geographical hierarchy tables (districts, counties), 3) Mission and Ballot system tables (XP lookups, endorsements), and 4) RLS policies and Maryland seed data script.",
-			"reasoning": "While conceptually straightforward, this is the foundational layer for all other tasks. It requires careful handling of constraints, RLS policies, and seeding data correctly to avoid breaking existing functionality."
-		},
-		{
-			"taskId": 12,
-			"taskTitle": "Address Onboarding & Mapbox Geocoding Integration",
-			"complexityScore": 7,
+			"taskId": 21,
+			"taskTitle": "Database Schema Expansion for Maryland Primary Alpha",
+			"complexityScore": 4,
 			"recommendedSubtasks": 5,
-			"expansionPrompt": "Divide into: 1) AddressEntryScreen UI development, 2) Mapbox Geocoding API integration service, 3) Geo-spatial matching logic (point-in-polygon or lookup), 4) Profile update logic with error handling, and 5) Manual fallback selection UI.",
-			"reasoning": "Involves external API integration, spatial logic (matching coordinates to legislative districts), and mission-critical onboarding flow. Ensuring accuracy in district mapping is technically challenging."
+			"expansionPrompt": "Break down the SQL migrations into separate subtasks for each table modification: profiles updates, md_ballots/md_ballot_races/md_ballot_candidates creation, user_ballot_commitments and election_day_verifications, synced_contacts, and directives columns. Include subtasks for constraint verification and initial testing.",
+			"reasoning": "Straightforward Supabase SQL migrations with multiple tables and constraints, but low cognitive complexity as it's declarative work with clear test strategy. Multiple changes warrant subtasks for manageability."
 		},
 		{
-			"taskId": 13,
-			"taskTitle": "Captain & Leadership Assignment UI",
+			"taskId": 22,
+			"taskTitle": "Maryland Geographic Lookup Engine",
 			"complexityScore": 6,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Identify subtasks for: 1) Role-gated Leadership tab structure, 2) Drill-down navigation (State > County > District), 3) User search and filtering within geographical context, and 4) Role promotion/assignment logic with database validation.",
-			"reasoning": "Requires building a multi-level management UI and careful role-based access control. The complexity lies in the navigation flow and ensuring data integrity (e.g., one captain per district)."
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Create subtasks for: 1) Data file creation and validation for maryland_districts.json, 2) Implementation of the lookup service with JSON parsing or geo-query logic, 3) Unit testing focused on Montgomery County and MD-6 accuracy.",
+			"reasoning": "Involves data curation, custom lookup logic, and geospatial approximation, increasing cognitive complexity beyond simple CRUD. Dependency on schema adds coordination overhead."
 		},
 		{
-			"taskId": 14,
-			"taskTitle": "Mission Creation Dropdown System",
+			"taskId": 23,
+			"taskTitle": "Onboarding: Address Entry & Geographic Lock",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Divide into subtasks: 1) Add Address Entry screen to Expo Router flow, 2) Integrate Mapbox Geocoding API for lat/lng conversion, 3) Integrate District Lookup and profile update logic, 4) Implement fallback manual selection UI and E2E testing.",
+			"reasoning": "Combines UI development, external API integration (Mapbox), service calls, and state management in onboarding flow, leading to higher cyclomatic complexity from error handling and fallbacks."
+		},
+		{
+			"taskId": 24,
+			"taskTitle": "AI-Powered Voter Registration Verification (Enlistment)",
+			"complexityScore": 9,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Split into: 1) Camera UI implementation, 2) Client-side image redaction with expo-image-manipulator, 3) Supabase Edge Function creation, 4) Gemini 1.5 Flash API integration and prompting, 5) Matching logic, UI feedback, and testing with sample cards.",
+			"reasoning": "High complexity from image processing, client-side manipulation, Edge Function deployment, AI API integration, privacy-sensitive matching, and robust error handling, aligning with high cognitive load metrics."
+		},
+		{
+			"taskId": 25,
+			"taskTitle": "War Room HUD: Polymarket Integration & Countdown Timers",
 			"complexityScore": 6,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "List subtasks for: 1) Dynamic form container with conditional field rendering, 2) Mission type and XP lookup integration, 3) Role-based scope locking logic, and 4) Form submission and directive creation service.",
-			"reasoning": "Involves complex form logic where fields change based on selected mission types and user permissions. It bridges the UI with the newly created schema elements."
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Subtasks: 1) Polymarket Gamma API integration and response parsing, 2) Edge Function for 15-min polling and caching, 3) UI components for countdowns, gauges, and Neon Green styling with simulation testing.",
+			"reasoning": "Multiple external API, caching, polling, and custom UI components introduce moderate complexity through async operations and real-time updates."
 		},
 		{
-			"taskId": 15,
-			"taskTitle": "Social Media Link Opening & Frictionless Engagement",
-			"complexityScore": 3,
+			"taskId": 26,
+			"taskTitle": "Weekly Notification Pulse & Oath Renewal",
+			"complexityScore": 4,
 			"recommendedSubtasks": 2,
-			"expansionPrompt": "Split into: 1) Expo-linking and WebBrowser utility implementation, and 2) DirectiveCard UI updates to support deep links.",
-			"reasoning": "Relatively simple task using standard Expo libraries, though testing across different social media apps (Twitter, Reddit) adds some minor effort."
+			"expansionPrompt": "Subtasks: 1) expo-notifications setup for recurring Saturday scheduling and deep-linking, 2) Oath Renewal animation screen with XP award logic and testing.",
+			"reasoning": "Simple notification config and basic animation; low complexity as it leverages established Expo libraries with straightforward DB update."
 		},
 		{
-			"taskId": 16,
-			"taskTitle": "Enhanced AI Verification Logic (Gemini)",
+			"taskId": 27,
+			"taskTitle": "Relational Raid: Contact Sync & Recruitment Engine",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down: 1) expo-contacts permission and sync, 2) Hashing and storage in synced_contacts, 3) Matching against user base, 4) UI for tactical icons and SMS invitations, 5) Deferred XP logic tied to invitee verification.",
+			"reasoning": "Privacy-sensitive contact handling, hashing, matching, SMS integration, and conditional XP awards create high complexity with multiple failure modes and dependencies."
+		},
+		{
+			"taskId": 28,
+			"taskTitle": "Digital Ballot UI with 'Neon Green' Endorsements",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Subtasks: 1) Create Ballot tab and fetch/filter district-specific data, 2) Implement Neon Green styling and Commit to Vote toggles with DB saves, 3) Add Ballot Completion progress tracker and mock data testing.",
+			"reasoning": "Standard UI with data fetching and styling; moderate complexity from district filtering and commitment persistence."
+		},
+		{
+			"taskId": 29,
+			"taskTitle": "Tactical Mission Set: GPS & Verification Logic",
 			"complexityScore": 8,
 			"recommendedSubtasks": 4,
-			"expansionPrompt": "Break down into: 1) Edge Function parameter updates for new types, 2) Refinement of Gemini system prompts for specific engagement checks, 3) PFP visual comparison logic, and 4) Comprehensive testing suite for various mission scenarios.",
-			"reasoning": "High complexity due to prompt engineering requirements for Gemini and the need to accurately verify diverse mission types (likes vs. keywords vs. images) via AI."
+			"expansionPrompt": "Divide into: 1) Update Commands tab for mission display, 2) Early Raid GPS check-in and photo upload, 3) Election Day Google Maps deep-linking, 4) Gemini verification for photos and Squad Status UI.",
+			"reasoning": "Integrates GPS geofencing, external app linking, AI photo verification, and peer status aggregation, resulting in high integration complexity."
 		},
 		{
-			"taskId": 17,
-			"taskTitle": "Digital Ballot UI (Main Quest)",
-			"complexityScore": 5,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Divide into: 1) Main Quest screen data fetching with complex joins, 2) Grouped list rendering for races and candidates, and 3) Commitment toggle logic and persistence.",
-			"reasoning": "Requires a clean, high-impact UI (Neon Green styling) and efficient data fetching to show personalized ballots based on the user's district."
-		},
-		{
-			"taskId": 18,
-			"taskTitle": "Ballot Management Admin Tools",
-			"complexityScore": 6,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Identify subtasks for: 1) Ballot management dashboard, 2) Race and Candidate CRUD forms, 3) Ballot preview mode, and 4) Publication workflow logic.",
-			"reasoning": "Standard CRUD operations but with a high degree of nested data (Ballot > Race > Candidate) and the requirement for a 'Preview' mode."
-		},
-		{
-			"taskId": 19,
-			"taskTitle": "Notification Discipline & Retention Strategy",
-			"complexityScore": 6,
-			"recommendedSubtasks": 3,
-			"expansionPrompt": "Split into: 1) Onboarding notification permission screen, 2) Scoped notification triggering logic (Database triggers or Edge Functions), and 3) Integration with push provider for targeted delivery.",
-			"reasoning": "The challenge lies in the logic for 'scoping' notifications to specific districts or counties rather than just the implementation of the UI."
-		},
-		{
-			"taskId": 20,
-			"taskTitle": "Multi-State Scalability & Final Integration",
-			"complexityScore": 7,
-			"recommendedSubtasks": 4,
-			"expansionPrompt": "Break down into: 1) Multi-state schema audit and filtering updates, 2) E2E testing of the full user lifecycle (Registration > Geocoding > Content), 3) Performance profiling for concurrent users, and 4) Final production environment configuration.",
-			"reasoning": "This is a holistic task requiring extensive testing and ensuring the architectural patterns scale beyond Maryland. It serves as the final QA gate for the entire system."
+			"taskId": 30,
+			"taskTitle": "Data Seeding Script for Montgomery County & MD-6",
+			"complexityScore": 3,
+			"recommendedSubtasks": 2,
+			"expansionPrompt": "Subtasks: 1) Script for inserting missions into directives table, 2) Comprehensive ballot data population for districts with endorsement flags and validation.",
+			"reasoning": "Routine data scripting with known structures; low complexity as it's one-off insertion following schema, with clear verification path."
 		}
 	]
 }
