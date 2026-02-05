@@ -37,7 +37,7 @@ CREATE TABLE ranks (
 CREATE TABLE parties (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL UNIQUE,
-  general_user_id UUID REFERENCES auth.users(id),
+  general_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -48,7 +48,7 @@ CREATE TABLE warrior_bands (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   party_id UUID NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
-  captain_id UUID REFERENCES auth.users(id),
+  captain_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(party_id, name)
 );
@@ -80,7 +80,7 @@ COMMENT ON COLUMN profiles.contract_version_id IS 'Reference to contract_version
 CREATE TABLE directives (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   party_id UUID NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
-  author_id UUID NOT NULL REFERENCES auth.users(id),
+  author_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   body TEXT,
   target_goal INT NOT NULL,
@@ -149,7 +149,7 @@ CREATE TABLE h3_tiles (
   region TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'fog' CHECK (status IN ('fog', 'revealed')),
   revealed_at TIMESTAMPTZ,
-  revealed_by_user_id UUID REFERENCES auth.users(id),
+  revealed_by_user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

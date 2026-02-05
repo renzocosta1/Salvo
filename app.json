@@ -40,13 +40,6 @@
     "plugins": [
       "expo-router",
       [
-        "@rnmapbox/maps",
-        {
-          "RNMapboxMapsDownloadToken": "",
-          "RNMapboxMapsImpl": "mapbox"
-        }
-      ],
-      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Salvo needs your location to reveal hexagonal tiles on the tactical map as you move around."

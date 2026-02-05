@@ -7,6 +7,7 @@
  * For production voter applications, always use the Google Civic API for accuracy.
  */
 
+import Constants from 'expo-constants';
 import districtData from './maryland_districts.json';
 import { lookupDistrictByCivicApi, type CivicDistrictInfo } from './googleCivicApi';
 
@@ -38,8 +39,15 @@ export async function lookupDistrictByAddress(
   address: string,
   apiKey?: string
 ): Promise<LookupResult> {
-  // Get API key from parameter or environment
-  const key = apiKey || process.env.GOOGLE_CIVIC_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_CIVIC_API_KEY;
+  // Get API key: param, then env, then Expo config extra (set in app.config.js from .env)
+  const key =
+    apiKey ||
+    process.env.GOOGLE_CIVIC_API_KEY ||
+    process.env.EXPO_PUBLIC_GOOGLE_CIVIC_API_KEY ||
+    (typeof Constants?.expoConfig?.extra?.googleCivicApiKey === 'string' && Constants.expoConfig.extra.googleCivicApiKey.length > 0
+      ? Constants.expoConfig.extra.googleCivicApiKey
+      : undefined);
+
 
   if (!key) {
     return {
