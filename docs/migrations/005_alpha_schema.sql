@@ -158,56 +158,68 @@ ALTER TABLE election_day_verifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE synced_contacts ENABLE ROW LEVEL SECURITY;
 
 -- Ballots: Everyone can read
-CREATE POLICY IF NOT EXISTS "Ballots are publicly readable"
+DROP POLICY IF EXISTS "Ballots are publicly readable" ON md_ballots;
+CREATE POLICY "Ballots are publicly readable"
   ON md_ballots FOR SELECT
   USING (true);
 
 -- Ballot races: Everyone can read
-CREATE POLICY IF NOT EXISTS "Ballot races are publicly readable"
+DROP POLICY IF EXISTS "Ballot races are publicly readable" ON md_ballot_races;
+CREATE POLICY "Ballot races are publicly readable"
   ON md_ballot_races FOR SELECT
   USING (true);
 
 -- Ballot candidates: Everyone can read
-CREATE POLICY IF NOT EXISTS "Ballot candidates are publicly readable"
+DROP POLICY IF EXISTS "Ballot candidates are publicly readable" ON md_ballot_candidates;
+CREATE POLICY "Ballot candidates are publicly readable"
   ON md_ballot_candidates FOR SELECT
   USING (true);
 
 -- User ballot commitments: Users can only see/manage their own
-CREATE POLICY IF NOT EXISTS "Users can view their own ballot commitments"
+DROP POLICY IF EXISTS "Users can view their own ballot commitments" ON user_ballot_commitments;
+CREATE POLICY "Users can view their own ballot commitments"
   ON user_ballot_commitments FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can insert their own ballot commitments"
+DROP POLICY IF EXISTS "Users can insert their own ballot commitments" ON user_ballot_commitments;
+CREATE POLICY "Users can insert their own ballot commitments"
   ON user_ballot_commitments FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can update their own ballot commitments"
+DROP POLICY IF EXISTS "Users can update their own ballot commitments" ON user_ballot_commitments;
+CREATE POLICY "Users can update their own ballot commitments"
   ON user_ballot_commitments FOR UPDATE
   USING (auth.uid() = user_id);
 
 -- Election Day verifications: Users can only see/manage their own
-CREATE POLICY IF NOT EXISTS "Users can view their own election verification"
+DROP POLICY IF EXISTS "Users can view their own election verification" ON election_day_verifications;
+CREATE POLICY "Users can view their own election verification"
   ON election_day_verifications FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can insert their own election verification"
+DROP POLICY IF EXISTS "Users can insert their own election verification" ON election_day_verifications;
+CREATE POLICY "Users can insert their own election verification"
   ON election_day_verifications FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Synced contacts: Users can only see/manage their own
-CREATE POLICY IF NOT EXISTS "Users can view their own synced contacts"
+DROP POLICY IF EXISTS "Users can view their own synced contacts" ON synced_contacts;
+CREATE POLICY "Users can view their own synced contacts"
   ON synced_contacts FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can insert their own synced contacts"
+DROP POLICY IF EXISTS "Users can insert their own synced contacts" ON synced_contacts;
+CREATE POLICY "Users can insert their own synced contacts"
   ON synced_contacts FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can update their own synced contacts"
+DROP POLICY IF EXISTS "Users can update their own synced contacts" ON synced_contacts;
+CREATE POLICY "Users can update their own synced contacts"
   ON synced_contacts FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can delete their own synced contacts"
+DROP POLICY IF EXISTS "Users can delete their own synced contacts" ON synced_contacts;
+CREATE POLICY "Users can delete their own synced contacts"
   ON synced_contacts FOR DELETE
   USING (auth.uid() = user_id);
 
