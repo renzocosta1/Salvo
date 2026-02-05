@@ -1,0 +1,294 @@
+{
+  "metadata": {
+    "state": "Maryland",
+    "totalCounties": 23,
+    "totalLegislativeDistricts": 47,
+    "totalCongressionalDistricts": 8,
+    "lastUpdated": "2026-02-05",
+    "primaryFocus": "Montgomery County + MD-6"
+  },
+  "counties": {
+    "Montgomery": {
+      "name": "Montgomery",
+      "legislativeDistricts": [
+        {
+          "districtNumber": "14",
+          "districtName": "District 14",
+          "districtCode": "MD-LD-14",
+          "congressionalDistrict": "MD-6",
+          "majorCities": ["Germantown", "Clarksburg"],
+          "approximateBounds": {
+            "north": 39.25,
+            "south": 39.05,
+            "east": -77.15,
+            "west": -77.35
+          }
+        },
+        {
+          "districtNumber": "15",
+          "districtName": "District 15",
+          "districtCode": "MD-LD-15",
+          "congressionalDistrict": "MD-6",
+          "majorCities": ["Gaithersburg", "Kentlands"],
+          "approximateBounds": {
+            "north": 39.20,
+            "south": 39.10,
+            "east": -77.15,
+            "west": -77.25
+          }
+        },
+        {
+          "districtNumber": "16",
+          "districtName": "District 16",
+          "districtCode": "MD-LD-16",
+          "congressionalDistrict": "MD-6",
+          "majorCities": ["Olney", "Brookeville"],
+          "approximateBounds": {
+            "north": 39.20,
+            "south": 39.05,
+            "east": -77.00,
+            "west": -77.15
+          }
+        },
+        {
+          "districtNumber": "17",
+          "districtName": "District 17",
+          "districtCode": "MD-LD-17",
+          "congressionalDistrict": "MD-6",
+          "majorCities": ["Potomac", "Bethesda"],
+          "approximateBounds": {
+            "north": 39.08,
+            "south": 38.95,
+            "east": -77.08,
+            "west": -77.20
+          }
+        },
+        {
+          "districtNumber": "18",
+          "districtName": "District 18",
+          "districtCode": "MD-LD-18",
+          "congressionalDistrict": "MD-8",
+          "majorCities": ["Chevy Chase", "Kensington"],
+          "approximateBounds": {
+            "north": 39.05,
+            "south": 38.95,
+            "east": -76.98,
+            "west": -77.08
+          }
+        },
+        {
+          "districtNumber": "19",
+          "districtName": "District 19",
+          "districtCode": "MD-LD-19",
+          "congressionalDistrict": "MD-8",
+          "majorCities": ["Silver Spring", "Montgomery Hills"],
+          "approximateBounds": {
+            "north": 39.08,
+            "south": 38.98,
+            "east": -76.95,
+            "west": -77.05
+          }
+        },
+        {
+          "districtNumber": "20",
+          "districtName": "District 20",
+          "districtCode": "MD-LD-20",
+          "congressionalDistrict": "MD-8",
+          "majorCities": ["Takoma Park", "Langley Park"],
+          "approximateBounds": {
+            "north": 39.03,
+            "south": 38.96,
+            "east": -76.92,
+            "west": -77.00
+          }
+        }
+      ]
+    },
+    "Baltimore": {
+      "name": "Baltimore",
+      "legislativeDistricts": [
+        {
+          "districtNumber": "7",
+          "districtName": "District 7",
+          "districtCode": "MD-LD-7",
+          "congressionalDistrict": "MD-2",
+          "majorCities": ["Dundalk", "Essex"]
+        },
+        {
+          "districtNumber": "8",
+          "districtName": "District 8",
+          "districtCode": "MD-LD-8",
+          "congressionalDistrict": "MD-2",
+          "majorCities": ["Catonsville", "Arbutus"]
+        },
+        {
+          "districtNumber": "10",
+          "districtName": "District 10",
+          "districtCode": "MD-LD-10",
+          "congressionalDistrict": "MD-2",
+          "majorCities": ["Pikesville", "Owings Mills"]
+        },
+        {
+          "districtNumber": "11",
+          "districtName": "District 11",
+          "districtCode": "MD-LD-11",
+          "congressionalDistrict": "MD-2",
+          "majorCities": ["Towson", "Lutherville"]
+        },
+        {
+          "districtNumber": "42",
+          "districtName": "District 42",
+          "districtCode": "MD-LD-42",
+          "congressionalDistrict": "MD-1",
+          "majorCities": ["Perry Hall", "White Marsh"]
+        },
+        {
+          "districtNumber": "44",
+          "districtName": "District 44",
+          "districtCode": "MD-LD-44",
+          "congressionalDistrict": "MD-1",
+          "majorCities": ["Middle River", "Rosedale"]
+        }
+      ]
+    },
+    "Anne Arundel": {
+      "name": "Anne Arundel",
+      "legislativeDistricts": [
+        {
+          "districtNumber": "30",
+          "districtName": "District 30",
+          "districtCode": "MD-LD-30",
+          "congressionalDistrict": "MD-5",
+          "majorCities": ["Annapolis", "Edgewater"]
+        },
+        {
+          "districtNumber": "31",
+          "districtName": "District 31",
+          "districtCode": "MD-LD-31",
+          "congressionalDistrict": "MD-3",
+          "majorCities": ["Glen Burnie", "Pasadena"]
+        },
+        {
+          "districtNumber": "32",
+          "districtName": "District 32",
+          "districtCode": "MD-LD-32",
+          "congressionalDistrict": "MD-3",
+          "majorCities": ["Severna Park", "Arnold"]
+        },
+        {
+          "districtNumber": "33",
+          "districtName": "District 33",
+          "districtCode": "MD-LD-33",
+          "congressionalDistrict": "MD-5",
+          "majorCities": ["Crofton", "Odenton"]
+        }
+      ]
+    },
+    "Prince Georges": {
+      "name": "Prince Georges",
+      "legislativeDistricts": [
+        {
+          "districtNumber": "21",
+          "districtName": "District 21",
+          "districtCode": "MD-LD-21",
+          "congressionalDistrict": "MD-4",
+          "majorCities": ["College Park", "Hyattsville"]
+        },
+        {
+          "districtNumber": "22",
+          "districtName": "District 22",
+          "districtCode": "MD-LD-22",
+          "congressionalDistrict": "MD-4",
+          "majorCities": ["Largo", "Bowie"]
+        },
+        {
+          "districtNumber": "23",
+          "districtName": "District 23",
+          "districtCode": "MD-LD-23",
+          "congressionalDistrict": "MD-4",
+          "majorCities": ["Suitland", "District Heights"]
+        },
+        {
+          "districtNumber": "24",
+          "districtName": "District 24",
+          "districtCode": "MD-LD-24",
+          "congressionalDistrict": "MD-5",
+          "majorCities": ["Fort Washington", "Clinton"]
+        },
+        {
+          "districtNumber": "25",
+          "districtName": "District 25",
+          "districtCode": "MD-LD-25",
+          "congressionalDistrict": "MD-4",
+          "majorCities": ["Greenbelt", "Riverdale"]
+        },
+        {
+          "districtNumber": "26",
+          "districtName": "District 26",
+          "districtCode": "MD-LD-26",
+          "congressionalDistrict": "MD-5",
+          "majorCities": ["Upper Marlboro", "Bowie"]
+        },
+        {
+          "districtNumber": "27",
+          "districtName": "District 27",
+          "districtCode": "MD-LD-27",
+          "congressionalDistrict": "MD-5",
+          "majorCities": ["Oxon Hill", "Temple Hills"]
+        },
+        {
+          "districtNumber": "47",
+          "districtName": "District 47",
+          "districtCode": "MD-LD-47",
+          "congressionalDistrict": "MD-4",
+          "majorCities": ["Landover", "New Carrollton"]
+        }
+      ]
+    },
+    "Howard": {
+      "name": "Howard",
+      "legislativeDistricts": [
+        {
+          "districtNumber": "9",
+          "districtName": "District 9",
+          "districtCode": "MD-LD-9",
+          "congressionalDistrict": "MD-3",
+          "majorCities": ["Columbia", "Ellicott City"]
+        },
+        {
+          "districtNumber": "12",
+          "districtName": "District 12",
+          "districtCode": "MD-LD-12",
+          "congressionalDistrict": "MD-7",
+          "majorCities": ["Clarksville", "Highland"]
+        },
+        {
+          "districtNumber": "13",
+          "districtName": "District 13",
+          "districtCode": "MD-LD-13",
+          "congressionalDistrict": "MD-3",
+          "majorCities": ["Columbia", "Laurel"]
+        }
+      ]
+    },
+    "Frederick": {
+      "name": "Frederick",
+      "legislativeDistricts": [
+        {
+          "districtNumber": "3",
+          "districtName": "District 3",
+          "districtCode": "MD-LD-3",
+          "congressionalDistrict": "MD-6",
+          "majorCities": ["Frederick", "Urbana"]
+        },
+        {
+          "districtNumber": "4",
+          "districtName": "District 4",
+          "districtCode": "MD-LD-4",
+          "congressionalDistrict": "MD-6",
+          "majorCities": ["Middletown", "Brunswick"]
+        }
+      ]
+    }
+  }
+}
