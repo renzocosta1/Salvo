@@ -26,12 +26,12 @@
         "dependencies": [
           "21"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "complexity": 6,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Create subtasks for: 1) Data file creation and validation for maryland_districts.json, 2) Implementation of the lookup service with JSON parsing or geo-query logic, 3) Unit testing focused on Montgomery County and MD-6 accuracy.",
-        "updatedAt": "2026-02-05T01:58:10.584Z"
+        "updatedAt": "2026-02-05T01:59:39.579Z"
       },
       {
         "id": "23",
@@ -384,9 +384,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-05T01:58:10.587Z",
+      "lastModified": "2026-02-05T01:59:39.581Z",
       "taskCount": 10,
-      "completedCount": 1,
+      "completedCount": 2,
       "tags": [
         "master"
       ]
