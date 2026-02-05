@@ -1,20 +1,21 @@
 /**
  * Maryland District Lookup Utility
  * 
- * Maps lat/lng coordinates to Maryland County, Legislative District, and Congressional District
- * Uses simple bounding box matching for Alpha (Montgomery County focus)
+ * PRIMARY: Uses Google Civic Information API for authoritative district data
+ * FALLBACK: Simple bounding box matching for offline/testing scenarios
  * 
- * Future: Can be enhanced with full GeoJSON polygons for precise district boundaries
+ * For production voter applications, always use the Google Civic API for accuracy.
  */
 
 import districtData from './maryland_districts.json';
+import { lookupDistrictByCivicApi, type CivicDistrictInfo } from './googleCivicApi';
 
 export interface DistrictInfo {
   county: string;
   legislativeDistrict: string;
   legislativeDistrictCode: string;
   congressionalDistrict: string;
-  majorCities: string[];
+  majorCities?: string[];
 }
 
 export interface LookupResult {
@@ -22,14 +23,85 @@ export interface LookupResult {
   district?: DistrictInfo;
   error?: string;
   confidence: 'high' | 'medium' | 'low'; // high = exact match, medium = county match, low = no match
+  source?: 'google-civic-api' | 'bounding-box' | 'fallback';
 }
 
 /**
- * Lookup district from latitude and longitude coordinates
+ * Lookup district information by address using Google Civic Information API
+ * This is the PRIMARY and RECOMMENDED method for production use.
+ * 
+ * @param address Full address string (e.g., "8620 Jacks Reef Rd, Laurel, MD 20724")
+ * @param apiKey Google API Key (optional - reads from env if not provided)
+ * @returns Authoritative district information from official government data
+ */
+export async function lookupDistrictByAddress(
+  address: string,
+  apiKey?: string
+): Promise<LookupResult> {
+  // Get API key from parameter or environment
+  const key = apiKey || process.env.GOOGLE_CIVIC_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_CIVIC_API_KEY;
+
+  if (!key) {
+    return {
+      success: false,
+      error: 'Google Civic API key not configured. Set GOOGLE_CIVIC_API_KEY or EXPO_PUBLIC_GOOGLE_CIVIC_API_KEY in environment.',
+      confidence: 'low',
+      source: 'google-civic-api',
+    };
+  }
+
+  try {
+    const result = await lookupDistrictByCivicApi(address, key);
+
+    if (!result.success || !result.data) {
+      return {
+        success: false,
+        error: result.error || 'Failed to lookup district information',
+        confidence: 'low',
+        source: 'google-civic-api',
+      };
+    }
+
+    // Transform Google Civic API data to our DistrictInfo format
+    const civicData = result.data;
+    
+    // Use State Legislative Lower (House/Delegates) if available, otherwise Upper (Senate)
+    const legDistrict = civicData.stateLegislativeDistrictLower || civicData.stateLegislativeDistrictUpper || 'Unknown';
+    
+    return {
+      success: true,
+      district: {
+        county: civicData.county || 'Unknown',
+        legislativeDistrict: legDistrict,
+        legislativeDistrictCode: legDistrict, // Same value for Maryland
+        congressionalDistrict: civicData.congressionalDistrict || 'Unknown',
+        majorCities: [],
+      },
+      confidence: 'high',
+      source: 'google-civic-api',
+    };
+
+  } catch (error) {
+    console.error('District lookup error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      confidence: 'low',
+      source: 'google-civic-api',
+    };
+  }
+}
+
+/**
+ * LEGACY: Lookup district from latitude and longitude coordinates
+ * 
+ * ⚠️  WARNING: This uses approximate bounding boxes and is NOT accurate for voting applications.
+ * ⚠️  Use lookupDistrictByAddress() with Google Civic API instead for production.
  * 
  * @param lat Latitude
  * @param lng Longitude
- * @returns District information or error
+ * @returns District information or error (LOW ACCURACY)
+ * @deprecated Use lookupDistrictByAddress() for accurate voter data
  */
 export function lookupDistrict(lat: number, lng: number): LookupResult {
   // Validate coordinates
@@ -38,6 +110,7 @@ export function lookupDistrict(lat: number, lng: number): LookupResult {
       success: false,
       error: 'Invalid coordinates. Latitude must be between -90 and 90, longitude between -180 and 180.',
       confidence: 'low',
+      source: 'bounding-box',
     };
   }
 
@@ -47,6 +120,7 @@ export function lookupDistrict(lat: number, lng: number): LookupResult {
       success: false,
       error: 'Coordinates appear to be outside Maryland. Please verify your address.',
       confidence: 'low',
+      source: 'bounding-box',
     };
   }
 
@@ -54,7 +128,7 @@ export function lookupDistrict(lat: number, lng: number): LookupResult {
   for (const [countyKey, countyData] of Object.entries(districtData.counties)) {
     for (const district of countyData.legislativeDistricts) {
       // If district has approximate bounds, check if coordinates fall within
-      if (district.approximateBounds) {
+      if ('approximateBounds' in district && district.approximateBounds) {
         const bounds = district.approximateBounds;
         
         if (
@@ -72,7 +146,8 @@ export function lookupDistrict(lat: number, lng: number): LookupResult {
               congressionalDistrict: district.congressionalDistrict,
               majorCities: district.majorCities,
             },
-            confidence: 'high',
+            confidence: 'medium', // Downgraded from 'high' because bounding boxes are imprecise
+            source: 'bounding-box',
           };
         }
       }
@@ -81,18 +156,21 @@ export function lookupDistrict(lat: number, lng: number): LookupResult {
 
   // Fallback: Check if at least in a county (for districts without precise bounds)
   const county = findCountyByProximity(lat, lng);
+  
   if (county) {
     return {
       success: false,
-      error: `Found ${county} county but could not determine legislative district. Please select manually.`,
-      confidence: 'medium',
+      error: `Found ${county} county but could not determine legislative district. Use lookupDistrictByAddress() for accurate data.`,
+      confidence: 'low',
+      source: 'fallback',
     };
   }
 
   return {
     success: false,
-    error: 'Could not determine district from coordinates. Please select manually.',
+    error: 'Could not determine district from coordinates. Use lookupDistrictByAddress() for accurate data.',
     confidence: 'low',
+    source: 'bounding-box',
   };
 }
 

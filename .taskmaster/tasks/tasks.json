@@ -43,7 +43,7 @@
         "dependencies": [
           "22"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -51,9 +51,10 @@
             "description": "Develop the UI component for address input within the mobile onboarding navigation flow.",
             "dependencies": [],
             "details": "Create a new file in 'app/(onboarding)/address.tsx' using Expo Router. Implement a user interface with input fields for street address, city, and zip code, ensuring it follows the global theme.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify navigation to the screen via Expo Router and ensure all input fields are interactable and validate basic input types.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-05T03:36:29.941Z"
           },
           {
             "id": 2,
@@ -63,9 +64,10 @@
               1
             ],
             "details": "Implement a fetch call to 'https://api.mapbox.com/geocoding/v5/mapbox.places/' using the user's input. Add debouncing to minimize API calls and handle potential network errors or zero-result scenarios.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify that providing a valid Maryland address returns the correct latitude and longitude coordinates in the console or state.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-05T03:37:32.219Z"
           },
           {
             "id": 3,
@@ -75,9 +77,10 @@
               2
             ],
             "details": "Import the utility from Task 22. Once coordinates are received, perform a lookup for the Maryland County, Legislative District, and Congressional District. Update the 'profiles' table in Supabase with these values.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Check the Supabase dashboard to ensure the 'profiles' record for the test user contains the expected district and county strings after submission.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-05T03:37:32.230Z"
           },
           {
             "id": 4,
@@ -87,14 +90,16 @@
               3
             ],
             "details": "Create a fallback UI using a Picker or Select component that allows users to manually choose their Maryland districts. Conduct end-to-end tests covering both the automatic geocoding path and the manual fallback path.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Perform end-to-end onboarding tests with real Maryland addresses. Simulate API failure to verify that the manual dropdown allows successful profile completion.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-05T03:37:32.247Z"
           }
         ],
         "complexity": 7,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Divide into subtasks: 1) Add Address Entry screen to Expo Router flow, 2) Integrate Mapbox Geocoding API for lat/lng conversion, 3) Integrate District Lookup and profile update logic, 4) Implement fallback manual selection UI and E2E testing."
+        "expansionPrompt": "Divide into subtasks: 1) Add Address Entry screen to Expo Router flow, 2) Integrate Mapbox Geocoding API for lat/lng conversion, 3) Integrate District Lookup and profile update logic, 4) Implement fallback manual selection UI and E2E testing.",
+        "updatedAt": "2026-02-05T03:37:32.247Z"
       },
       {
         "id": "24",
@@ -384,9 +389,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-05T01:59:39.581Z",
+      "lastModified": "2026-02-05T03:37:32.247Z",
       "taskCount": 10,
-      "completedCount": 2,
+      "completedCount": 3,
       "tags": [
         "master"
       ]

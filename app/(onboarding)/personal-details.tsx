@@ -65,8 +65,8 @@ export default function PersonalDetailsScreen() {
         return;
       }
 
-      // Navigate to feature selection
-      router.push('/(onboarding)/feature-selection');
+      // Navigate to address entry
+      router.push('/(onboarding)/address');
     } catch (error) {
       console.error('Unexpected error:', error);
       Alert.alert('Error', 'An unexpected error occurred');

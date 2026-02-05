@@ -324,7 +324,7 @@ export default function MapScreen() {
         >
           <Text style={styles.revealButtonText}>
             {userLocation ? 'Reveal Area' : 'Locating...'}
-          </Text>
+            </Text>
         </Pressable>
       </View>
     </View>
