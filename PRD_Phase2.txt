@@ -1,37 +1,33 @@
 <context>
 # Overview  
-Salvo Phase 2: Political Engagement Platform transforms the existing tactical coordination app into a real-world voter mobilization tool for the 2026 midterm elections. Built on top of the working MVP (auth, directives, map, offline sync), this phase adds: mission creation dropdown for Captains, address-to-district auto-assignment, digital ballot voting guide, notification discipline strategy, and easy social media link opening. Primary target: 10,000+ verified voters in Montgomery County, Maryland. Designed for scalability to Florida Governor race, South Carolina races, and nationwide expansion. Success metric: High notification opt-in rate (>80%), active mission completion, voter registration increases, and election day turnout.
+Salvo Alpha: Turnout Engine for Maryland 2026 Primary (June 23, 2026). This is NOT a social network. This is a behavioral engineering tool to ensure 100% participation through peer accountability and tactical missions. Built on top of the working MVP (auth, onboarding, offline sync), this Alpha adds: Voter Registration Card verification, address-to-district assignment, contact sync for relational recruitment, pre-loaded tactical missions, digital ballot with endorsed candidates, Polymarket integration for live odds, and weekly notification pulse. Primary target: Montgomery County + MD-6 Congressional District. Core loop: Onboarding → Verification → Relational Recruitment → Verified Vote. Success metric: 100% verified turnout on Election Day.
 
 # Core Features  
-**Mission Creation Dropdown System**: Captains create missions via intuitive dropdown menu with 7 types: Recruit Friends (100 XP), Signal Boost (50 XP), Raid Comments (75 XP), Phone/Email Protest (150 XP), PFP Change (25 XP), Event Attendance (100 XP), Voter Registration (150 XP). Each type auto-assigns verification method (photo/screenshot/manual) and fixed XP. Dynamic form shows relevant fields: URLs for social missions, scripts for phone protests, keywords for raids. Scope selector: District/County/State/National. No more manual XP entry - all standardized.
+**The "Geographic Lock"**: Onboarding includes address entry screen. Mapbox Geocoding API converts address → lat/lng → Maryland County + Legislative District + Congressional District. Users auto-assigned to correct district. This determines their ballot, their Squad/District peers, and their notification scope. Database stores full Maryland geography: All 47 Legislative Districts, all 23 Counties, all Congressional Districts. Initial focus: Montgomery County + MD-6.
 
-**Address-to-District Auto-Assignment**: Onboarding includes address entry screen (after age/gender, before feature selection). Mapbox Geocoding API converts address → lat/lng → Maryland Legislative District + County + Congressional District. Users auto-assigned to correct legislative_district for scoped missions and notifications. Replaces warrior_bands concept with geographic hierarchy. **Role Hierarchy**: National → State → County → Captain (District) → Warrior (User). **Captain Assignment**: County leaders, State leaders, or National leaders assign Captains to districts. Once assigned, Captain is the **sole person** sending missions for their Legislative District. County leaders can send missions to specific districts within their county OR to entire county. Scalable data model supports full Maryland (all 47 districts, 23 counties) with initial focus on Montgomery County + MD-6, then multi-state expansion (Florida, South Carolina, etc.).
+**The "War Room" HUD (Tab 1)**: Replaces generic Command Feed. Shows three elements: (1) **The Oracle**: Polymarket API integration displays live win-probabilities for MD-6 Congressional and Montgomery County Executive races. Updates every 15 minutes. (2) **The Pulse**: Weekly Saturday notification at 11:00 AM triggers 2-second "Oath Renewal" animation to prevent iOS app offloading. (3) **The Timers**: High-impact countdowns to Registration Deadline (June 2, 2026), Early Voting Start (June 11), and Election Day (June 23).
 
-**Digital Ballot Voting Guide**: "Main Quest" screen displays replica of user's local ballot with endorsed candidates highlighted in Neon Green. Leadership creates ballots per election/district. Down-ballot races shown (Governor, Senate, House, County Exec, School Board, etc.). Feels like "voting for your team to win." Users commit to vote for endorsed candidates. Completionist badge: High XP only if user verifies voting for ALL endorsed down-ballot seats. Critical for driving turnout on actual election day.
+**The "Relational Raid" (Tab 2: Invite)**: Contact sync matches phone contacts against Maryland Voter DB. Display tactical status for each contact: Green icon (In Salvo + Verified), Yellow icon (Registered Republican, not in app), Gray icon (Not registered). Users earn XP for every contact who joins AND verifies their Voter Registration Card. This creates peer pressure and accountability loops.
 
-**Notification Discipline & Retention**: Notifications are valuable intelligence, not spam. Only send: (1) New missions in user's scope, (2) Election day reminders (not daily spam), (3) Critical updates (e.g., Polymarket odds shifts >3% - future), (4) Mission verification results. Onboarding warning: "Disabling notifications means missing critical election night intel." Track notification permission status. Goal: >80% opt-in rate year-round. Users WANT notifications because they're election-critical.
+**The "Tactical Mission" Set (Tab 3: Commands)**: Four pre-loaded missions hardcoded in database. NO dynamic mission creation UI for Alpha. Missions: (1) **Enlistment**: Upload Voter Registration Card (Gemini 1.5 Flash verifies + client-side redaction), (2) **Mail-in Strike**: Proof of mail-in ballot request/submission (screenshot or photo), (3) **Early Raid** (June 11-18): GPS check-in at Early Voting center + photo proof, (4) **Election Day Siege** (June 23): Deep-link to Google Maps for precinct waypoint + "I Voted" sticker photo. Within Squad/District, display who has "Confirmed Ballot" vs. who is AWOL. Public accountability.
 
-**Easy Social Media Link Opening**: Signal Boost and Raid missions include one-tap clickable URLs. Opens Twitter/X, Reddit, Instagram, YouTube in native app (if installed) or in-app browser via expo-web-browser. Mission cards show "Open Link" button. Deep link support for major platforms. Makes "raiding" target posts/comment sections frictionless. Users can engage with content in seconds.
+**The Digital Ballot "End Game"**: "Ballot" tab displays replica of user's FULL down-ballot for their district. Includes: Governor, U.S. Senate, U.S. House (MD-6), State Senate, State House, County Executive, County Council, DA, School Board, Court Judges, Ballot Questions/Amendments. Endorsed candidates (hard_party_endorsed = true) highlighted in **Neon Green**. Feels like "voting for your team." Users commit to vote for each endorsed candidate. Completionist badge awarded only if user verifies voting for ALL endorsed seats on Election Day.
 
-**Map Territory Game (Stretch Goal - Optional)**: Increase H3 resolution from Res 9 to Res 7-8 (larger hexes for "conquer" feel). Leadership (County/State level) can mark "enemy territory" hexes (opponent strongholds, polling places). Users check in to "siege" and convert hexes to team color. Daily/weekly competitive game. If too complex for timeline, remove this feature entirely. Map improvements are nice-to-have, not critical path.
-
-**Scalable Multi-State Architecture**: Database schema supports multiple states, counties, districts. Maryland first (Montgomery County), then expand to Florida (Governor race), South Carolina, and beyond. Geographic hierarchy: State → County → Legislative District → Users. Captains can be assigned per state/district. Missions can be scoped to specific states. National missions reach all users. Built for nationwide scale from day one.
+**Notification as Primary Weapon**: Weekly Saturday 11 AM notification (Oath Renewal). Election countdown reminders (T-14 days, T-7 days, T-1 day, Election Day morning). Squad/District alerts when peers complete missions. Polymarket odds shifts >5% trigger urgent notifications. Mission verification results. Goal: Keep notifications ON year-round by making them critical intel, not spam.
 
 # User Experience  
 **User Personas**: 
-- **Warrior (Voter)**: Age 18-65, politically engaged, wants to help "their team win." Completes missions, recruits friends, keeps notifications on to never miss election intel. Needs simple, clear instructions and instant gratification (XP/rank).
-- **Captain (District Leader)**: Assigned by County/State/National leaders. Runs ONE legislative district (e.g., Maryland District 15). **Sole person** creating missions for their district. Monitors district stats, recruits members. Needs easy mission creation UI.
-- **County Leader**: Oversees entire county (e.g., Montgomery County). Assigns Captains to districts within county. Can send missions to specific districts OR entire county. Monitors county-wide stats.
-- **State Leader**: Oversees entire state (e.g., Maryland). Assigns County leaders and Captains. Creates ballots with endorsed candidates. Can send missions to specific districts, counties, OR entire state. Launches state-wide initiatives.
-- **National Leader**: Top of hierarchy. Oversees all states. Assigns State leaders. Can send missions anywhere. Creates national campaigns.
+- **Warrior (Voter)**: Age 18-65, Maryland resident, registered Republican. Wants to ensure "their team wins" the Primary. Completes 4 tactical missions, recruits contacts, keeps notifications on. Needs clear instructions and peer accountability. Public Callsign in app, real name stored securely (encrypted).
+- **Captain (Squad Leader)**: Manually assigned by leadership in database (no UI for Alpha). Monitors their Squad/District stats. Can see who has "Confirmed Ballot" vs. AWOL. Rank cap at "Captain" - Officer promotion requires in-person interview.
+- **Leadership (Admin)**: Manual database access. Pre-loads 4 missions. Manually inserts ballots with endorsed candidates. Assigns Captains via SQL. No fancy admin UI for Alpha - speed over polish.
 
 **Key User Flows**:
-1. **New User Onboarding**: Sign up → Oath screen → Personal details (age/gender) → **Address entry (NEW)** → Feature preferences → **Security Clearance Mission (verify voter registration - FUTURE)** → Main app
-2. **County Leader Assigns Captain**: HQ Tab → Leadership → View Districts → Selects "Maryland District 15" → Taps "Assign Captain" → Search users in district → Selects user → Confirms → User promoted to Captain role → Captain receives notification → Captain can now create missions for District 15
-3. **Captain Creates Mission**: HQ Tab → Missions → Dropdown selects "Signal Boost" → Enters target URL, description, selects platform → Scope auto-set to "District" (Captain's district) → Auto-shows XP reward (50 XP) → Create Mission → Appears in Command Feed for users in District 15
-4. **County Leader Creates County-Wide Mission**: HQ Tab → Missions → Dropdown selects "Voter Registration" → Enters description → Selects scope "County" (Montgomery County) → Auto-shows XP reward (150 XP) → Create Mission → Appears in Command Feed for ALL users in Montgomery County
-5. **Warrior Completes Mission**: Views Command Feed → Taps "SIGNAL BOOST: Share this post" → Taps "Open Link" → Twitter opens → User likes/retweets post → Returns to app → Taps "Upload Proof" → Takes screenshot → Submits → Gemini verifies keyword/engagement → XP awarded → Notification sent
-6. **Election Day Flow**: User receives notification "ELECTION DAY: Vote for our team!" → Opens Main Quest (Ballot Guide) → Sees endorsed candidates in Neon Green for all races → Goes to polls → Votes for endorsed candidates → Returns to app → Uploads "I Voted" sticker photo → Verifies voting for all endorsed races → Receives Completionist Badge + High XP
+1. **New User Onboarding**: Sign up → Oath screen → Personal details (age/gender) → **Address entry (NEW)** → Mapbox geocoding → Auto-assigned to County/District → Feature preferences → **Enlistment Mission prompt** (Upload Voter Registration Card) → Main app
+2. **Enlistment (Verification)**: User sees "URGENT: Complete Enlistment" → Taps mission → Camera opens → User photographs Voter Registration Card → **Client-side redaction** of sensitive fields (Voter ID#, full address) → Upload to Gemini 1.5 Flash → AI verifies: (a) Document is MD Voter Registration Card, (b) Name matches profile, (c) Party = Republican → If verified: "VERIFIED" badge, unlock full app. If rejected: "Appeal to Captain" option.
+3. **Relational Raid (Contact Sync)**: User taps Invite tab → App requests Contacts permission → Syncs phone contacts → Backend matches contacts against MD Voter DB (by phone number if available, else manual search) → Display list with icons: Green (In Salvo), Yellow (Registered Rep, not in app), Gray (Not registered) → User taps contact → Share invite link via SMS → If contact joins + verifies: +100 XP "Recruiter" badge progress.
+4. **War Room Check-In**: User opens app → War Room HUD shows: (1) **Oracle**: "MD-6: 52% Hard Party | MoCo Exec: 48% Hard Party" (Polymarket live odds), (2) **Timers**: "Election Day: 47 days 12 hours", (3) **Pulse**: Saturday 11 AM notification: "Renew your Oath" → User taps → 2-second animation → XP awarded → iOS doesn't offload app.
+5. **Early Voting Raid (June 11-18)**: User receives notification "Early Voting starts TODAY" → Opens Commands tab → Taps "Early Raid" mission → App deep-links to Google Maps with nearest Early Voting center → User votes early → Returns to app → Camera opens → Photo of "I Voted" sticker or polling place → Gemini verifies photo shows voting proof → Mission complete → Squad/District leaderboard updates → Public accountability: "John Smith completed Early Raid ✅"
+6. **Election Day Siege (June 23)**: User receives 6 AM notification "ELECTION DAY: Vote for Hard Party!" → Opens Ballot tab → Sees full down-ballot with Neon Green endorsed candidates → Memorizes selections → Goes to precinct → Votes → Returns to app → Uploads "I Voted" sticker photo → App prompts: "Did you vote for ALL Neon Green candidates?" → User confirms → Completionist Badge + 500 XP → Squad stats update: "15/20 CONFIRMED BALLOTS"
 
 **UI/UX Considerations**:
 - **Citizen-style Dark Theme**: Already implemented. Maintain consistency across all new screens.
@@ -47,513 +43,527 @@ Salvo Phase 2: Political Engagement Platform transforms the existing tactical co
 **Database Schema Additions** (Build on existing schema):
 
 ```sql
--- Add address/district fields to profiles table
+-- Add geographic fields to profiles table (The "Geographic Lock")
 ALTER TABLE profiles ADD COLUMN address_line1 TEXT;
 ALTER TABLE profiles ADD COLUMN address_line2 TEXT;
 ALTER TABLE profiles ADD COLUMN city TEXT;
-ALTER TABLE profiles ADD COLUMN state TEXT;
+ALTER TABLE profiles ADD COLUMN state TEXT DEFAULT 'Maryland';
 ALTER TABLE profiles ADD COLUMN zip_code TEXT;
-ALTER TABLE profiles ADD COLUMN county TEXT;
-ALTER TABLE profiles ADD COLUMN legislative_district TEXT;
-ALTER TABLE profiles ADD COLUMN congressional_district TEXT;
-ALTER TABLE profiles ADD COLUMN legislative_district_id UUID;
+ALTER TABLE profiles ADD COLUMN county TEXT; -- e.g., "Montgomery"
+ALTER TABLE profiles ADD COLUMN legislative_district TEXT; -- e.g., "District 15"
+ALTER TABLE profiles ADD COLUMN congressional_district TEXT; -- e.g., "MD-6"
 ALTER TABLE profiles ADD COLUMN latitude NUMERIC;
 ALTER TABLE profiles ADD COLUMN longitude NUMERIC;
 ALTER TABLE profiles ADD COLUMN geocoded_at TIMESTAMPTZ;
 
--- Update profiles table to support new leadership roles
--- Existing role column: CHECK (role IN ('general', 'captain', 'warrior'))
--- Update to: CHECK (role IN ('national_leader', 'state_leader', 'county_leader', 'captain', 'warrior'))
-ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
-ALTER TABLE profiles ADD CONSTRAINT profiles_role_check CHECK (role IN (
-  'national_leader', 'state_leader', 'county_leader', 'captain', 'warrior'
-));
+-- Add verification tracking to profiles
+ALTER TABLE profiles ADD COLUMN voter_registration_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE profiles ADD COLUMN voter_registration_verified_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN voter_registration_photo_url TEXT; -- Encrypted URL
+ALTER TABLE profiles ADD COLUMN real_name_encrypted TEXT; -- For leadership's secure "Hire" list
+ALTER TABLE profiles ADD COLUMN callsign TEXT; -- Public display name
 
--- Add leadership scope tracking to profiles
-ALTER TABLE profiles ADD COLUMN leadership_state TEXT; -- e.g., "Maryland" for state leaders
-ALTER TABLE profiles ADD COLUMN leadership_county TEXT; -- e.g., "Montgomery" for county leaders
+-- Simplify role system (no complex leadership hierarchy for Alpha)
+-- Keep existing: 'general', 'captain', 'warrior'
+-- Captain manually assigned via SQL, rank cap at Captain for Alpha
 
--- Create legislative_districts table (replaces warrior_bands for geographic hierarchy)
-CREATE TABLE legislative_districts (
+-- Maryland Ballot System (The "End Game")
+CREATE TABLE md_ballots (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  state TEXT NOT NULL, -- e.g., "Maryland", "Florida", "South Carolina"
-  county TEXT NOT NULL, -- e.g., "Montgomery", "Miami-Dade"
-  district_name TEXT NOT NULL, -- e.g., "District 15", "District 27"
-  district_code TEXT NOT NULL, -- e.g., "MD-15", "FL-27"
-  captain_id UUID REFERENCES auth.users(id), -- The assigned captain
-  assigned_by UUID REFERENCES auth.users(id), -- Who assigned this captain (County/State/National leader)
-  assigned_at TIMESTAMPTZ, -- When captain was assigned
-  party_id UUID NOT NULL REFERENCES parties(id),
+  election_date DATE NOT NULL DEFAULT '2026-06-23', -- Maryland Primary
+  county TEXT NOT NULL,
+  legislative_district TEXT NOT NULL,
+  congressional_district TEXT NOT NULL,
+  election_name TEXT NOT NULL DEFAULT '2026 Maryland Republican Primary',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(state, county, district_name)
+  UNIQUE(county, legislative_district, congressional_district)
 );
 
--- Add mission type fields to directives table
-ALTER TABLE directives ADD COLUMN mission_type TEXT CHECK (mission_type IN (
-  'RECRUIT_FRIENDS', 
-  'SIGNAL_BOOST', 
-  'RAID_COMMENTS', 
-  'PHONE_EMAIL_PROTEST', 
-  'PFP_CHANGE', 
-  'EVENT_ATTENDANCE', 
-  'VOTER_REGISTRATION'
-));
-ALTER TABLE directives ADD COLUMN verification_method TEXT CHECK (verification_method IN (
-  'photo', 'screenshot', 'social_api', 'manual', 'invite_code'
-));
-ALTER TABLE directives ADD COLUMN xp_reward INT NOT NULL DEFAULT 50;
-ALTER TABLE directives ADD COLUMN scope_level TEXT CHECK (scope_level IN (
-  'district', 'county', 'state', 'national'
-)) NOT NULL DEFAULT 'district';
-ALTER TABLE directives ADD COLUMN target_legislative_district_id UUID REFERENCES legislative_districts(id);
-ALTER TABLE directives ADD COLUMN target_county TEXT;
-ALTER TABLE directives ADD COLUMN target_state TEXT;
-ALTER TABLE directives ADD COLUMN social_platform TEXT; -- e.g., "twitter", "reddit", "instagram"
-ALTER TABLE directives ADD COLUMN target_url TEXT; -- URL for signal boost/raid missions
-ALTER TABLE directives ADD COLUMN raid_keyword TEXT; -- Keyword to verify in raid screenshots
-ALTER TABLE directives ADD COLUMN pfp_description TEXT; -- Description for PFP change missions
-ALTER TABLE directives ADD COLUMN phone_email_target TEXT; -- Phone/email for protest missions
-ALTER TABLE directives ADD COLUMN phone_email_script TEXT; -- Script/talking points
-
--- Mission type XP lookup table (fixed values, leaders cannot change)
-CREATE TABLE mission_type_xp (
-  mission_type TEXT PRIMARY KEY,
-  xp_reward INT NOT NULL,
-  verification_method TEXT NOT NULL
-);
-
-INSERT INTO mission_type_xp (mission_type, xp_reward, verification_method) VALUES
-  ('RECRUIT_FRIENDS', 100, 'invite_code'),
-  ('SIGNAL_BOOST', 50, 'screenshot'),
-  ('RAID_COMMENTS', 75, 'screenshot'),
-  ('PHONE_EMAIL_PROTEST', 150, 'screenshot'),
-  ('PFP_CHANGE', 25, 'screenshot'),
-  ('EVENT_ATTENDANCE', 100, 'photo'),
-  ('VOTER_REGISTRATION', 150, 'photo');
-
--- Ballot system tables
-CREATE TABLE mission_ballots (
+CREATE TABLE md_ballot_races (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  state TEXT NOT NULL,
-  county TEXT,
-  legislative_district TEXT,
-  election_date DATE NOT NULL,
-  election_name TEXT NOT NULL, -- e.g., "2026 Maryland Primary"
-  created_by UUID NOT NULL REFERENCES auth.users(id),
+  ballot_id UUID NOT NULL REFERENCES md_ballots(id) ON DELETE CASCADE,
+  race_title TEXT NOT NULL, -- e.g., "Governor", "U.S. Senate", "MD-6 U.S. House", "State Senate District 15", "County Executive", "DA", "School Board At-Large", "Circuit Court Judge", "Question 1"
+  race_type TEXT NOT NULL CHECK (race_type IN ('federal', 'state', 'county', 'local', 'judicial', 'ballot_question')),
+  position_order INT NOT NULL, -- Order on ballot (top to bottom)
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE ballot_endorsements (
+CREATE TABLE md_ballot_candidates (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  ballot_id UUID NOT NULL REFERENCES mission_ballots(id) ON DELETE CASCADE,
-  race_title TEXT NOT NULL, -- e.g., "Governor", "State Senate District 15", "County Executive"
+  race_id UUID NOT NULL REFERENCES md_ballot_races(id) ON DELETE CASCADE,
   candidate_name TEXT NOT NULL,
-  candidate_party TEXT,
-  position_order INT NOT NULL, -- Order on ballot (top to bottom)
-  is_endorsed BOOLEAN NOT NULL DEFAULT TRUE,
+  candidate_party TEXT DEFAULT 'Republican',
+  hard_party_endorsed BOOLEAN NOT NULL DEFAULT FALSE, -- TRUE = Neon Green highlight
+  candidate_order INT NOT NULL, -- Order within race
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- User ballot commitments (track who committed to vote for endorsed candidates)
-CREATE TABLE ballot_commitments (
+CREATE TABLE user_ballot_commitments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  ballot_id UUID NOT NULL REFERENCES mission_ballots(id) ON DELETE CASCADE,
-  endorsement_id UUID NOT NULL REFERENCES ballot_endorsements(id) ON DELETE CASCADE,
+  race_id UUID NOT NULL REFERENCES md_ballot_races(id) ON DELETE CASCADE,
+  candidate_id UUID NOT NULL REFERENCES md_ballot_candidates(id) ON DELETE CASCADE,
   committed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, race_id)
+);
+
+-- Election Day verification (The "Judgment")
+CREATE TABLE election_day_verifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  verified_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  verification_photo_url TEXT NOT NULL, -- "I Voted" sticker or polling place photo
+  voted_all_endorsed BOOLEAN NOT NULL DEFAULT FALSE, -- Completionist badge check
+  UNIQUE(user_id)
+);
+
+-- Pre-loaded Tactical Missions (hardcoded, no dynamic creation)
+-- Mission 1: ENLISTMENT (Upload Voter Registration Card)
+-- Mission 2: MAIL_IN_STRIKE (Proof of mail-in ballot request)
+-- Mission 3: EARLY_RAID (GPS check-in + photo at Early Voting center, June 11-18)
+-- Mission 4: ELECTION_DAY_SIEGE (Google Maps waypoint + "I Voted" sticker, June 23)
+
+ALTER TABLE directives ADD COLUMN mission_type TEXT CHECK (mission_type IN (
+  'ENLISTMENT', 'MAIL_IN_STRIKE', 'EARLY_RAID', 'ELECTION_DAY_SIEGE'
+));
+ALTER TABLE directives ADD COLUMN mission_deadline DATE; -- e.g., June 2 (registration), June 11 (early voting start), June 23 (election day)
+ALTER TABLE directives ADD COLUMN requires_gps BOOLEAN DEFAULT FALSE; -- TRUE for Early Raid
+ALTER TABLE directives ADD COLUMN google_maps_link TEXT; -- For Election Day Siege waypoint
+
+-- Contact Sync for Relational Raid
+CREATE TABLE synced_contacts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  contact_phone TEXT NOT NULL,
+  contact_name TEXT,
+  voter_status TEXT CHECK (voter_status IN ('in_salvo', 'registered_not_in_app', 'not_registered')),
+  invited_at TIMESTAMPTZ,
+  joined_at TIMESTAMPTZ,
   verified_at TIMESTAMPTZ,
-  verification_photo_url TEXT,
-  UNIQUE(user_id, endorsement_id)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id, contact_phone)
 );
 ```
 
 **API Integrations**:
-- **Mapbox Geocoding API**: Already have token (`EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`). Use Geocoding API endpoint: `https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?access_token=...`. Returns lat/lng. Then map to Maryland district using lookup table.
-- **Google Gemini 1.5 Flash**: Already integrated via Edge Function. Extend to verify raid keywords in screenshots, PFP changes, etc.
-- **Social Media APIs** (Future): Twitter/X API for automatic verification. For MVP, use screenshot verification.
+- **Mapbox Geocoding API**: Already have token (`EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN`). Use Geocoding API endpoint: `https://api.mapbox.com/geocoding/v5/mapbox.places/{address}.json?access_token=...`. Returns lat/lng. Then map to Maryland County + Legislative District + Congressional District using lookup table.
+- **Google Gemini 1.5 Flash**: Already integrated via Edge Function. Use for: (1) Voter Registration Card verification (detect document type, verify name match, check party = Republican), (2) "I Voted" sticker verification, (3) Early Voting photo verification. **Critical**: Implement client-side redaction BEFORE upload to blur sensitive fields (Voter ID#, full address).
+- **Polymarket Gamma API**: Integrate to fetch live win-probabilities for MD-6 Congressional and Montgomery County Executive races. Poll every 15 minutes. Display in War Room HUD. Trigger urgent notification if odds shift >5% in 24 hours.
+- **Maryland Voter DB**: For contact sync, need to match phone contacts against registered voter list. Options: (1) Use Maryland State Board of Elections API (if available), (2) Manual CSV import of public voter file, (3) Simplified Alpha: User manually searches contacts by name in app, app shows if they're in Salvo.
 
 **Geographic Lookup System**:
-- Create `maryland_district_lookup.json` with polygon boundaries for each legislative district (can use Maryland Open Data or manual entry for Montgomery County first)
-- Simple point-in-polygon check: Given lat/lng, find which district polygon contains it
-- Scalable to Florida, South Carolina by adding more lookup files per state
-- Fallback: If geocoding fails or district not found, allow manual district selection
+- Create `maryland_districts.json` with County → Legislative District → Congressional District mapping
+- All 47 Legislative Districts, all 23 Counties, all 8 Congressional Districts
+- Simple lookup: Given lat/lng from Mapbox, determine County, then Legislative District, then Congressional District
+- Fallback: If geocoding fails, manual County/District dropdown selector
+- For Alpha: Hardcode Montgomery County districts (14-20) and MD-6, expand later
 
-**Notification Scope Logic** (when push notifications implemented):
-- User's legislative_district_id → receives District-level missions
-- User's county → receives County-level missions
-- User's state → receives State-level missions
-- All users → receive National-level missions
-- Notification channels: One channel per scope level
+**Voter Registration Card Verification Flow**:
+1. User taps "Enlistment" mission → Camera opens
+2. User photographs MD Voter Registration Card
+3. **Client-side redaction** (React Native Image Manipulator): Blur Voter ID# and full address before upload
+4. Upload redacted image to Supabase Storage (encrypted)
+5. Edge Function calls Gemini 1.5 Flash API with prompt: "Is this a Maryland Voter Registration Card? Extract: Name, Party, County. Verify Party = Republican."
+6. Gemini returns: {isValid: true, name: "John Smith", party: "Republican", county: "Montgomery"}
+7. Backend checks: name matches profile.display_name (fuzzy match)
+8. If verified: Set profile.voter_registration_verified = TRUE, unlock full app
+9. If rejected: "Verification failed. Appeal to your Captain."
 
-**Mission Creation Flow**:
-1. Captain opens HQ Tab → Missions
-2. Dropdown selects mission type (e.g., "SIGNAL_BOOST")
-3. Form dynamically shows relevant fields:
-   - SIGNAL_BOOST: target_url, social_platform, description
-   - RAID_COMMENTS: target_url, raid_keyword, social_platform, description
-   - PHONE_EMAIL_PROTEST: phone_email_target, phone_email_script, description
-   - PFP_CHANGE: pfp_description, duration, description
-   - RECRUIT_FRIENDS: description only
-   - EVENT_ATTENDANCE: description, optional geofence
-   - VOTER_REGISTRATION: description
-4. Scope selector: District (current district) / County / State / National
-5. Auto-populate xp_reward and verification_method from mission_type_xp table (read-only)
-6. Click "Create Mission" → Insert into directives table with mission_type, scope_level, target fields
-7. Mission appears in Command Feed for users in scope
+**Pre-loaded Mission Logic** (No dynamic creation for Alpha):
+```sql
+-- Manually insert 4 missions via SQL:
+INSERT INTO directives (party_id, title, body, mission_type, mission_deadline, target_goal, xp_reward) VALUES
+  ('hard-party-id', 'Enlistment', 'Upload your MD Voter Registration Card to verify your identity.', 'ENLISTMENT', '2026-06-02', 10000, 100),
+  ('hard-party-id', 'Mail-in Strike', 'Request or submit your mail-in ballot. Upload proof (screenshot or photo).', 'MAIL_IN_STRIKE', '2026-06-18', 3000, 150),
+  ('hard-party-id', 'Early Raid', 'Vote early June 11-18. Check in at your Early Voting center and upload proof.', 'EARLY_RAID', '2026-06-18', 5000, 200),
+  ('hard-party-id', 'Election Day Siege', 'Vote on June 23. Use Google Maps to find your precinct. Upload "I Voted" sticker.', 'ELECTION_DAY_SIEGE', '2026-06-23', 10000, 500);
+```
 
-**Link Opening System**:
-- Use `expo-web-browser` for in-app browser
-- Use `expo-linking` for deep links to native apps
-- URL scheme detection: `twitter://`, `reddit://`, etc.
-- Mission cards show "Open Link" button that calls:
-  ```typescript
-  const openMissionLink = async (url: string) => {
-    const canOpen = await Linking.canOpenURL(url);
-    if (canOpen) {
-      await Linking.openURL(url); // Opens native app
-    } else {
-      await WebBrowser.openBrowserAsync(url); // Opens in-app browser
-    }
-  };
-  ```
+**Deep Link System** (Replace MapBox entirely):
+- For Election Day Siege mission: Generate Google Maps deep link to user's precinct
+- Use Expo Linking: `Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${precinct_lat},${precinct_lng}`)`
+- No custom map UI needed - leverage native Google Maps app
 
-# Development Roadmap  
+# Development Roadmap (Simplified for Alpha)
 
-**Phase 1: Database Foundation & Address System** (Critical Path)
-- Create and run migration SQL to add all new tables and columns
-- Update profiles.role constraint to include new leadership roles (national_leader, state_leader, county_leader, captain, warrior)
-- Seed mission_type_xp lookup table with fixed XP values
-- Create legislative_districts table and seed **ALL 47 Maryland legislative districts** across all 23 counties (Montgomery, Baltimore, Anne Arundel, etc.)
-- **Initial focus**: Montgomery County (Districts 14-20) + MD-6 Congressional District, but infrastructure supports statewide expansion
+**Phase 1: Database Foundation & Geographic Lock** (Critical Path)
+- Run migration SQL to add: address fields, voter verification fields, MD ballot tables, contact sync table
+- Create `maryland_districts.json` lookup file: All 47 Legislative Districts mapped to 23 Counties and 8 Congressional Districts
+- Initial focus: Montgomery County (Districts 14-20) + MD-6, but full Maryland data ready for expansion
 - Add address entry screen to onboarding flow (after personal-details, before feature-selection)
-- Integrate Mapbox Geocoding API: Address form → API call → lat/lng → Maryland district lookup (all 47 districts)
-- Auto-assign users to legislative_district_id based on geocoded address
-- Update auth guard to include address verification step
-- Fallback UI: If geocoding fails, show manual district selector dropdown (all 47 districts available)
+- Integrate Mapbox Geocoding API: Address form → API call → lat/lng → Maryland district lookup
+- Auto-assign user to County, Legislative District, Congressional District
+- Store in `profiles` table: county, legislative_district, congressional_district, lat, lng
+- Fallback UI: If geocoding fails, manual County/District dropdown selector
+- Manually insert 4 pre-loaded missions via SQL (Enlistment, Mail-in Strike, Early Raid, Election Day Siege)
 
-**Phase 2: Captain Assignment System** (Critical Path - Leadership Tools)
-- Create "Leadership" tab in HQ screen (visible only to county_leader, state_leader, national_leader roles)
-- **County Leader UI**: View all districts in their county → Select district → Search users in that district → Assign as Captain → Updates legislative_districts.captain_id, assigned_by, assigned_at
-- **State Leader UI**: View all counties in their state → Drill down to districts → Assign Captains OR assign County Leaders
-- **National Leader UI**: View all states → Drill down to states/counties/districts → Assign leaders at any level
-- RLS policies: Only users with leadership role at correct scope can assign captains (e.g., County Leader can only assign captains in their county)
-- Captain receives notification when assigned: "You've been assigned as Captain of Maryland District 15"
-- Once assigned, user's role automatically updated to 'captain' and warrior_band_id set to legislative_district_id
-- **Assignment validation**: Cannot assign same captain to multiple districts (one captain = one district)
-- **Reassignment support**: County/State/National leaders can reassign captains (unassign current, assign new)
+**Phase 2: Voter Registration Card Verification** (Critical Path - The Gate)
+- Build "Enlistment" mission screen (camera upload + redaction)
+- Implement client-side image redaction using `expo-image-manipulator`: Blur Voter ID# and full address
+- Upload redacted image to Supabase Storage (encrypted bucket)
+- Create Supabase Edge Function: `verify-voter-registration`
+- Edge Function calls Gemini 1.5 Flash API with prompt: "Is this a Maryland Voter Registration Card? Extract: Name, Party, County."
+- Backend validates: (a) Party = Republican, (b) Name fuzzy matches profile.display_name, (c) County matches address geocoding
+- If verified: Set `profiles.voter_registration_verified = TRUE`, unlock full app
+- If rejected: Show "Verification failed. Contact your Captain to appeal."
+- Display "VERIFIED" badge on profile once complete
 
-**Phase 3: Mission Creation UI (HQ Tab Enhancement)** (Critical Path)
-- Update command-center screen to add "Missions" tab (alongside Directives and Bands)
-- Build mission type dropdown component with 7 options
-- Implement dynamic form fields that change based on selected mission type
-- **Scope level selector logic** (role-based):
-  - **Captain**: Scope auto-set to "District" (their assigned district only, cannot change)
-  - **County Leader**: Scope options: "Specific District" (dropdown of districts in county) OR "Entire County"
-  - **State Leader**: Scope options: "Specific District", "Specific County" (dropdown), OR "Entire State"
-  - **National Leader**: Scope options: "Specific District", "Specific County", "Specific State" (dropdown), OR "National"
-- Auto-populate XP reward and verification method from database (read-only display)
-- Create mission function: Validate fields → Insert into directives with mission_type, scope_level, target_legislative_district_id (if specific district), target_county (if county), target_state (if state)
-- Update Command Feed (index screen) to show mission cards with mission-specific UI (e.g., "Open Link" button for social missions)
-- **Filter missions by user's scope**: Show missions for their district + county + state + national (hierarchical visibility)
+**Phase 3: War Room HUD (Tab 1 Redesign)** (High Impact)
+- Replace generic Command Feed with War Room HUD
+- **The Oracle**: Integrate Polymarket Gamma API to fetch live odds for MD-6 and MoCo Executive races
+- Poll Polymarket API every 15 minutes, cache results in Supabase
+- Display odds as progress bars or gauge charts: "MD-6: 52% Hard Party | MoCo Exec: 48% Hard Party"
+- **The Timers**: Create countdown components for: Registration Deadline (June 2, 2026), Early Voting (June 11), Election Day (June 23)
+- Display days/hours/minutes remaining in large tactical font
+- **The Pulse**: Implement weekly Saturday 11 AM notification with 2-second "Oath Renewal" animation
+- Animation: Fade in Hard Party logo → User taps to confirm → +10 XP → Prevents iOS app offloading
 
-**Phase 4: Easy Link Opening for Social Missions** (Quick Win)
-- Add expo-web-browser and expo-linking to package.json
-- Create openMissionLink utility function with deep link support
-- Update mission cards in Command Feed to show "Open Link" button for SIGNAL_BOOST and RAID_COMMENTS types
-- Support URL schemes: twitter://, reddit://, instagram://, youtube://
-- Fallback to in-app browser if native app not installed
-- Test with real Twitter, Reddit, Instagram URLs
+**Phase 4: Relational Raid (Tab 2: Contact Sync)** (Peer Accountability)
+- Request Contacts permission after onboarding (same flow as existing invite tab)
+- Sync phone contacts using `expo-contacts`
+- Store contacts in `synced_contacts` table with phone numbers
+- **Option A (Full DB)**: Match contacts against Maryland Voter DB (if API available)
+- **Option B (Simplified Alpha)**: Allow user to manually search contacts by name, app shows if they're already in Salvo
+- Display status icons: Green (In Salvo + Verified), Yellow (In Salvo, not verified), Gray (Not in app)
+- "Invite" button sends SMS with invite code
+- Track in `invites` table: When contact joins, when they verify
+- Award +100 XP per contact who joins AND completes Enlistment mission
 
-**Phase 5: Mission Verification Enhancements** (Build on existing)
-- Extend existing Gemini Edge Function to handle new mission types
-- RAID_COMMENTS: Check screenshot for raid_keyword presence
-- PFP_CHANGE: Verify screenshot shows new profile picture matching pfp_description
-- SIGNAL_BOOST: Verify screenshot shows engagement (like/share/retweet)
-- PHONE_EMAIL_PROTEST: Verify screenshot shows call log or email sent
-- EVENT_ATTENDANCE: Verify photo shows event (use existing photo verification)
-- VOTER_REGISTRATION: Verify photo shows forms (use existing photo verification)
-- RECRUIT_FRIENDS: Track via invite codes (already implemented)
+**Phase 5: Pre-loaded Tactical Missions (Tab 3)** (Hardcoded)
+- Update Commands tab to show 4 pre-loaded missions (no dynamic creation UI)
+- Mission 1 (ENLISTMENT): Upload Voter Registration Card → Gemini verification (already built in Phase 2)
+- Mission 2 (MAIL_IN_STRIKE): Upload screenshot or photo of mail-in ballot request/submission → Gemini verification
+- Mission 3 (EARLY_RAID): GPS check-in at Early Voting center (June 11-18) + photo proof → Gemini verification
+- Mission 4 (ELECTION_DAY_SIEGE): Deep-link to Google Maps for precinct waypoint + "I Voted" sticker photo → Gemini verification
+- Display "Squad Status" section: List users in same District showing who completed each mission (public accountability)
+- Use existing directive/salvo system, just add new mission types to enum
 
-**Phase 6: Digital Ballot Voting Guide** (High Impact)
-- Create Main Quest screen (new tab or route)
-- Build ballot UI: Replica of real ballot design with race titles and candidate names
-- Fetch user's ballot based on legislative_district_id and upcoming election_date
-- Highlight endorsed candidates (is_endorsed = true) in Neon Green
-- Show race titles in order (position_order)
-- "Commit to Vote" button per race → Insert into ballot_commitments
-- Track completionist progress: How many endorsed candidates user committed to
-- "I Voted" proof upload: Photo of "I Voted" sticker or ballot
-- Completionist badge logic: Award high XP (e.g., 500 XP) if user verifies voting for ALL endorsed candidates
+**Phase 6: Digital Ballot "End Game"** (High Impact)
+- Create "Ballot" tab (new route)
+- Fetch user's ballot from `md_ballots` → `md_ballot_races` → `md_ballot_candidates` based on user's County/District
+- Build ballot UI: Replica of real ballot with race titles in order
+- Highlight endorsed candidates (hard_party_endorsed = TRUE) in **Neon Green**
+- Show all down-ballot races: Governor, U.S. Senate, U.S. House, State Senate, State House, County Executive, County Council, DA, School Board, Circuit Court Judges, Ballot Questions
+- "Commit to Vote" button per race → Insert into `user_ballot_commitments`
+- Track completionist progress: X/Y races committed
+- On Election Day: Upload "I Voted" sticker → Prompt: "Did you vote for ALL Neon Green candidates?" → If yes: Completionist Badge + 500 XP
 
-**Phase 7: Ballot Management UI (State/National Leadership)** (Admin Tool)
-- Create admin screen for General/State leadership only (role-gated)
-- "Create Ballot" form: Select state, county, district, election date, election name
-- "Add Race" form: Race title, position order
-- "Add Candidate" form: Candidate name, party, is_endorsed checkbox
-- "Preview Ballot" view: See how ballot will look to voters
-- "Publish Ballot" button: Makes ballot active for users
-- List all ballots with edit/delete options
+**Phase 7: Manual Ballot Seeding** (Admin/Leadership)
+- NO fancy ballot management UI for Alpha
+- Leadership manually inserts ballots via SQL or simple admin script
+- Create SQL script: `seed_montgomery_county_ballot.sql`
+- Script inserts: (1) md_ballots row for Montgomery County + MD-6, (2) md_ballot_races for each race, (3) md_ballot_candidates with hard_party_endorsed flags
+- Verify ballot matches official Maryland sample ballot
+- Expand to other counties by duplicating script
 
-**Phase 8: Notification Discipline & Strategy** (Retention Focus)
-- Track notification permission status in user_preferences table
-- Add notification permission prompt after onboarding (or defer to first mission)
-- Onboarding warning screen: "Disabling notifications means missing critical election night intel. Keep them ON to never miss an election."
-- Notification scheduling logic (when push notifications enabled):
-  - New mission in user's scope → Immediate push
-  - Mission verification result → Immediate push
-  - Election day reminder → Send day before, morning of, and 2 hours before polls close
-  - Weekly digest → Sunday evening (opt-in only)
-  - Critical updates → Only for major events (Polymarket odds shifts >3%, candidate drops out, etc.)
-- Notification preferences UI: Let users choose frequency (All, Important Only, Election Day Only, Off)
-- Analytics dashboard: Track notification opt-in rate per district/state
+**Phase 8: Weekly Notification Pulse** (Retention Weapon)
+- Implement Saturday 11 AM weekly notification using `expo-notifications` (or defer if push not ready)
+- Notification title: "Renew Your Oath"
+- Notification body: "Tap to confirm your commitment to the Hard Party"
+- When tapped: Open app → Show 2-second animation (Hard Party logo fade-in) → Award +10 XP
+- Purpose: Keep app active in iOS memory, prevent offloading, maintain weekly engagement
+- Track in `user_preferences`: last_pulse_at, pulse_streak_count
 
-**Phase 9: Map Territory Game (Stretch Goal - Optional)** (Nice-to-Have)
-- Increase H3 resolution from Res 9 to Res 7 or 8 (larger hexes)
-- Create territory_claims table: hex_h3_index, claimed_by_party_id, claimed_at, status
-- Leadership UI: Mark hexes as "enemy territory" (red) or "our territory" (green)
-- Update map screen to show territory colors (enemy red, ours green, unclaimed dark)
-- Siege mechanic: Track check-ins per hex, convert enemy hex to ours after threshold (e.g., 50 check-ins within 7 days)
-- Territory leaderboard: Which districts control most territory
-- **If too complex or timeline too tight, skip this entire phase**
+**Phase 9: Google Maps Deep Linking** (Replace MapBox)
+- Remove all MapBox custom map UI (map.tsx tab)
+- For Election Day Siege mission: Generate Google Maps deep link
+- Lookup user's precinct based on address (use precinct lookup table or Mapbox forward geocoding)
+- Deep link format: `https://www.google.com/maps/dir/?api=1&destination={precinct_lat},{precinct_lng}`
+- Use `Linking.openURL()` to open in native Google Maps app
+- No custom map rendering needed - leverage native maps
 
-**Phase 10: Multi-State Expansion Prep** (Scalability)
-- Create Florida legislative district lookup table
-- Create South Carolina legislative district lookup table
-- Update address geocoding to detect state and use correct lookup
-- Allow Generals to create parties per state (e.g., "Hard Party - Florida", "Hard Party - South Carolina")
-- State-scoped missions: Only users in that state see state missions
-- Test end-to-end flow with Florida and South Carolina addresses
+**Phase 10: Testing & Alpha Launch** (Production Readiness)
+- End-to-end testing: Onboarding → Address entry → Enlistment → Contact sync → War Room → Ballot
+- Test with real Maryland addresses (Montgomery County focus)
+- Manually create 3-5 test Captains via SQL
+- Verify Gemini verification for: Voter Registration Cards, "I Voted" stickers, Early Voting photos
+- Test Polymarket API integration (ensure odds update every 15 minutes)
+- Performance testing: 1,000 concurrent users
+- Beta testing: 50-100 real Montgomery County users
+- Launch countdown: 120 days before June 23, 2026 Primary (March 2026 launch target)
 
-**Phase 11: Testing & Launch Prep** (Production Readiness)
-- End-to-end testing: New user onboarding → Address entry → Mission creation → Mission completion → Ballot voting guide → Verification
-- Performance testing: 10,000+ users, 1,000+ missions, real-time updates
-- Notification testing: Ensure valuable, not spammy
-- Captain training: Real Montgomery County captains test mission creation UI, provide feedback
-- Database backups and disaster recovery plan
-- App Store and Google Play Store deployment
-- Beta testing with 100 real Montgomery County users
-- Launch countdown: 90 days before 2026 Primary (allows time to recruit and train users)
+# Logical Dependency Chain (Simplified for Alpha)
 
-# Logical Dependency Chain
+**Phase 1 (Database & Geographic Lock) is Foundation**: Must come first. Cannot verify users without address data. Cannot show correct ballot without district assignment. Blocks everything else.
 
-**Foundation Must Come First**: Phase 1 (Database & Address System) is blocking for everything else. Cannot create missions without legislative_districts table. Cannot assign captains without districts. Cannot auto-assign users without address geocoding.
+**Phase 2 (Voter Verification) is The Gate**: Must come after Phase 1 (need address for county validation). This is the critical anti-cheat mechanism. Users cannot access full app until verified. Blocks Phases 3-6.
 
-**Captain Assignment Before Mission Creation**: Phase 2 (Captain Assignment System) must come after Phase 1 but before Phase 3. County/State/National leaders need to assign Captains to districts before Captains can create missions. This is the chain of command.
+**Phase 3 (War Room HUD) Can Be Parallel**: Independent feature. Can be built alongside Phase 2. Only dependency: Polymarket API integration. Provides immediate "wow" factor for testers.
 
-**Mission Creation After Captain Assignment**: Phase 3 (Mission Creation UI) requires Phase 2 to be complete. Cannot create missions without captains assigned to districts.
+**Phase 4 (Relational Raid) Depends on Phase 2**: Cannot award XP for recruited contacts until Enlistment verification is working. Requires Phase 2 complete.
 
-**Link Opening Can Be Parallel**: Phase 4 (Easy Link Opening) can be built alongside Phase 3. Just UI enhancement, no database dependencies.
+**Phase 5 (Pre-loaded Missions) Depends on Phase 2**: Mission 1 (Enlistment) IS Phase 2. Missions 2-4 (Mail-in, Early Raid, Election Day) use same Gemini verification pattern. Sequential build.
 
-**Mission Verification After Mission Creation**: Phase 5 (Verification Enhancements) must come after Phase 3. Cannot verify missions that don't exist yet.
+**Phase 6 (Digital Ballot) Depends on Phase 1**: Requires district assignment from Phase 1. Can be built in parallel with Phases 2-5. Ballot display doesn't require verification.
 
-**Ballot System Depends on Districts**: Phase 6 (Digital Ballot) requires Phase 1 (legislative_districts) to be complete so we can scope ballots per district. Can be built in parallel with Phases 2-5.
+**Phase 7 (Manual Ballot Seeding) Can Start Early**: Leadership can write SQL scripts while app is being built. No code dependencies. Just data entry.
 
-**Ballot Management After Ballot Display**: Phase 7 (Ballot Management UI) should come after Phase 6 (Ballot Display) so State/National leaders can see what they're creating.
+**Phase 8 (Weekly Pulse Notification) is Optional for Alpha**: Nice-to-have. Can be deferred if push notifications not ready. App works without it.
 
-**Notifications Can Wait**: Phase 8 (Notification Discipline) can come later. App works without push notifications. Focus on core mission system first.
+**Phase 9 (Google Maps Deep Linking) is Simple**: No dependencies. Just URL generation and Linking.openURL(). Can be built anytime.
 
-**Map Territory Game is Optional**: Phase 9 can be skipped entirely if timeline is tight. Map improvements are nice-to-have, not critical path.
+**Phase 10 (Testing) is Continuous**: Test each phase as it's built. Don't wait until end.
 
-**Multi-State Expansion After Maryland MVP**: Phase 10 (Florida/South Carolina) should come after Montgomery County + all Maryland is working perfectly. Don't scale broken features. Maryland infrastructure already supports 47 districts.
+**Critical Path for Alpha Launch**: 
+Phase 1 (Database) → Phase 2 (Voter Verification) → Phase 5 (Pre-loaded Missions) → Phase 6 (Digital Ballot) → Phase 10 (Testing)
 
-**Testing Throughout**: Phase 11 (Testing) should happen continuously, not just at the end. Test each phase as it's built.
+**Parallel Work**:
+- Phase 3 (War Room) can be built while Phase 2 is in progress
+- Phase 4 (Relational Raid) can be built while Phase 5 is in progress
+- Phase 7 (Ballot Seeding) can happen anytime
+- Phase 9 (Google Maps) can happen anytime
 
-**Critical Path for MVP Launch**: Phase 1 (Database) → Phase 2 (Captain Assignment) → Phase 3 (Mission Creation) → Phase 4 (Link Opening) → Phase 5 (Verification) → Phase 6 (Ballot) → Phase 7 (Ballot Management) → Phase 11 (Testing). Everything else is parallel or deferred.
+**Quick Wins for Leadership Demo**:
+- Phase 1 complete → Show "Users auto-assigned to districts based on address"
+- Phase 2 complete → Show "AI verification of Voter Registration Cards"
+- Phase 3 complete → Show "Live Polymarket odds in War Room"
+- Phase 6 complete → Show "Digital ballot with Neon Green endorsed candidates"
 
-**Quick Wins for Leadership Buy-In**: 
-- Get Phase 2 (Captain Assignment) working to show County/State leaders "You can easily assign captains to districts"
-- Get Phase 3 (Mission Creation) working to show Captains "Look how easy it is to create a mission!"
-- Get Phase 4 (Link Opening) working to show Warriors "One tap to raid target posts!"
+# Risks and Mitigations (Alpha Focus)
 
-# Risks and Mitigations  
-
-**Risk: Notification Opt-Out Hurts Turnout**
-- Mitigation: Make notifications extremely valuable, not annoying. Only send election-critical info. Track opt-out rate as key metric. A/B test notification content. Warn users during onboarding. Aim for >80% opt-in rate.
+**Risk: Voter Registration Card Verification False Positives/Negatives**
+- Mitigation: Use Gemini 1.5 Flash with strict prompts. Test with real MD Voter Registration Cards. Manual Captain review fallback for disputed verifications. Allow users to appeal rejected proofs. Client-side redaction prevents PII leaks. Accuracy target: >95%.
 
 **Risk: District Data Accuracy for Maryland**
-- Mitigation: Start with Montgomery County only (6 districts). Use simple lookup table. Can enhance with full GeoJSON dataset later. Fallback to manual district selection if geocoding fails. Test with real Montgomery County addresses.
-
-**Risk: Captain Confusion with Mission Creation UI**
-- Mitigation: Make dropdown dead simple. Dynamic form fields reduce errors. Clear tooltips and examples. Test with real captains before launch. Provide training videos. In-app help text for each mission type.
-
-**Risk: Screenshot Verification False Positives/Negatives**
-- Mitigation: Use Gemini 1.5 Flash with strict prompts. Include raid_keyword check for raids. Manual review fallback for disputed verifications. Allow users to appeal rejected proofs. Captain can manually approve if AI fails.
-
-**Risk: Map Territory Game Too Complex**
-- Mitigation: Mark as optional Phase 8. Can remove entirely if not feasible. Focus on core mission system first. Map improvements are nice-to-have. Don't let perfect be enemy of good.
+- Mitigation: Start with Montgomery County only (6 districts). Simple JSON lookup table. Fallback to manual district selection if geocoding fails. Test with 50+ real Montgomery County addresses before launch. Verify County/District assignments manually.
 
 **Risk: Address Privacy Concerns**
-- Mitigation: Clear privacy policy during address entry. Explain it's only for district assignment. Do not share addresses with other users. Store lat/lng rounded to 3 decimal places (reduces precision to ~100m). Optional: Allow manual district selection if user doesn't want to share address.
+- Mitigation: Clear privacy policy during address entry. Explain it's only for district assignment. Do not share full addresses with other users or leadership. Store lat/lng rounded to 3 decimal places. Client-side redaction for Voter Registration Cards. All PII encrypted at rest.
+
+**Risk: Polymarket API Rate Limits or Downtime**
+- Mitigation: Poll API every 15 minutes (not every second). Cache results in Supabase. If API fails, display last cached odds with "Last updated: X minutes ago" timestamp. Graceful degradation: War Room still works without live odds.
+
+**Risk: Contact Sync Permission Denial**
+- Mitigation: Make contact sync optional (not required to use app). Explain benefit: "Find friends who are registered Republicans and recruit them." If user denies, skip to next step. Can enable later in settings.
 
 **Risk: Election Day Reliability**
-- Mitigation: App must work perfectly on election day. Offline queue system already exists. Extensive load testing before launch. Database backups. Disaster recovery plan. Test with 10,000+ users. Monitor server load on election day.
-
-**Risk: Multi-State Scaling Challenges**
-- Mitigation: Build Maryland first, scale after proven. Separate legislative_districts per state. Test Florida and South Carolina thoroughly before launch. Don't rush multi-state until Montgomery County is stable.
-
-**Risk: Captain Recruitment and Training**
-- Mitigation: Manual Captain assignment after interviews. Provide training materials (videos, PDFs). Test mission creation UI with real captains. Gather feedback early. Make UI so simple that minimal training is needed.
+- Mitigation: App must work perfectly June 23, 2026. Offline queue system already exists. Extensive load testing before launch (simulate 5,000+ concurrent users). Database backups. Disaster recovery plan. Monitor Supabase performance. Fallback: Manual verification if Gemini API fails.
 
 **Risk: Ballot Endorsement Accuracy**
-- Mitigation: General/State leadership manually creates ballots. Double-check candidate names and races. Preview ballot before publishing. Allow edits after publishing. Verify ballot matches official sample ballot. Legal review of endorsement language.
+- Mitigation: Leadership manually creates ballots via SQL script. Double-check candidate names and races against official MD sample ballot. Test with Montgomery County sample ballot first. Legal review of endorsement language. Preview ballot in app before publishing to users.
 
-**Risk: Timeline Too Aggressive for 2026 Primary**
-- Mitigation: Focus on Montgomery County MVP only. Defer Florida and South Carolina to later. Skip map territory game if needed. Launch 90 days before primary to allow user recruitment. Start with core mission system, iterate based on feedback.
+**Risk: Timeline Too Aggressive for June 2026 Primary**
+- Mitigation: Simplified Alpha scope (10 phases vs. 20+ in original PRD). No dynamic mission creation UI. No complex leadership hierarchy. No multi-state expansion. Focus 100% on Montgomery County + MD-6. Launch target: March 2026 (120 days before Primary = 4 months for recruitment/testing).
 
-# Appendix  
+**Risk: User Drop-Off After Verification**
+- Mitigation: Make Enlistment mission feel like an achievement, not a chore. Award +100 XP + "VERIFIED" badge immediately. Unlock War Room HUD to show Polymarket odds (instant dopamine hit). Prompt to invite contacts right after verification (peer pressure loop).
 
-**Mission Type XP Values** (Fixed, leaders cannot customize):
+**Risk: No Captains to Monitor Squad Status**
+- Mitigation: For Alpha, manually assign 5-10 trusted Captains via SQL. Captain role is mostly observational (view Squad stats). No complex management UI needed. Captain can manually approve disputed verifications. Post-Alpha: Build Captain recruitment flow.
+
+**Risk: Gemini API Costs Exceed Budget**
+- Mitigation: Gemini 1.5 Flash is cheap ($0.075 per 1M input tokens). Estimate: 10,000 users × 4 photo verifications = 40,000 API calls. Even at $0.10 per call = $4,000 total for entire Primary cycle. Budget $10,000 for safety. If costs spike, add rate limiting (1 verification attempt per 5 minutes).
+
+# Appendix (Alpha Reference)
+
+**Pre-loaded Mission XP Values** (Hardcoded, no customization):
 ```
-RECRUIT_FRIENDS: 100 XP (verification: invite_code tracking)
-SIGNAL_BOOST: 50 XP (verification: screenshot)
-RAID_COMMENTS: 75 XP (verification: screenshot with keyword check)
-PHONE_EMAIL_PROTEST: 150 XP (verification: screenshot)
-PFP_CHANGE: 25 XP (verification: screenshot)
-EVENT_ATTENDANCE: 100 XP (verification: photo)
-VOTER_REGISTRATION: 150 XP (verification: photo)
-```
-
-**Verification Method Auto-Assignment**:
-```
-RECRUIT_FRIENDS → invite_code (track via invites table)
-SIGNAL_BOOST → screenshot (Gemini checks for engagement UI)
-RAID_COMMENTS → screenshot (Gemini checks for raid_keyword presence)
-PHONE_EMAIL_PROTEST → screenshot (Gemini checks for call log or email)
-PFP_CHANGE → screenshot (Gemini checks for profile picture)
-EVENT_ATTENDANCE → photo (Gemini checks for event context)
-VOTER_REGISTRATION → photo (Gemini checks for forms)
+ENLISTMENT: 100 XP (verification: Gemini 1.5 Flash checks MD Voter Registration Card)
+MAIL_IN_STRIKE: 150 XP (verification: Gemini checks screenshot/photo of mail-in ballot request)
+EARLY_RAID: 200 XP (verification: GPS check-in + Gemini checks Early Voting photo)
+ELECTION_DAY_SIEGE: 500 XP (verification: Gemini checks "I Voted" sticker photo)
+RECRUITER_BONUS: 100 XP per contact (verification: Contact joins + completes Enlistment)
+COMPLETIONIST_BADGE: 500 XP (verification: User confirms voting for ALL Neon Green candidates)
 ```
 
-**Role & Geographic Hierarchy Structure**:
+**Verification Method by Mission Type**:
 ```
-National Leader (Top of chain of command)
-  ↓ assigns
-State Leader (e.g., Maryland)
-  ↓ assigns
-County Leader (e.g., Montgomery County)
-  ↓ assigns
-Captain (ONE Legislative District, e.g., MD-15)
-  ↓ creates missions for
-Warrior (User auto-assigned by address)
+ENLISTMENT:
+  - User uploads photo of MD Voter Registration Card
+  - Client-side redaction: Blur Voter ID# and full address
+  - Gemini prompt: "Is this a Maryland Voter Registration Card? Extract: Name, Party, County."
+  - Backend validates: Party = Republican, Name fuzzy matches profile, County matches address
 
-Leadership Assignment Authority:
-- National Leader: Can assign State Leaders, County Leaders, or Captains anywhere
-- State Leader: Can assign County Leaders or Captains within their state
-- County Leader: Can assign Captains within their county
-- Captain: Cannot assign anyone, only creates missions for their district
-- Warrior: No assignment authority
-```
+MAIL_IN_STRIKE:
+  - User uploads screenshot or photo of mail-in ballot request confirmation
+  - Gemini prompt: "Does this show proof of a mail-in ballot request or submission?"
+  - Backend validates: Image shows official Maryland election website or mail-in ballot
 
-**Notification Scope Logic**:
-```
-User receives notifications for:
-- Their Legislative District missions (created by their Captain)
-- Their County missions (created by County Leader)
-- Their State missions (created by State Leader)
-- National missions (created by National Leader)
+EARLY_RAID (June 11-18, 2026):
+  - User GPS check-in at Early Voting center (compare lat/lng to known Early Voting locations)
+  - User uploads photo of polling place or "I Voted" sticker
+  - Gemini prompt: "Does this photo show an Early Voting location or proof of voting?"
+  - Backend validates: GPS within 100m of Early Voting center + photo verified
 
-Example: Warrior in MD-15, Montgomery County, Maryland receives:
-- District missions from Captain of MD-15
-- County missions from Montgomery County Leader
-- State missions from Maryland State Leader
-- National missions from National Leader
-
-Mission Visibility by Role:
-- Captain: Can ONLY create missions for their assigned district
-- County Leader: Can create missions for specific districts in their county OR entire county
-- State Leader: Can create missions for specific districts, counties, OR entire state
-- National Leader: Can create missions for any scope
+ELECTION_DAY_SIEGE (June 23, 2026):
+  - App generates Google Maps deep link to user's assigned precinct
+  - User votes, returns to app, uploads "I Voted" sticker photo
+  - Gemini prompt: "Does this photo show an 'I Voted' sticker or polling place?"
+  - Backend validates: Photo shows voting proof
+  - Bonus prompt: "Did you vote for ALL Neon Green candidates?" → If yes: Completionist Badge
 ```
 
-**Maryland Legislative Districts** (All 47 districts seeded, Montgomery County + MD-6 priority):
+**Simplified Role Structure** (No complex leadership hierarchy for Alpha):
 ```
-Montgomery County (Initial Target):
-- District 14 (Germantown, Clarksburg)
-- District 15 (Gaithersburg, Kentlands)
-- District 16 (Olney, Brookeville)
-- District 17 (Potomac, Bethesda)
-- District 18 (Chevy Chase, Kensington)
-- District 19 (Silver Spring, Montgomery Hills)
-- District 20 (Takoma Park, Langley Park)
+General (Admin)
+  ↓ manually assigns via SQL
+Captain (Squad Leader)
+  ↓ monitors
+Warrior (Voter)
 
-Other Counties (Infrastructure ready for expansion):
-- Baltimore County: Districts 7, 8, 10, 11, 42, 44
-- Anne Arundel County: Districts 30, 31, 32, 33
-- Prince George's County: Districts 21, 22, 23, 24, 25, 26, 27, 47
-- Howard County: Districts 9, 12, 13
-- Frederick County: Districts 3, 4
-- Harford County: Districts 6, 34A, 34B
-- Carroll County: District 5
-- Baltimore City: Districts 40, 41, 43, 45, 46
-- ... (and 15 more counties with their respective districts)
-
-Total: All 47 Maryland Legislative Districts seeded in database
-Focus: Montgomery County + MD-6 Congressional District for initial launch
-Expansion: Ready to scale to any Maryland county immediately
+General: Has full database access, manually inserts ballots, assigns Captains
+Captain: Views Squad/District stats, can manually approve disputed verifications
+Warrior: Completes missions, recruits contacts, votes for endorsed candidates
 ```
 
-**Ballot Example Structure** (For Montgomery County 2026 Primary):
+**Maryland Legislative Districts** (Full state data ready, Montgomery County priority):
 ```
-Race 1: Governor (position_order: 1)
-  - Candidate A (endorsed: true) ← Neon Green highlight
-  - Candidate B (endorsed: false)
+Montgomery County (Alpha Launch Target):
+- District 14 (Germantown, Clarksburg) - MD-6
+- District 15 (Gaithersburg, Kentlands) - MD-6
+- District 16 (Olney, Brookeville) - MD-6
+- District 17 (Potomac, Bethesda) - MD-6
+- District 18 (Chevy Chase, Kensington) - MD-6/MD-8
+- District 19 (Silver Spring, Montgomery Hills) - MD-8
+- District 20 (Takoma Park, Langley Park) - MD-8
 
-Race 2: U.S. Senate (position_order: 2)
-  - Candidate C (endorsed: true) ← Neon Green highlight
-  - Candidate D (endorsed: false)
+Alpha Focus: Montgomery County Districts 14-17 (MD-6 Congressional District)
+Post-Alpha Expansion: Districts 18-20, then other MD counties
 
-Race 3: U.S. House MD-6 (position_order: 3)
-  - Candidate E (endorsed: true) ← Neon Green highlight
-  - Candidate F (endorsed: false)
-
-Race 4: State Senate District 15 (position_order: 4)
-  - Candidate G (endorsed: true) ← Neon Green highlight
-  - Candidate H (endorsed: false)
-
-Race 5: Montgomery County Executive (position_order: 5)
-  - Candidate I (endorsed: true) ← Neon Green highlight
-  - Candidate J (endorsed: false)
-```
-
-**Notification Strategy Examples**:
-```
-✅ GOOD Notification: "New mission in District 15: Signal Boost - Share the town hall post"
-❌ BAD Notification: "Hey! Check out the app! We have new stuff!"
-
-✅ GOOD Notification: "ELECTION DAY: Polls close in 2 hours. Vote for our team!"
-❌ BAD Notification: "Daily reminder: You should vote sometime!"
-
-✅ GOOD Notification: "Mission verified! +50 XP. You're 50 XP from Centurion!"
-❌ BAD Notification: "Thanks for participating!"
-
-✅ GOOD Notification: "ALERT: Candidate Jones dropped out. Check updated ballot."
-❌ BAD Notification: "We have updates. Check the app."
+maryland_districts.json structure:
+{
+  "Montgomery": {
+    "District 14": { "congressional": "MD-6", "county": "Montgomery" },
+    "District 15": { "congressional": "MD-6", "county": "Montgomery" },
+    ...
+  },
+  "Baltimore": { ... },
+  ...
+}
 ```
 
-**Scalability Plan for Multi-State Expansion**:
+**Ballot Example Structure** (Montgomery County District 15, MD-6, June 23, 2026 Republican Primary):
 ```
-Phase 1: Montgomery County, Maryland (6 districts, target 10,000 users)
-Phase 2: Full Maryland (47 districts, target 50,000 users)
-Phase 3: Florida Governor race (40 districts, target 100,000 users)
-Phase 4: South Carolina races (46 districts, target 50,000 users)
-Phase 5: Nationwide (all states, target 1,000,000+ users)
+Race 1: Governor (race_type: state, position_order: 1)
+  - Dan Cox (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - Larry Hogan (hard_party_endorsed: FALSE)
+
+Race 2: U.S. Senate (race_type: federal, position_order: 2)
+  - Chris Chaffee (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 3: U.S. House MD-6 (race_type: federal, position_order: 3)
+  - Neil Parrott (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 4: State Senate District 15 (race_type: state, position_order: 4)
+  - [Endorsed candidate] (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 5: State House District 15 (race_type: state, position_order: 5)
+  - [Endorsed candidates] (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 6: Montgomery County Executive (race_type: county, position_order: 6)
+  - [Endorsed candidate] (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 7: County Council At-Large (race_type: county, position_order: 7)
+  - [Endorsed candidates] (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 8: District Attorney (race_type: local, position_order: 8)
+  - [Endorsed candidate] (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 9: Board of Education (race_type: local, position_order: 9)
+  - [Endorsed candidates] (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 10: Circuit Court Judge (race_type: judicial, position_order: 10)
+  - [Endorsed candidates] (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - [Other candidates] (hard_party_endorsed: FALSE)
+
+Race 11: Question 1: School Bond (race_type: ballot_question, position_order: 11)
+  - YES (hard_party_endorsed: TRUE) ← Neon Green highlight
+  - NO (hard_party_endorsed: FALSE)
+
+Race 12: Question 2: Tax Cap (race_type: ballot_question, position_order: 12)
+  - YES (hard_party_endorsed: FALSE)
+  - NO (hard_party_endorsed: TRUE) ← Neon Green highlight
 ```
 
-**Technical Stack Summary** (Building on existing):
-```
-Frontend: Expo, React Native, Expo Router, Nativewind (already built ✅)
-Backend: Supabase PostgreSQL, Auth, Realtime, Storage (already built ✅)
-Maps: Mapbox + H3 (already built ✅)
-AI: Google Gemini 1.5 Flash (already built ✅)
-Offline: expo-sqlite (already built ✅)
+Note: Candidate names are placeholders. Leadership will manually insert real candidate names from official MD Primary ballot.
 
-NEW Additions for Phase 2:
-- expo-web-browser (link opening)
-- expo-linking (deep links)
-- Mapbox Geocoding API (address → district)
-- District lookup tables (Maryland, Florida, South Carolina)
-- Mission creation UI (dropdown system)
-- Ballot system (digital voting guide)
-- Notification strategy (discipline & retention)
+**Notification Strategy Examples** (Alpha Focus):
+```
+✅ GOOD: "Renew Your Oath" (Saturday 11 AM weekly pulse)
+✅ GOOD: "Early Voting starts in 3 days! Complete your Early Raid mission."
+✅ GOOD: "ELECTION DAY: Polls close in 2 hours. Vote for ALL Neon Green candidates!"
+✅ GOOD: "Your friend John Smith just verified! You earned +100 XP."
+✅ GOOD: "Voter Registration Card verified! +100 XP. Unlock War Room."
+✅ GOOD: "5 members of District 15 completed Election Day Siege. Don't be AWOL!"
+
+❌ BAD: "Check out the app today!"
+❌ BAD: "Daily reminder to vote"
+❌ BAD: "Thanks for using Salvo"
+❌ BAD: "We have updates"
+```
+
+**Alpha Launch Timeline** (Maryland June 23, 2026 Primary):
+```
+March 2026 (T-120 days): Alpha Launch
+  - Montgomery County Districts 14-17 (MD-6)
+  - Target: 1,000 verified users
+  - 5-10 manually assigned Captains
+
+April 2026 (T-90 days): Recruitment Phase
+  - Contact sync drives invites
+  - Target: 5,000 verified users
+  - Weekly Saturday pulse notifications keep engagement high
+
+May 2026 (T-60 days): Mission Phase
+  - Mail-in Strike mission opens (request mail-in ballots)
+  - Target: 50% of users request mail-in ballots
+
+June 2, 2026 (T-21 days): Registration Deadline
+  - Enlistment mission closes (all users must be verified by now)
+  - Target: 10,000 verified users
+
+June 11-18, 2026 (T-12 to T-5 days): Early Voting Phase
+  - Early Raid mission active (GPS + photo verification)
+  - Target: 30% of users complete Early Raid
+
+June 23, 2026 (T-0 day): ELECTION DAY
+  - Election Day Siege mission (Google Maps waypoint + "I Voted" sticker)
+  - Target: 100% turnout (all verified users vote)
+  - Completionist Badge for users who vote for ALL Neon Green candidates
+
+Post-Primary: Expand to other MD counties, prepare for General Election (November 2026)
+```
+
+**Technical Stack Summary** (Alpha Additions):
+```
+ALREADY BUILT (MVP):
+✅ Expo + React Native + Expo Router
+✅ Supabase PostgreSQL, Auth, Realtime, Storage
+✅ Mapbox (will use for geocoding only, remove map UI)
+✅ H3 hexagons (will be deprecated, replaced with Google Maps deep links)
+✅ Gemini 1.5 Flash Edge Function (extend for voter card verification)
+✅ expo-sqlite offline queue
+✅ Citizen-style dark theme UI
+✅ Onboarding flow (oath, personal details, feature selection)
+
+NEW FOR ALPHA:
+🆕 Mapbox Geocoding API (address → County + District)
+🆕 maryland_districts.json (district lookup table)
+🆕 expo-image-manipulator (client-side redaction)
+🆕 expo-contacts (contact sync for Relational Raid)
+🆕 expo-linking (Google Maps deep links)
+🆕 Polymarket Gamma API (live odds for War Room HUD)
+🆕 MD ballot tables (md_ballots, md_ballot_races, md_ballot_candidates)
+🆕 Contact sync table (synced_contacts)
+🆕 Voter verification tracking (profiles.voter_registration_verified)
+🆕 Weekly Saturday notification (Oath Renewal pulse)
+
+REMOVED FROM ALPHA:
+❌ MapBox custom map UI (replace with Google Maps deep links)
+❌ H3 hexagon check-ins (replace with GPS + Google Maps)
+❌ Dynamic mission creation UI (hardcode 4 missions instead)
+❌ Leadership assignment UI (manual SQL instead)
+❌ Multi-state expansion (Maryland only)
+❌ Plum Book feature
+❌ ID upload (use Voter Registration Card instead)
 ```
 </PRD>
