@@ -2,38 +2,45 @@
   "master": {
     "tasks": [
       {
-        "id": 21,
+        "id": "21",
         "title": "Database Schema Expansion for Maryland Primary Alpha",
         "description": "Implement the core database schema changes required for geographic targeting, voter verification, and the digital ballot system.",
         "details": "Run SQL migrations to: 1. Add address, district (legislative/congressional), and verification fields to 'profiles'. 2. Create 'md_ballots', 'md_ballot_races', and 'md_ballot_candidates' tables. 3. Create 'user_ballot_commitments' and 'election_day_verifications' tables. 4. Create 'synced_contacts' table for relational recruitment. 5. Add 'mission_type', 'mission_deadline', and 'requires_gps' columns to 'directives' table.",
         "testStrategy": "Verify schema updates in Supabase Dashboard. Ensure foreign key constraints and UNIQUE constraints (e.g., user_id on election_day_verifications) are correctly applied. Test row insertion for each new table.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "in-progress",
+        "subtasks": [],
+        "complexity": 4,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Break down the SQL migrations into separate subtasks for each table modification: profiles updates, md_ballots/md_ballot_races/md_ballot_candidates creation, user_ballot_commitments and election_day_verifications, synced_contacts, and directives columns. Include subtasks for constraint verification and initial testing.",
+        "updatedAt": "2026-02-05T01:47:06.988Z"
       },
       {
-        "id": 22,
+        "id": "22",
         "title": "Maryland Geographic Lookup Engine",
         "description": "Create a robust utility for mapping coordinates to Maryland-specific legislative and congressional districts.",
         "details": "1. Create 'assets/data/maryland_districts.json' containing all 47 Legislative Districts mapped to Counties and 8 Congressional Districts. 2. Implement a service that takes Mapbox lat/lng and performs a lookup against this JSON (or a simplified geo-spatial query). 3. Focus initial high-accuracy mapping on Montgomery County and MD-6 districts.",
         "testStrategy": "Unit test the lookup utility with known coordinates for Montgomery County District 15 to ensure it returns the correct legislative and congressional district values.",
         "priority": "high",
         "dependencies": [
-          21
+          "21"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [],
+        "complexity": 6,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Create subtasks for: 1) Data file creation and validation for maryland_districts.json, 2) Implementation of the lookup service with JSON parsing or geo-query logic, 3) Unit testing focused on Montgomery County and MD-6 accuracy."
       },
       {
-        "id": 23,
+        "id": "23",
         "title": "Onboarding: Address Entry & Geographic Lock",
         "description": "Integrate address collection into the onboarding flow and auto-assign users to districts using Mapbox Geocoding.",
         "details": "1. Add a new screen in the Expo Router onboarding flow for 'Address Entry'. 2. Integrate Mapbox Geocoding API (`https://api.mapbox.com/geocoding/v5/mapbox.places/`) to convert user input to lat/lng. 3. Call the District Lookup Engine (Task 22) to determine the user's Maryland County, Legislative District, and Congressional District. 4. Update the user's profile with these values. 5. Provide a fallback dropdown for manual district selection.",
         "testStrategy": "Perform end-to-end onboarding tests with real Maryland addresses. Verify that the 'profiles' table in Supabase is updated with the correct district and county information.",
         "priority": "high",
         "dependencies": [
-          22
+          "22"
         ],
         "status": "pending",
         "subtasks": [
@@ -44,7 +51,8 @@
             "dependencies": [],
             "details": "Create a new file in 'app/(onboarding)/address.tsx' using Expo Router. Implement a user interface with input fields for street address, city, and zip code, ensuring it follows the global theme.",
             "status": "pending",
-            "testStrategy": "Verify navigation to the screen via Expo Router and ensure all input fields are interactable and validate basic input types."
+            "testStrategy": "Verify navigation to the screen via Expo Router and ensure all input fields are interactable and validate basic input types.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -55,7 +63,8 @@
             ],
             "details": "Implement a fetch call to 'https://api.mapbox.com/geocoding/v5/mapbox.places/' using the user's input. Add debouncing to minimize API calls and handle potential network errors or zero-result scenarios.",
             "status": "pending",
-            "testStrategy": "Verify that providing a valid Maryland address returns the correct latitude and longitude coordinates in the console or state."
+            "testStrategy": "Verify that providing a valid Maryland address returns the correct latitude and longitude coordinates in the console or state.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -66,7 +75,8 @@
             ],
             "details": "Import the utility from Task 22. Once coordinates are received, perform a lookup for the Maryland County, Legislative District, and Congressional District. Update the 'profiles' table in Supabase with these values.",
             "status": "pending",
-            "testStrategy": "Check the Supabase dashboard to ensure the 'profiles' record for the test user contains the expected district and county strings after submission."
+            "testStrategy": "Check the Supabase dashboard to ensure the 'profiles' record for the test user contains the expected district and county strings after submission.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -77,20 +87,24 @@
             ],
             "details": "Create a fallback UI using a Picker or Select component that allows users to manually choose their Maryland districts. Conduct end-to-end tests covering both the automatic geocoding path and the manual fallback path.",
             "status": "pending",
-            "testStrategy": "Perform end-to-end onboarding tests with real Maryland addresses. Simulate API failure to verify that the manual dropdown allows successful profile completion."
+            "testStrategy": "Perform end-to-end onboarding tests with real Maryland addresses. Simulate API failure to verify that the manual dropdown allows successful profile completion.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 7,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Divide into subtasks: 1) Add Address Entry screen to Expo Router flow, 2) Integrate Mapbox Geocoding API for lat/lng conversion, 3) Integrate District Lookup and profile update logic, 4) Implement fallback manual selection UI and E2E testing."
       },
       {
-        "id": 24,
+        "id": "24",
         "title": "AI-Powered Voter Registration Verification (Enlistment)",
         "description": "Build the 'Enlistment' mission flow involving camera capture, client-side redaction, and Gemini 1.5 Flash verification.",
         "details": "1. Create a camera UI that prompts users to photograph their MD Voter Registration Card. 2. Implement client-side redaction using 'expo-image-manipulator' to blur sensitive fields (Voter ID#, full address) before upload. 3. Create a Supabase Edge Function 'verify-voter-registration' that sends the redacted image to Gemini 1.5 Flash. 4. Prompt Gemini to: 'Is this a Maryland Voter Registration Card? Extract: Name, Party, County.' 5. Match Gemini output against the user's profile and set 'voter_registration_verified' to TRUE if successful.",
         "testStrategy": "Test with sample MD registration cards. Verify that the redaction logic correctly obscures sensitive areas. Ensure the Edge Function handles successful matches and rejections gracefully with clear UI feedback.",
         "priority": "high",
         "dependencies": [
-          21,
-          23
+          "21",
+          "23"
         ],
         "status": "pending",
         "subtasks": [
@@ -101,7 +115,8 @@
             "dependencies": [],
             "details": "Implement a custom overlay that guides the user to align their registration card within a specific frame for optimal capture quality. Ensure proper permissions handling for camera access.",
             "status": "pending",
-            "testStrategy": "Manually verify the camera opens, displays the overlay, and successfully captures a high-resolution image on both iOS and Android devices."
+            "testStrategy": "Manually verify the camera opens, displays the overlay, and successfully captures a high-resolution image on both iOS and Android devices.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -112,7 +127,8 @@
             ],
             "details": "Identify coordinates for the Voter ID# and full address fields on the MD card template. Apply a heavy blur or solid color rectangle to these regions to ensure PII (Personally Identifiable Information) never leaves the device.",
             "status": "pending",
-            "testStrategy": "Inspect the output URI of the manipulated image to confirm that sensitive fields are unreadable while the Name and County remain visible for the AI."
+            "testStrategy": "Inspect the output URI of the manipulated image to confirm that sensitive fields are unreadable while the Name and County remain visible for the AI.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -123,7 +139,8 @@
             ],
             "details": "Set up the Deno environment for the Edge Function, configure environment variables for Gemini API keys, and implement the endpoint logic to receive a base64 encoded image string.",
             "status": "pending",
-            "testStrategy": "Invoke the function via the Supabase client and check for a successful 200 response and correct log entries in the Supabase dashboard."
+            "testStrategy": "Invoke the function via the Supabase client and check for a successful 200 response and correct log entries in the Supabase dashboard.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -134,7 +151,8 @@
             ],
             "details": "Craft a specialized system prompt: 'Is this a Maryland Voter Registration Card? Extract: Name, Party, County.' Request the output in a structured JSON format to simplify parsing within the Edge Function.",
             "status": "pending",
-            "testStrategy": "Send redacted sample card images to the API through the function and verify that Gemini returns the correct JSON keys for Name, Party, and County."
+            "testStrategy": "Send redacted sample card images to the API through the function and verify that Gemini returns the correct JSON keys for Name, Party, and County.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -145,46 +163,56 @@
             ],
             "details": "Implement logic to match extracted data against the user's stored profile. On match, update 'voter_registration_verified' to TRUE in the database. Add loading indicators and success/failure modals to the frontend.",
             "status": "pending",
-            "testStrategy": "Perform an end-to-end test from camera capture to success modal. Verify the 'voter_registration_verified' flag is correctly set to TRUE in the 'profiles' table."
+            "testStrategy": "Perform an end-to-end test from camera capture to success modal. Verify the 'voter_registration_verified' flag is correctly set to TRUE in the 'profiles' table.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 9,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Split into: 1) Camera UI implementation, 2) Client-side image redaction with expo-image-manipulator, 3) Supabase Edge Function creation, 4) Gemini 1.5 Flash API integration and prompting, 5) Matching logic, UI feedback, and testing with sample cards."
       },
       {
-        "id": 25,
+        "id": "25",
         "title": "War Room HUD: Polymarket Integration & Countdown Timers",
         "description": "Replace the generic feed with the 'War Room' dashboard featuring live odds and election countdowns.",
         "details": "1. Integrate Polymarket Gamma API to fetch win-probabilities for the MD-6 and Montgomery County Executive races. 2. Build a polling mechanism (Edge Function) to update these odds every 15 minutes and cache them. 3. Implement high-impact countdown components in the UI for the Registration Deadline (June 2, 2026), Early Voting, and Election Day. 4. Display live odds using gauge or progress bar components with 'Neon Green' accents.",
         "testStrategy": "Validate API response parsing from Polymarket. Check that timers correctly calculate time remaining relative to the hardcoded deadlines. Simulate an odds shift >5% to verify notification triggers (if applicable).",
         "priority": "medium",
         "dependencies": [
-          21
+          "21"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [],
+        "complexity": 6,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Subtasks: 1) Polymarket Gamma API integration and response parsing, 2) Edge Function for 15-min polling and caching, 3) UI components for countdowns, gauges, and Neon Green styling with simulation testing."
       },
       {
-        "id": 26,
+        "id": "26",
         "title": "Weekly Notification Pulse & Oath Renewal",
         "description": "Implement the Saturday 11:00 AM notification and the accompanying 'Oath Renewal' animation flow.",
         "details": "1. Configure 'expo-notifications' to schedule a recurring local or push notification every Saturday at 11:00 AM. 2. Build a 2-second 'Oath Renewal' animation screen (Hard Party logo fade-in). 3. Implement logic to award +10 XP upon user confirmation. 4. Ensure tapping the notification deep-links directly to this animation.",
         "testStrategy": "Set a test notification for 2 minutes in the future and verify receipt. Ensure the animation plays smoothly and XP is correctly incremented in the database.",
         "priority": "medium",
         "dependencies": [
-          21
+          "21"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [],
+        "complexity": 4,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Subtasks: 1) expo-notifications setup for recurring Saturday scheduling and deep-linking, 2) Oath Renewal animation screen with XP award logic and testing."
       },
       {
-        "id": 27,
+        "id": "27",
         "title": "Relational Raid: Contact Sync & Recruitment Engine",
         "description": "Implement contact syncing to identify and recruit Maryland voters from the user's phonebook.",
         "details": "1. Use 'expo-contacts' to request permissions and sync phone numbers. 2. Store hashed contacts in 'synced_contacts'. 3. Match contacts against the app's user base. 4. Display tactical icons: Green (Verified in app), Yellow (In app, unverified), Gray (Not in app). 5. Implement an SMS invitation mechanism that tracks referrals via unique links. 6. Award +100 XP to the recruiter only after the invitee completes Task 24 (Enlistment).",
         "testStrategy": "Test contact matching logic with a mock voter dataset. Verify that XP is only awarded once the invitee's 'voter_registration_verified' flag is set to TRUE.",
         "priority": "medium",
         "dependencies": [
-          21,
-          24
+          "21",
+          "24"
         ],
         "status": "pending",
         "subtasks": [
@@ -197,7 +225,8 @@
             ],
             "details": "Integrate 'expo-contacts' to request 'CONTACTS' permission. Map retrieved contact names and phone numbers to an array for processing while handling permission denial scenarios gracefully.",
             "status": "pending",
-            "testStrategy": "Manually test on physical device to ensure permission prompt appears and contact array is populated in logs."
+            "testStrategy": "Manually test on physical device to ensure permission prompt appears and contact array is populated in logs.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -208,7 +237,8 @@
             ],
             "details": "Normalize phone numbers to E.164 format, apply SHA-256 hashing for privacy, and perform a batch upsert into the 'synced_contacts' table in Supabase, associating them with the recruiter's user_id.",
             "status": "pending",
-            "testStrategy": "Verify that phone numbers are stored as hashes in the database and not as plain text using the Supabase Dashboard."
+            "testStrategy": "Verify that phone numbers are stored as hashes in the database and not as plain text using the Supabase Dashboard.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -219,7 +249,8 @@
             ],
             "details": "Implement a query that joins 'synced_contacts' with the 'profiles' table to identify users who are already in the system, distinguishing between verified and unverified statuses to support UI indicators.",
             "status": "pending",
-            "testStrategy": "Run matching SQL query against a mock dataset of users and contacts to ensure correct categorization of Green, Yellow, and Gray states."
+            "testStrategy": "Run matching SQL query against a mock dataset of users and contacts to ensure correct categorization of Green, Yellow, and Gray states.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -230,7 +261,8 @@
             ],
             "details": "Develop a React Native UI component to display contacts with Green (Verified), Yellow (Unverified), and Gray (Not in app) icons. Use 'expo-sms' to generate pre-filled recruitment messages containing unique referral links.",
             "status": "pending",
-            "testStrategy": "Verify that tapping a contact opens the SMS composer with the correct unique referral link and that icons display correctly based on backend status."
+            "testStrategy": "Verify that tapping a contact opens the SMS composer with the correct unique referral link and that icons display correctly based on backend status.",
+            "parentId": "undefined"
           },
           {
             "id": 5,
@@ -242,35 +274,42 @@
             ],
             "details": "Create a database trigger or serverless function that monitors the 'voter_registration_verified' status of an invitee. When set to TRUE, increment the 'recruiter_id' user's XP by 100 in the profiles table.",
             "status": "pending",
-            "testStrategy": "Simulate a referral sign-up and verify that the recruiter's XP remains unchanged until the invitee completes the Task 24 verification process."
+            "testStrategy": "Simulate a referral sign-up and verify that the recruiter's XP remains unchanged until the invitee completes the Task 24 verification process.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 5,
+        "expansionPrompt": "Break down: 1) expo-contacts permission and sync, 2) Hashing and storage in synced_contacts, 3) Matching against user base, 4) UI for tactical icons and SMS invitations, 5) Deferred XP logic tied to invitee verification."
       },
       {
-        "id": 28,
+        "id": "28",
         "title": "Digital Ballot UI with 'Neon Green' Endorsements",
         "description": "Build the replica down-ballot interface that highlights endorsed candidates for the user's specific district.",
         "details": "1. Create a 'Ballot' tab in the app. 2. Fetch ballot data from 'md_ballot_races' and 'md_ballot_candidates' filtered by the user's assigned district from Task 23. 3. Apply 'Neon Green' styling to any candidate where 'hard_party_endorsed' is TRUE. 4. Implement a 'Commit to Vote' toggle for each race that saves to 'user_ballot_commitments'. 5. Add a progress tracker for 'Ballot Completion'.",
         "testStrategy": "Populate mock ballot data for Montgomery County District 15. Verify that only candidates in that specific district appear and that endorsements are visually distinct.",
         "priority": "high",
         "dependencies": [
-          21,
-          23
+          "21",
+          "23"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [],
+        "complexity": 5,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Subtasks: 1) Create Ballot tab and fetch/filter district-specific data, 2) Implement Neon Green styling and Commit to Vote toggles with DB saves, 3) Add Ballot Completion progress tracker and mock data testing."
       },
       {
-        "id": 29,
+        "id": "29",
         "title": "Tactical Mission Set: GPS & Verification Logic",
         "description": "Implement the specific workflows for Early Raid (GPS) and Election Day Siege (Google Maps deep linking).",
         "details": "1. Update 'Commands' tab to display the 4 pre-loaded missions. 2. For 'Early Raid': Implement 'expo-location' check-in within 100m of known Early Voting centers + photo upload. 3. For 'Election Day Siege': Use 'expo-linking' to open Google Maps with the user's precinct coordinates. 4. Use Gemini 1.5 Flash to verify 'I Voted' stickers and polling place photos for both missions. 5. Display 'Squad Status' showing completion badges for district peers.",
         "testStrategy": "Mock GPS coordinates to simulate being at an Early Voting center. Verify that Gemini correctly identifies an 'I Voted' sticker in a test photo. Ensure Google Maps opens with the correct destination URL.",
         "priority": "medium",
         "dependencies": [
-          21,
-          23,
-          24
+          "21",
+          "23",
+          "24"
         ],
         "status": "pending",
         "subtasks": [
@@ -281,7 +320,8 @@
             "dependencies": [],
             "details": "Retrieve data from the 'directives' table. Render mission titles, types (Early Raid, Election Day Siege), and deadlines in a list view format within the existing UI framework.",
             "status": "pending",
-            "testStrategy": "Verify that all 4 pre-loaded missions appear in the Commands tab with correct data after database synchronization."
+            "testStrategy": "Verify that all 4 pre-loaded missions appear in the Commands tab with correct data after database synchronization.",
+            "parentId": "undefined"
           },
           {
             "id": 2,
@@ -292,7 +332,8 @@
             ],
             "details": "Integrate expo-location to monitor user coordinates. Compare position against Early Voting center locations using a 100m threshold. Enable photo upload functionality only upon successful GPS verification.",
             "status": "pending",
-            "testStrategy": "Mock GPS coordinates at various distances (e.g., 50m, 150m) to confirm the check-in button enables/disables correctly based on proximity."
+            "testStrategy": "Mock GPS coordinates at various distances (e.g., 50m, 150m) to confirm the check-in button enables/disables correctly based on proximity.",
+            "parentId": "undefined"
           },
           {
             "id": 3,
@@ -303,7 +344,8 @@
             ],
             "details": "Use user precinct coordinates from the profiles table to construct a Google Maps URL. Trigger expo-linking to open the native maps application or a browser fallback for navigation.",
             "status": "pending",
-            "testStrategy": "Trigger the navigation action and confirm Google Maps opens successfully with the destination set to the correct latitude and longitude."
+            "testStrategy": "Trigger the navigation action and confirm Google Maps opens successfully with the destination set to the correct latitude and longitude.",
+            "parentId": "undefined"
           },
           {
             "id": 4,
@@ -314,28 +356,39 @@
             ],
             "details": "Develop a backend hook for Gemini 1.5 Flash to scan uploaded photos for 'I Voted' stickers. Update the 'Squad Status' UI component to render completion badges for other users in the same district.",
             "status": "pending",
-            "testStrategy": "Submit a test photo containing an 'I Voted' sticker and verify Gemini's response triggers the completion badge update for the user's squad."
+            "testStrategy": "Submit a test photo containing an 'I Voted' sticker and verify Gemini's response triggers the completion badge update for the user's squad.",
+            "parentId": "undefined"
           }
-        ]
+        ],
+        "complexity": 8,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Divide into: 1) Update Commands tab for mission display, 2) Early Raid GPS check-in and photo upload, 3) Election Day Google Maps deep-linking, 4) Gemini verification for photos and Squad Status UI."
       },
       {
-        "id": 30,
+        "id": "30",
         "title": "Data Seeding Script for Montgomery County & MD-6",
         "description": "Create the SQL/Node seeding scripts to populate the initial districts, missions, and ballot data for the Alpha launch.",
         "details": "1. Write a script to insert the 4 core missions into the 'directives' table with specific deadlines. 2. Create the full ballot data (races/candidates) for Montgomery County (Districts 14-20) and MD-6 for the 2026 Primary. 3. Map endorsed candidates (placeholder or actual) with the 'hard_party_endorsed' flag.",
         "testStrategy": "Run script on a staging database and verify that the 'Ballot' and 'Commands' tabs display the expected data for a user assigned to Montgomery County District 15.",
         "priority": "high",
         "dependencies": [
-          21
+          "21"
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [],
+        "complexity": 3,
+        "recommendedSubtasks": 2,
+        "expansionPrompt": "Subtasks: 1) Script for inserting missions into directives table, 2) Comprehensive ballot data population for districts with endorsement flags and validation."
       }
     ],
     "metadata": {
-      "created": "2026-01-31T02:18:39.293Z",
-      "updated": "2026-02-05T01:32:23.517Z",
-      "description": "Tasks for master context"
+      "version": "1.0.0",
+      "lastModified": "2026-02-05T01:47:06.989Z",
+      "taskCount": 10,
+      "completedCount": 0,
+      "tags": [
+        "master"
+      ]
     }
   }
 }
