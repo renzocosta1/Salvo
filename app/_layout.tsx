@@ -14,6 +14,7 @@ import { AuthProvider, useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { registerServiceWorker, isStandalone } from '@/lib/pwa/register-sw';
 import InstallPrompt from '@/components/InstallPrompt';
+import PwaStandaloneCheck from '@/components/PwaStandaloneCheck';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -171,6 +172,9 @@ function RootLayoutNav() {
       {Platform.OS === 'web' && !isStandalone() && (
         <InstallPrompt onDismiss={() => setShowInstallPrompt(false)} />
       )}
+      
+      {/* PWA Standalone Check (web only) */}
+      {Platform.OS === 'web' && <PwaStandaloneCheck />}
     </ThemeProvider>
   );
 }
