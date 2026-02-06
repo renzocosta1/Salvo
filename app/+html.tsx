@@ -15,7 +15,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         {/* PWA Meta Tags */}
         <meta name="application-name" content="Salvo" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Salvo" />
         <meta name="description" content="Your civic engagement command center for Maryland's 2026 Primary Election" />
         <meta name="format-detection" content="telephone=no" />
@@ -48,20 +48,42 @@ export default function Root({ children }: { children: React.ReactNode }) {
 const responsiveBackground = `
 * {
   -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
-html, body {
+html {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
   background-color: #0f1419 !important;
-  /* Handle safe areas for notch/home indicator */
+  overflow: hidden;
+}
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  background-color: #0f1419 !important;
+  overflow: hidden;
+  /* iOS PWA: extend into safe areas */
+  padding-top: constant(safe-area-inset-top);
   padding-top: env(safe-area-inset-top);
+  padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
 }
 #root {
   width: 100%;
   height: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
   background-color: #0f1419;
+}
+/* Ensure dark color extends into iOS notch and home indicator areas */
+@supports (padding: max(0px)) {
+  body {
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
 }`;
