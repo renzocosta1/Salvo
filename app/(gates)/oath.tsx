@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -23,6 +24,8 @@ export default function OathScreen() {
   const [contractText, setContractText] = useState('');
   const [currentVersionId, setCurrentVersionId] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const hasScrolledOnce = useRef(false);
 
   useEffect(() => {
     fetchContractVersion();
@@ -125,8 +128,28 @@ By scrolling to the bottom and pressing JOIN, you electronically sign this oath 
     const currentProgress = maxScroll > 0 ? (contentOffset.y / maxScroll) * 100 : 100;
     setScrollProgress(Math.min(100, Math.max(0, currentProgress)));
 
+    // Mark that user has scrolled at least once
+    if (contentOffset.y > 50 && !hasScrolledOnce.current) {
+      hasScrolledOnce.current = true;
+    }
+
     setScrolledToBottom(isAtBottom);
   };
+
+  // Web fallback: If content is short enough to not require scrolling, auto-enable after 3 seconds
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const timer = setTimeout(() => {
+        if (!scrolledToBottom && !hasScrolledOnce.current) {
+          console.log('[Oath] Web: Auto-enabling button (content may not require scrolling)');
+          setScrolledToBottom(true);
+          setScrollProgress(100);
+        }
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [scrolledToBottom]);
 
   const handleJoin = async () => {
     if (!user || !currentVersionId) {
@@ -189,10 +212,13 @@ By scrolling to the bottom and pressing JOIN, you electronically sign this oath 
 
         {/* Contract ScrollView */}
         <ScrollView
+          ref={scrollViewRef}
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          showsVerticalScrollIndicator={true}
+          nestedScrollEnabled={Platform.OS === 'web'}
         >
           <Text style={styles.contractText}>{contractText}</Text>
         </ScrollView>
@@ -257,6 +283,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2a3744',
     marginBottom: 16,
+    maxHeight: Platform.OS === 'web' ? '60vh' : undefined,
   },
   scrollContent: {
     padding: 20,

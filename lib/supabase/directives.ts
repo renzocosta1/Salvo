@@ -1,6 +1,6 @@
 import { supabase } from '../supabase';
 import type { DirectiveWithProgress, Profile } from './types';
-import { submitSalvo } from '../offline/actions';
+import { Platform } from 'react-native';
 
 /**
  * Fetch directives for the current user's party and warrior band
@@ -168,29 +168,60 @@ export async function insertSalvo(
   directiveId: string
 ): Promise<{ success: boolean; error: Error | null; queued?: boolean }> {
   try {
-    // Use offline-aware submit function
-    const result = await submitSalvo({
-      user_id: userId,
-      directive_id: directiveId,
-    });
+    // On native: use offline-aware submit function
+    // On web: direct Supabase insert (no offline queue)
+    if (Platform.OS !== 'web') {
+      // Dynamic import to avoid bundling SQLite for web
+      const { submitSalvo } = await import('../offline/actions');
+      const result = await submitSalvo({
+        user_id: userId,
+        directive_id: directiveId,
+      });
 
-    if (!result.success) {
-      // Check if it looks like a rate limit error from the error message
-      if (result.error?.includes('rate limit') || result.error?.includes('42501')) {
-        console.warn('[RAID] Rate limit exceeded');
+      if (!result.success) {
+        // Check if it looks like a rate limit error from the error message
+        if (result.error?.includes('rate limit') || result.error?.includes('42501')) {
+          console.warn('[RAID] Rate limit exceeded');
+          return { 
+            success: false, 
+            error: new Error('Rate limit exceeded. You can only raid 10 times per minute.')
+          };
+        }
+
         return { 
           success: false, 
-          error: new Error('Rate limit exceeded. You can only raid 10 times per minute.')
+          error: new Error(result.error || 'Failed to record raid action')
         };
       }
 
-      return { 
-        success: false, 
-        error: new Error(result.error || 'Failed to record raid action')
-      };
-    }
+      return { success: true, error: null, queued: result.queued };
+    } else {
+      // Web: direct insert without offline queue
+      const { error } = await supabase
+        .from('salvos')
+        .insert({
+          user_id: userId,
+          directive_id: directiveId,
+        });
 
-    return { success: true, error: null, queued: result.queued };
+      if (error) {
+        // Check for rate limit error
+        if (error.code === '42501' || error.message?.includes('rate limit')) {
+          console.warn('[RAID] Rate limit exceeded');
+          return { 
+            success: false, 
+            error: new Error('Rate limit exceeded. You can only raid 10 times per minute.')
+          };
+        }
+
+        return { 
+          success: false, 
+          error: new Error(error.message || 'Failed to record raid action')
+        };
+      }
+
+      return { success: true, error: null };
+    }
   } catch (error) {
     console.error('Unexpected error in insertSalvo:', error);
     return { 

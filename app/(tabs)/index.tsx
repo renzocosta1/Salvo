@@ -13,6 +13,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Platform,
 } from 'react-native';
 
 export default function CommandFeedScreen() {
@@ -66,14 +67,22 @@ export default function CommandFeedScreen() {
           </View>
           <Pressable
             onPress={() => {
-              Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Sign Out',
-                  style: 'destructive',
-                  onPress: () => signOut(),
-                },
-              ]);
+              // Web: Use window.confirm (Alert.alert doesn't work on web)
+              if (Platform.OS === 'web') {
+                if (window.confirm('Are you sure you want to sign out?')) {
+                  signOut();
+                }
+              } else {
+                // Native: Use Alert.alert
+                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  {
+                    text: 'Sign Out',
+                    style: 'destructive',
+                    onPress: () => signOut(),
+                  },
+                ]);
+              }
             }}
             style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutButtonPressed]}
           >

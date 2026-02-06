@@ -3,8 +3,8 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import { View, ActivityIndicator, Text } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, ActivityIndicator, Text, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import '../global.css';
@@ -12,8 +12,8 @@ import '../global.css';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
-import { initDatabase } from '@/lib/offline/database';
-import { startSyncService } from '@/lib/offline/sync';
+import { registerServiceWorker, isStandalone } from '@/lib/pwa/register-sw';
+import InstallPrompt from '@/components/InstallPrompt';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -38,18 +38,27 @@ export default function RootLayout() {
     if (loaded) {
       SplashScreen.hideAsync();
       
-      // Initialize offline database and start sync service
-      initDatabase()
-        .then(() => {
-          // Start sync service after database is ready
+      // Initialize PWA features (web only)
+      if (Platform.OS === 'web') {
+        registerServiceWorker().catch(err => {
+          console.error('Failed to register service worker:', err);
+        });
+      }
+      
+      // Initialize offline database and start sync service (native only - SQLite doesn't work on web)
+      if (Platform.OS !== 'web') {
+        // Dynamic import to avoid bundling SQLite for web
+        import('@/lib/offline/database').then(({ initDatabase }) => {
+          return initDatabase();
+        }).then(() => {
+          return import('@/lib/offline/sync');
+        }).then(({ startSyncService }) => {
           const cleanup = startSyncService();
-          
-          // Return cleanup function
           return cleanup;
-        })
-        .catch(err => {
+        }).catch(err => {
           console.error('Failed to initialize offline systems:', err);
         });
+      }
     }
   }, [loaded]);
 
@@ -71,6 +80,7 @@ function RootLayoutNav() {
   const { session, profile, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
     if (loading) {
@@ -156,6 +166,11 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
+      
+      {/* PWA Install Prompt (web only) */}
+      {Platform.OS === 'web' && !isStandalone() && (
+        <InstallPrompt onDismiss={() => setShowInstallPrompt(false)} />
+      )}
     </ThemeProvider>
   );
 }

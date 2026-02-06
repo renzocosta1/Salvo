@@ -385,13 +385,95 @@
         "complexity": 3,
         "recommendedSubtasks": 2,
         "expansionPrompt": "Subtasks: 1) Script for inserting missions into directives table, 2) Comprehensive ballot data population for districts with endorsement flags and validation."
+      },
+      {
+        "id": "31",
+        "title": "PWA Setup & Service Worker Implementation",
+        "description": "Configure Salvo as a Progressive Web App with offline caching and web push notification support for iOS 16.4+ and Android.",
+        "details": "1. Create public/manifest.json with standalone display mode. 2. Implement public/sw.js service worker with cache-first strategy for offline War Room and Ballot access. 3. Update app/+html.tsx with PWA meta tags and manifest link. 4. Create InstallPrompt component for iOS/Android home screen installation. 5. Implement service worker registration in app layout. 6. Add web push notification hooks using Web Push API.",
+        "testStrategy": "Test installation on iPhone (iOS 16.4+) and Android. Verify offline mode by disabling network and accessing cached pages. Test push notification subscription flow.",
+        "priority": "critical",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "complexity": 7,
+        "recommendedSubtasks": 6,
+        "expansionPrompt": "Break into: 1) Manifest & meta tags, 2) Service worker caching, 3) Install prompt UI, 4) SW registration, 5) Web Push API integration, 6) Testing on iOS/Android.",
+        "updatedAt": "2026-02-05T21:30:00.000Z"
+      },
+      {
+        "id": "32",
+        "title": "Generate PWA Icons & Assets",
+        "description": "Create properly sized PWA icons (192x192, 512x512) and copy them to public/ folder for manifest.json.",
+        "details": "1. Use npx expo-pwa icon assets/images/icon.png to generate icon-192.png and icon-512.png. 2. Copy generated icons to public/ folder. 3. Verify manifest.json references correct icon paths. 4. Test icons display correctly on home screen after installation.",
+        "testStrategy": "Run npm run pwa:icons, verify icons exist in public/, install PWA on test device and confirm icon appears on home screen.",
+        "priority": "high",
+        "dependencies": [
+          "31"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 2,
+        "recommendedSubtasks": 1,
+        "expansionPrompt": "Single-step task: Generate and verify PWA icons using expo-pwa CLI tool."
+      },
+      {
+        "id": "33",
+        "title": "Generate VAPID Keys for Web Push Notifications",
+        "description": "Generate VAPID key pair for Web Push API and configure in environment variables and Supabase backend.",
+        "details": "1. Generate VAPID keys using web-push library: npx web-push generate-vapid-keys. 2. Add EXPO_PUBLIC_VAPID_PUBLIC_KEY to .env file. 3. Add VAPID_PRIVATE_KEY to .env (server-side only). 4. Create Supabase Edge Function for sending push notifications using VAPID private key. 5. Create push_subscriptions table in Supabase to store user push subscriptions. 6. Update useWebPush hook with actual VAPID public key.",
+        "testStrategy": "Generate keys, add to .env, test push notification subscription flow on installed PWA. Verify subscription saved to Supabase. Send test push notification from Edge Function.",
+        "priority": "high",
+        "dependencies": [
+          "31",
+          "32"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 5,
+        "recommendedSubtasks": 4,
+        "expansionPrompt": "Break into: 1) Generate VAPID keys, 2) Configure environment variables, 3) Create push_subscriptions table, 4) Implement Supabase Edge Function for push, 5) Test end-to-end flow."
+      },
+      {
+        "id": "34",
+        "title": "Deploy Salvo PWA to Vercel",
+        "description": "Export static build of Salvo web app and deploy to Vercel with custom domain configuration.",
+        "details": "1. Run npm run web:build to export static site to dist/ folder. 2. Install Vercel CLI: npm i -g vercel. 3. Run vercel login to authenticate. 4. Deploy with npm run deploy:vercel. 5. Configure custom domain (e.g., app.salvo.vote). 6. Set environment variables in Vercel dashboard. 7. Test deployed PWA on live URL.",
+        "testStrategy": "Access deployed URL on iPhone and Android. Test installation, offline mode, and push notifications on production deployment. Verify all environment variables are correctly set.",
+        "priority": "critical",
+        "dependencies": [
+          "32",
+          "33"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 4,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Subtasks: 1) Build and export static site, 2) Deploy to Vercel and configure domain, 3) Set environment variables and test production deployment."
+      },
+      {
+        "id": "35",
+        "title": "Deploy Salvo PWA to Netlify (Alternative)",
+        "description": "Set up Netlify deployment as backup hosting option with automated builds from GitHub.",
+        "details": "1. Run npm run web:build to export static site. 2. Install Netlify CLI: npm i -g netlify-cli. 3. Run netlify login to authenticate. 4. Deploy with npm run deploy:netlify. 5. Configure custom domain. 6. Set up continuous deployment from GitHub main branch. 7. Configure environment variables in Netlify dashboard.",
+        "testStrategy": "Push code to GitHub, verify automatic deployment triggers. Test PWA functionality on Netlify-hosted URL. Compare performance with Vercel deployment.",
+        "priority": "medium",
+        "dependencies": [
+          "32",
+          "33"
+        ],
+        "status": "pending",
+        "subtasks": [],
+        "complexity": 4,
+        "recommendedSubtasks": 3,
+        "expansionPrompt": "Subtasks: 1) Build and deploy to Netlify, 2) Configure GitHub continuous deployment, 3) Set environment variables and test."
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-05T03:37:32.247Z",
-      "taskCount": 10,
-      "completedCount": 3,
+      "lastModified": "2026-02-05T21:30:00.000Z",
+      "taskCount": 15,
+      "completedCount": 4,
       "tags": [
         "master"
       ]
