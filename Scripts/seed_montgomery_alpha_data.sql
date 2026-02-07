@@ -380,7 +380,7 @@ FROM md_ballots b
 JOIN md_ballot_races r ON b.id = r.ballot_id
 JOIN md_ballot_candidates c ON r.id = c.race_id
 WHERE b.county = 'Montgomery'
-GROUP BY b.legislative_district, r.race_title
+GROUP BY b.legislative_district, r.race_title, r.position_order
 ORDER BY b.legislative_district, r.position_order;
 
 -- ============================================================================

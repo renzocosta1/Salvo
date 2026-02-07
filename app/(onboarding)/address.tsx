@@ -135,8 +135,21 @@ export default function AddressScreen() {
 
       console.log('Profile updated successfully (manual entry)');
 
-      // Navigate to feature selection
-      router.push('/(onboarding)/feature-selection');
+      // Mark onboarding as complete and navigate to main app
+      const { error: onboardingError } = await supabase
+        .from('profiles')
+        .update({ onboarding_completed_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+      if (onboardingError) {
+        console.error('Error completing onboarding:', onboardingError);
+      }
+
+      // Refresh profile to update auth context
+      await refetchProfile(user.id);
+
+      // Navigate to main app
+      router.replace('/(tabs)');
     } catch (error) {
       console.error('Unexpected error:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
@@ -218,8 +231,21 @@ export default function AddressScreen() {
 
       console.log('Profile updated successfully');
 
-      // Navigate to feature selection
-      router.push('/(onboarding)/feature-selection');
+      // Mark onboarding as complete and navigate to main app
+      const { error: onboardingError } = await supabase
+        .from('profiles')
+        .update({ onboarding_completed_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+      if (onboardingError) {
+        console.error('Error completing onboarding:', onboardingError);
+      }
+
+      // Refresh profile to update auth context
+      await refetchProfile(user.id);
+
+      // Navigate to main app
+      router.replace('/(tabs)');
     } catch (error) {
       console.error('Unexpected error:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
