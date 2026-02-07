@@ -35,6 +35,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="ballot"
+        options={{
+          title: 'Ballot',
+          tabBarIcon: ({ color }) => <TabBarIcon name="check-square-o" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="invite"
         options={{
           title: 'Invite',
