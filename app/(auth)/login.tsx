@@ -114,11 +114,34 @@ export default function LoginScreen() {
   const handleGoogleSignIn = async () => {
     setSocialLoading('google');
     try {
-      // Use explicit custom scheme instead of exp:// for reliable redirects
-      // exp:// doesn't work with ASWebAuthenticationSession on iOS
-      const redirectUrl = 'salvo://auth-callback';
+      // WEB: Use direct redirect to keep PWA in standalone mode
+      if (Platform.OS === 'web') {
+        console.log('[Google OAuth Web] Using direct redirect to preserve PWA standalone mode');
+        
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin,
+            skipBrowserRedirect: false, // Let Supabase handle the redirect
+          },
+        });
+
+        if (error) {
+          console.error('[Google OAuth Web] Error:', error);
+          if (Platform.OS === 'web') {
+            window.alert('Google Sign-In Failed: ' + error.message);
+          } else {
+            Alert.alert('Google Sign-In Failed', error.message);
+          }
+          setSocialLoading(null);
+        }
+        // Supabase will handle the redirect and auth state change
+        return;
+      }
       
-      console.log('[Google OAuth] Using custom scheme redirect URL:', redirectUrl);
+      // NATIVE: Use WebBrowser for OAuth (existing flow)
+      const redirectUrl = 'salvo://auth-callback';
+      console.log('[Google OAuth Native] Using custom scheme redirect URL:', redirectUrl);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -129,16 +152,15 @@ export default function LoginScreen() {
       });
 
       if (error) {
-        console.error('[Google OAuth] Supabase error:', error);
+        console.error('[Google OAuth Native] Supabase error:', error);
         Alert.alert('Google Sign-In Failed', error.message);
         setSocialLoading(null);
         return;
       }
 
       if (data?.url) {
-        console.log('[Google OAuth] Opening browser with auth URL...');
+        console.log('[Google OAuth Native] Opening browser with auth URL...');
         
-        // Open the OAuth URL in browser
         const result = await WebBrowser.openAuthSessionAsync(
           data.url,
           redirectUrl,
@@ -147,58 +169,60 @@ export default function LoginScreen() {
           }
         );
         
-        console.log('[Google OAuth] Browser returned, result type:', result.type);
+        console.log('[Google OAuth Native] Browser returned, result type:', result.type);
         
         if (result.type === 'success' && (result as any).url) {
           const url = (result as any).url;
-          console.log('[Google OAuth] SUCCESS! Got callback URL');
+          console.log('[Google OAuth Native] SUCCESS! Got callback URL');
           
           let access_token = null;
           let refresh_token = null;
           
-          // Try hash fragment first (#access_token=...)
           if (url.includes('#')) {
             const hashPart = url.split('#')[1];
             const hashParams = new URLSearchParams(hashPart);
             access_token = hashParams.get('access_token');
             refresh_token = hashParams.get('refresh_token');
-            console.log('[Google OAuth] Extracted tokens from hash fragment');
+            console.log('[Google OAuth Native] Extracted tokens from hash fragment');
           }
           
-          // Try query params as fallback
           if (!access_token && url.includes('?')) {
             const urlObj = new URL(url);
             access_token = urlObj.searchParams.get('access_token');
             refresh_token = urlObj.searchParams.get('refresh_token');
-            console.log('[Google OAuth] Extracted tokens from query params');
+            console.log('[Google OAuth Native] Extracted tokens from query params');
           }
           
           if (access_token && refresh_token) {
-            console.log('[Google OAuth] Setting session with extracted tokens...');
+            console.log('[Google OAuth Native] Setting session with extracted tokens...');
             const { error: sessionError } = await supabase.auth.setSession({
               access_token,
               refresh_token,
             });
             
             if (sessionError) {
-              console.error('[Google OAuth] Session error:', sessionError);
+              console.error('[Google OAuth Native] Session error:', sessionError);
               Alert.alert('Authentication Error', sessionError.message);
             } else {
-              console.log('[Google OAuth] ✅ SUCCESS! Signed in with Google');
+              console.log('[Google OAuth Native] ✅ SUCCESS! Signed in with Google');
             }
           } else {
-            console.error('[Google OAuth] No tokens found in callback URL');
+            console.error('[Google OAuth Native] No tokens found in callback URL');
             Alert.alert('Authentication Error', 'Failed to get authentication tokens from Google');
           }
         } else if (result.type === 'cancel') {
-          console.log('[Google OAuth] User cancelled authentication');
+          console.log('[Google OAuth Native] User cancelled authentication');
         } else if (result.type === 'dismiss') {
-          console.log('[Google OAuth] Browser dismissed without completing');
+          console.log('[Google OAuth Native] Browser dismissed without completing');
         }
       }
     } catch (error: any) {
       console.error('[Google OAuth] Unexpected error:', error);
-      Alert.alert('Error', error?.message || 'Failed to sign in with Google');
+      if (Platform.OS === 'web') {
+        window.alert('Error: ' + (error?.message || 'Failed to sign in with Google'));
+      } else {
+        Alert.alert('Error', error?.message || 'Failed to sign in with Google');
+      }
     } finally {
       setSocialLoading(null);
     }

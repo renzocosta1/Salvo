@@ -11,8 +11,16 @@ export default function PwaStandaloneCheck() {
                           (window.navigator as any).standalone ||
                           document.referrer.includes('android-app://');
       
+      console.log('[PWA Standalone Check]', {
+        displayMode: window.matchMedia('(display-mode: standalone)').matches,
+        navigatorStandalone: (window.navigator as any).standalone,
+        referrer: document.referrer,
+        isStandalone,
+        currentURL: window.location.href,
+      });
+      
       if (!isStandalone) {
-        console.warn('[PWA] Not running in standalone mode!');
+        console.warn('[PWA] ⚠️ NOT RUNNING IN STANDALONE MODE - App is in Safari browser!');
         setShowWarning(true);
       } else {
         console.log('[PWA] ✅ Running in standalone mode');
@@ -29,9 +37,9 @@ export default function PwaStandaloneCheck() {
       <View style={styles.content}>
         <Text style={styles.emoji}>⚠️</Text>
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Install for best experience</Text>
+          <Text style={styles.title}>Running in browser mode!</Text>
           <Text style={styles.subtitle}>
-            Tap Share → "Add to Home Screen" to remove browser controls
+            Close this, delete app icon, reinstall from Safari to fix white bars
           </Text>
         </View>
         <Pressable onPress={() => setShowWarning(false)} style={styles.closeButton}>
