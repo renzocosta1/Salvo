@@ -103,6 +103,10 @@ export default function SignupScreen() {
           options: {
             redirectTo: window.location.origin,
             skipBrowserRedirect: false, // Let Supabase handle the redirect
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'select_account', // Force account selection every time
+            },
           },
         });
 
