@@ -1,5 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// @deno-types="npm:@types/web-push@3.6.3"
+import webpush from 'npm:web-push@3.6.7';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,6 +37,13 @@ serve(async (req) => {
     if (!vapidPublicKey || !vapidPrivateKey) {
       throw new Error('VAPID keys not configured in Edge Function environment');
     }
+
+    // Configure web-push with VAPID details
+    webpush.setVapidDetails(
+      'mailto:support@salvo.app',
+      vapidPublicKey,
+      vapidPrivateKey
+    );
 
     // Parse request body
     const payload: PushPayload = await req.json();
@@ -99,7 +108,7 @@ serve(async (req) => {
     const results = await Promise.allSettled(
       subscriptions.map(async (sub) => {
         try {
-          // Construct push subscription object
+          // Construct push subscription object for web-push library
           const pushSubscription = {
             endpoint: sub.endpoint,
             keys: {
@@ -108,21 +117,21 @@ serve(async (req) => {
             },
           };
 
-          // Send push using web-push protocol
-          const response = await sendWebPush(
+          console.log(`[Push] Sending to user ${sub.user_id}...`);
+
+          // Send using web-push library (handles encryption automatically)
+          const response = await webpush.sendNotification(
             pushSubscription,
-            notificationPayload,
-            vapidPublicKey,
-            vapidPrivateKey
+            notificationPayload
           );
 
-          console.log(`[Push] Sent to ${sub.user_id}: ${response.status}`);
+          console.log(`[Push] ✅ Sent to ${sub.user_id}: ${response.statusCode}`);
           return { success: true, userId: sub.user_id };
-        } catch (error) {
-          console.error(`[Push] Failed to send to ${sub.user_id}:`, error);
+        } catch (error: any) {
+          console.error(`[Push] ❌ Failed to send to ${sub.user_id}:`, error);
           
-          // If subscription is invalid (410 Gone), delete it
-          if (error instanceof Error && error.message.includes('410')) {
+          // If subscription is invalid (410 Gone or 404), delete it
+          if (error.statusCode === 410 || error.statusCode === 404) {
             await supabase
               .from('push_subscriptions')
               .delete()
@@ -130,7 +139,7 @@ serve(async (req) => {
             console.log(`[Push] Deleted invalid subscription for ${sub.user_id}`);
           }
           
-          return { success: false, userId: sub.user_id, error: String(error) };
+          return { success: false, userId: sub.user_id, error: error.message || String(error) };
         }
       })
     );
@@ -162,88 +171,4 @@ serve(async (req) => {
   }
 });
 
-/**
- * Send Web Push notification using the Web Push protocol
- */
-async function sendWebPush(
-  subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
-  payload: string,
-  vapidPublicKey: string,
-  vapidPrivateKey: string
-): Promise<Response> {
-  const encoder = new TextEncoder();
-  
-  // Import VAPID keys
-  const publicKeyUint8 = urlBase64ToUint8Array(vapidPublicKey);
-  const privateKeyUint8 = urlBase64ToUint8Array(vapidPrivateKey);
-
-  // Get endpoint URL
-  const url = new URL(subscription.endpoint);
-  
-  // Create VAPID authorization header
-  const vapidHeaders = await createVapidAuthHeader(
-    url.origin,
-    vapidPublicKey,
-    privateKeyUint8
-  );
-
-  // For now, send unencrypted (simplified version)
-  // Production should use proper encryption with p256dh and auth keys
-  const response = await fetch(subscription.endpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/octet-stream',
-      'Content-Encoding': 'aes128gcm',
-      'Authorization': vapidHeaders.Authorization,
-      'Crypto-Key': vapidHeaders['Crypto-Key'],
-      'TTL': '86400',
-    },
-    body: encoder.encode(payload),
-  });
-
-  return response;
-}
-
-/**
- * Create VAPID authorization header using JWT
- */
-async function createVapidAuthHeader(
-  audience: string,
-  publicKey: string,
-  privateKey: Uint8Array
-): Promise<{ Authorization: string; 'Crypto-Key': string }> {
-  const header = {
-    typ: 'JWT',
-    alg: 'ES256',
-  };
-
-  const jwtPayload = {
-    aud: audience,
-    exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60, // 12 hours
-    sub: 'mailto:support@salvo.app',
-  };
-
-  // For simplicity, using a basic JWT implementation
-  // In production, use a proper library like jose
-  const encodedHeader = btoa(JSON.stringify(header));
-  const encodedPayload = btoa(JSON.stringify(jwtPayload));
-  
-  return {
-    Authorization: `vapid t=${encodedHeader}.${encodedPayload}.signature, k=${publicKey}`,
-    'Crypto-Key': `p256ecdsa=${publicKey}`,
-  };
-}
-
-/**
- * Convert URL-safe base64 to Uint8Array
- */
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; i++) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
-}
+// Note: The web-push library handles all encryption, VAPID auth, and protocol details automatically

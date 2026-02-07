@@ -103,16 +103,16 @@
       },
       {
         "id": "24",
-        "title": "AI-Powered Voter Registration Verification (Enlistment)",
+        "title": "AI-Powered Voter Registration Verification (Enlistment) - SKIPPED FOR MVP",
         "description": "Build the 'Enlistment' mission flow involving camera capture, client-side redaction, and Gemini 1.5 Flash verification.",
-        "details": "1. Create a camera UI that prompts users to photograph their MD Voter Registration Card. 2. Implement client-side redaction using 'expo-image-manipulator' to blur sensitive fields (Voter ID#, full address) before upload. 3. Create a Supabase Edge Function 'verify-voter-registration' that sends the redacted image to Gemini 1.5 Flash. 4. Prompt Gemini to: 'Is this a Maryland Voter Registration Card? Extract: Name, Party, County.' 5. Match Gemini output against the user's profile and set 'voter_registration_verified' to TRUE if successful.",
-        "testStrategy": "Test with sample MD registration cards. Verify that the redaction logic correctly obscures sensitive areas. Ensure the Edge Function handles successful matches and rejections gracefully with clear UI feedback.",
-        "priority": "high",
+        "details": "SKIPPED: Too complex for MVP. Registration card verification involves sensitive PII (voter ID, SSN, full address) requiring complex redaction. Users often don't have cards accessible. Focus shifted to ballot photo verification (Task 29) which has no PII concerns and better serves the 'proof of voting' goal.",
+        "testStrategy": "N/A - Skipped for MVP",
+        "priority": "low",
         "dependencies": [
           "21",
           "23"
         ],
-        "status": "pending",
+        "status": "cancelled",
         "subtasks": [
           {
             "id": 1,
@@ -213,12 +213,11 @@
         "id": "27",
         "title": "Relational Raid: Contact Sync & Recruitment Engine",
         "description": "Implement contact syncing to identify and recruit Maryland voters from the user's phonebook.",
-        "details": "1. Use 'expo-contacts' to request permissions and sync phone numbers. 2. Store hashed contacts in 'synced_contacts'. 3. Match contacts against the app's user base. 4. Display tactical icons: Green (Verified in app), Yellow (In app, unverified), Gray (Not in app). 5. Implement an SMS invitation mechanism that tracks referrals via unique links. 6. Award +100 XP to the recruiter only after the invitee completes Task 24 (Enlistment).",
-        "testStrategy": "Test contact matching logic with a mock voter dataset. Verify that XP is only awarded once the invitee's 'voter_registration_verified' flag is set to TRUE.",
-        "priority": "medium",
+        "details": "1. Use 'expo-contacts' (or Web Share API for PWA) to request permissions and sync phone numbers. 2. Store hashed contacts in 'synced_contacts'. 3. Match contacts against the app's user base. 4. Display tactical icons: Green (Active user), Yellow (Registered, inactive), Gray (Not in app). 5. Implement an SMS/Share invitation mechanism that tracks referrals via unique links. 6. Award +100 XP to the recruiter when the invitee completes onboarding (oath + address entry).",
+        "testStrategy": "Test contact matching logic with a mock voter dataset. Verify that XP is awarded when the invitee completes onboarding and sets their address.",
+        "priority": "high",
         "dependencies": [
-          "21",
-          "24"
+          "21"
         ],
         "status": "pending",
         "subtasks": [
@@ -307,15 +306,14 @@
       },
       {
         "id": "29",
-        "title": "Tactical Mission Set: GPS & Verification Logic",
-        "description": "Implement the specific workflows for Early Raid (GPS) and Election Day Siege (Google Maps deep linking).",
-        "details": "1. Update 'Commands' tab to display the 4 pre-loaded missions. 2. For 'Early Raid': Implement 'expo-location' check-in within 100m of known Early Voting centers + photo upload. 3. For 'Election Day Siege': Use 'expo-linking' to open Google Maps with the user's precinct coordinates. 4. Use Gemini 1.5 Flash to verify 'I Voted' stickers and polling place photos for both missions. 5. Display 'Squad Status' showing completion badges for district peers.",
+        "title": "Tactical Mission Set: GPS & Ballot Photo Verification",
+        "description": "Implement the specific workflows for Early Raid (GPS) and Election Day Siege with ballot photo proof.",
+        "details": "1. Update 'Commands' tab to display the 4 pre-loaded missions. 2. For 'Early Raid': Implement 'expo-location' (or geolocation API for PWA) check-in within 100m of known Early Voting centers + photo upload. 3. For 'Election Day Siege': Use deep linking to open Google Maps with the user's precinct coordinates. 4. Use Gemini 1.5 Flash to verify 'I Voted' stickers and polling place photos for both missions. 5. Display 'Squad Status' showing completion badges for district peers.",
         "testStrategy": "Mock GPS coordinates to simulate being at an Early Voting center. Verify that Gemini correctly identifies an 'I Voted' sticker in a test photo. Ensure Google Maps opens with the correct destination URL.",
-        "priority": "medium",
+        "priority": "high",
         "dependencies": [
           "21",
-          "23",
-          "24"
+          "23"
         ],
         "status": "pending",
         "subtasks": [
@@ -380,7 +378,7 @@
         "dependencies": [
           "21"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 3,
         "recommendedSubtasks": 2,

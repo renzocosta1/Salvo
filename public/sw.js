@@ -143,22 +143,30 @@ self.addEventListener('fetch', (event) => {
 
 // Push notification event handler
 self.addEventListener('push', (event) => {
-  console.log('[Service Worker] Push notification received');
+  console.log('[Service Worker] 🔔 Push notification received!', event);
   
   let data = {};
+  let rawData = null;
+  
   if (event.data) {
     try {
-      data = event.data.json();
+      rawData = event.data.text();
+      console.log('[Service Worker] Raw push data:', rawData);
+      data = JSON.parse(rawData);
+      console.log('[Service Worker] Parsed push data:', data);
     } catch (e) {
-      data = { title: 'Salvo', body: event.data.text() };
+      console.error('[Service Worker] Error parsing push data:', e);
+      data = { title: 'Salvo', body: rawData || 'New notification' };
     }
+  } else {
+    console.log('[Service Worker] No push data received, using defaults');
   }
 
   const title = data.title || 'Salvo: Maryland 2026';
   const options = {
     body: data.body || 'New mission available',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: data.icon || '/icon-192.png',
+    badge: data.badge || '/icon-192.png',
     vibrate: [200, 100, 200],
     tag: data.tag || 'salvo-notification',
     data: data.data || {},
