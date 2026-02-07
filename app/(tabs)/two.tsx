@@ -9,9 +9,11 @@ import {
   StyleSheet,
   Text,
   View,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
+import NotificationToggle from '@/components/NotificationToggle';
 
 interface ProfileData {
   display_name: string | null;
@@ -59,17 +61,22 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          await signOut();
-          router.replace('/login');
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to sign out?')) {
+        signOut();
+      }
+    } else {
+      Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   if (loading) {
@@ -142,6 +149,9 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      {/* Push Notifications (PWA only) */}
+      <NotificationToggle />
+
       {/* Settings Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Settings</Text>
@@ -152,17 +162,6 @@ export default function ProfileScreen() {
           <View style={styles.listItemLeft}>
             <Ionicons name="person-outline" size={24} color="#8b98a5" />
             <Text style={styles.listItemText}>Edit Profile</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#8b98a5" />
-        </Pressable>
-
-        <Pressable
-          style={({ pressed }) => [styles.listItem, pressed && styles.listItemPressed]}
-          onPress={() => Alert.alert('Coming Soon', 'Notifications settings will be available soon')}
-        >
-          <View style={styles.listItemLeft}>
-            <Ionicons name="notifications-outline" size={24} color="#8b98a5" />
-            <Text style={styles.listItemText}>Notifications</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#8b98a5" />
         </Pressable>
