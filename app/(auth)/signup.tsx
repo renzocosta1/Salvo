@@ -33,18 +33,43 @@ export default function SignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSignup = async () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.tsx:35',message:'handleSignup called',data:{email:email,passwordLength:password.length,passwordsMatch:password===confirmPassword,platform:Platform.OS},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    
     if (!email || !password) {
-      Alert.alert('Missing Information', 'Please enter email and password');
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.tsx:41',message:'Missing email/password validation triggered',data:{platform:Platform.OS},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      if (Platform.OS === 'web') {
+        window.alert('Missing Information: Please enter email and password');
+      } else {
+        Alert.alert('Missing Information', 'Please enter email and password');
+      }
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Password Mismatch', 'Passwords do not match');
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.tsx:51',message:'Password mismatch validation triggered',data:{platform:Platform.OS},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      if (Platform.OS === 'web') {
+        window.alert('Password Mismatch: Passwords do not match');
+      } else {
+        Alert.alert('Password Mismatch', 'Passwords do not match');
+      }
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Weak Password', 'Password must be at least 6 characters');
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'signup.tsx:61',message:'Weak password validation triggered',data:{passwordLength:password.length,platform:Platform.OS},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      if (Platform.OS === 'web') {
+        window.alert('Weak Password: Password must be at least 6 characters');
+      } else {
+        Alert.alert('Weak Password', 'Password must be at least 6 characters');
+      }
       return;
     }
 
