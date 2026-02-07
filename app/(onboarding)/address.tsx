@@ -112,6 +112,9 @@ export default function AddressScreen() {
     setLoading(true);
     try {
       // Update profile with manually entered district information
+      // Normalize legislative_district: strip "District " prefix if present
+      const normalizedManualLegislative = manualLegislative.replace('District ', '');
+      
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -121,7 +124,7 @@ export default function AddressScreen() {
           zip_code: zipCode,
           county: manualCounty,
           congressional_district: manualCongressional,
-          legislative_district: manualLegislative,
+          legislative_district: normalizedManualLegislative,
           geocoded_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -238,6 +241,9 @@ export default function AddressScreen() {
       console.log('District lookup successful:', result.district);
 
       // Update profile with address and district information
+      // Normalize legislative_district: strip "District " prefix to store just the number
+      const normalizedLegislativeDistrict = result.district.legislativeDistrict.replace('District ', '');
+      
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -247,7 +253,7 @@ export default function AddressScreen() {
           zip_code: zipCode,
           county: result.district.county,
           congressional_district: result.district.congressionalDistrict,
-          legislative_district: result.district.legislativeDistrict,
+          legislative_district: normalizedLegislativeDistrict,
           geocoded_at: new Date().toISOString(),
         })
         .eq('id', user.id);
