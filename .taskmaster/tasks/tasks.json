@@ -229,9 +229,10 @@
               21
             ],
             "details": "Integrate 'expo-contacts' to request 'CONTACTS' permission. Map retrieved contact names and phone numbers to an array for processing while handling permission denial scenarios gracefully.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Manually test on physical device to ensure permission prompt appears and contact array is populated in logs.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-07T23:13:47.123Z"
           },
           {
             "id": 2,
@@ -241,9 +242,10 @@
               1
             ],
             "details": "Normalize phone numbers to E.164 format, apply SHA-256 hashing for privacy, and perform a batch upsert into the 'synced_contacts' table in Supabase, associating them with the recruiter's user_id.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify that phone numbers are stored as hashes in the database and not as plain text using the Supabase Dashboard.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-07T23:13:47.148Z"
           },
           {
             "id": 3,
@@ -253,9 +255,10 @@
               2
             ],
             "details": "Implement a query that joins 'synced_contacts' with the 'profiles' table to identify users who are already in the system, distinguishing between verified and unverified statuses to support UI indicators.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Run matching SQL query against a mock dataset of users and contacts to ensure correct categorization of Green, Yellow, and Gray states.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-07T23:13:47.151Z"
           },
           {
             "id": 4,
@@ -265,9 +268,10 @@
               3
             ],
             "details": "Develop a React Native UI component to display contacts with Green (Verified), Yellow (Unverified), and Gray (Not in app) icons. Use 'expo-sms' to generate pre-filled recruitment messages containing unique referral links.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify that tapping a contact opens the SMS composer with the correct unique referral link and that icons display correctly based on backend status.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-07T23:13:47.181Z"
           },
           {
             "id": 5,
@@ -278,14 +282,16 @@
               24
             ],
             "details": "Create a database trigger or serverless function that monitors the 'voter_registration_verified' status of an invitee. When set to TRUE, increment the 'recruiter_id' user's XP by 100 in the profiles table.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Simulate a referral sign-up and verify that the recruiter's XP remains unchanged until the invitee completes the Task 24 verification process.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-07T23:13:47.184Z"
           }
         ],
         "complexity": 8,
         "recommendedSubtasks": 5,
-        "expansionPrompt": "Break down: 1) expo-contacts permission and sync, 2) Hashing and storage in synced_contacts, 3) Matching against user base, 4) UI for tactical icons and SMS invitations, 5) Deferred XP logic tied to invitee verification."
+        "expansionPrompt": "Break down: 1) expo-contacts permission and sync, 2) Hashing and storage in synced_contacts, 3) Matching against user base, 4) UI for tactical icons and SMS invitations, 5) Deferred XP logic tied to invitee verification.",
+        "updatedAt": "2026-02-07T23:13:47.184Z"
       },
       {
         "id": "28",
@@ -469,9 +475,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-05T21:30:00.000Z",
+      "lastModified": "2026-02-07T23:13:47.184Z",
       "taskCount": 15,
-      "completedCount": 4,
+      "completedCount": 10,
       "tags": [
         "master"
       ]
