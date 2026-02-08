@@ -25,6 +25,7 @@
     "@shopify/flash-list": "^2.2.1",
     "@supabase/supabase-js": "^2.93.3",
     "expo": "~54.0.32",
+    "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
     "expo-contacts": "^15.0.11",
     "expo-file-system": "^19.0.21",

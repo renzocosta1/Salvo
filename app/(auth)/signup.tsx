@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,25 +12,35 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { Ionicons } from '@expo/vector-icons';
-import { acceptInvite } from '@/lib/recruiting/invites';
+import { applyReferralCode } from '@/lib/supabase/referrals';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignupScreen() {
+  const searchParams = useLocalSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Auto-fill referral code from URL query parameter
+  useEffect(() => {
+    const ref = searchParams.ref;
+    if (ref && typeof ref === 'string') {
+      setReferralCode(ref.toUpperCase());
+      console.log('[Signup] Auto-filled referral code from URL:', ref);
+    }
+  }, [searchParams]);
 
   const handleSignup = async () => {
     // #region agent log
@@ -89,12 +99,14 @@ export default function SignupScreen() {
       if (error) {
         Alert.alert('Signup Failed', error.message);
       } else if (data.user) {
-        // If invite code was provided, accept the invite
-        if (inviteCode.trim()) {
-          const inviteResult = await acceptInvite(inviteCode.trim(), data.user.id);
-          if (!inviteResult.success) {
-            console.warn('Failed to accept invite:', inviteResult.error);
-            // Don't block signup if invite fails, just log it
+        // If referral code was provided, apply it
+        if (referralCode.trim()) {
+          const referralResult = await applyReferralCode(data.user.id, referralCode.trim());
+          if (!referralResult.success) {
+            console.warn('Failed to apply referral code:', referralResult.error);
+            // Don't block signup if referral fails, just log it
+          } else {
+            console.log('[Signup] Referral code applied successfully');
           }
         }
 
@@ -401,15 +413,15 @@ export default function SignupScreen() {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Invite Code (Optional)</Text>
+              <Text style={styles.label}>Referral Code (Optional)</Text>
               <TextInput
                 style={styles.input}
-                value={inviteCode}
-                onChangeText={(text) => setInviteCode(text.toUpperCase())}
-                placeholder="Enter invite code"
+                value={referralCode}
+                onChangeText={(text) => setReferralCode(text.toUpperCase())}
+                placeholder="Enter referral code (e.g., HARD-ABC12)"
                 placeholderTextColor="#666"
                 autoCapitalize="characters"
-                maxLength={6}
+                maxLength={10}
               />
             </View>
 

@@ -7,66 +7,101 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Clipboard,
+  Platform,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/lib/auth';
 import {
-  getMyInviteCode,
-  getInviteStats,
-  getMyInvites,
-  type Invite,
-} from '@/lib/recruiting/invites';
-import { shareInvite } from '@/lib/recruiting/sms';
+  getMyReferralCode,
+  getReferralStats,
+  getMyReferrals,
+  generateReferralLink,
+  generateReferralMessage,
+  type Referral,
+} from '@/lib/supabase/referrals';
 
 export default function InviteScreen() {
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [inviteCode, setInviteCode] = useState<string>('');
-  const [stats, setStats] = useState({ total: 0, accepted: 0, pending: 0 });
-  const [invites, setInvites] = useState<Invite[]>([]);
+  const [referralCode, setReferralCode] = useState<string>('');
+  const [stats, setStats] = useState({ 
+    totalReferrals: 0, 
+    completedReferrals: 0, 
+    pendingReferrals: 0,
+    totalXpEarned: 0 
+  });
+  const [referrals, setReferrals] = useState<Referral[]>([]);
 
   useEffect(() => {
-    loadInviteData();
+    loadReferralData();
   }, [profile]);
 
-  const loadInviteData = async () => {
+  const loadReferralData = async () => {
     if (!profile) return;
 
     setLoading(true);
 
-    // Load invite code
-    const codeResult = await getMyInviteCode(profile.id);
-    if (codeResult.success && codeResult.code) {
-      setInviteCode(codeResult.code);
+    // Load referral code
+    const codeResult = await getMyReferralCode(profile.id);
+    if (codeResult.data) {
+      setReferralCode(codeResult.data);
     }
 
     // Load stats
-    const statsResult = await getInviteStats(profile.id);
-    if (statsResult.success && statsResult.data) {
+    const statsResult = await getReferralStats(profile.id);
+    if (statsResult.data) {
       setStats(statsResult.data);
     }
 
-    // Load invite history
-    const invitesResult = await getMyInvites(profile.id);
-    if (invitesResult.success && invitesResult.data) {
-      setInvites(invitesResult.data);
+    // Load referral history
+    const referralsResult = await getMyReferrals(profile.id);
+    if (referralsResult.data) {
+      setReferrals(referralsResult.data);
     }
 
     setLoading(false);
   };
 
-  const handleCopyCode = () => {
-    Clipboard.setString(inviteCode);
-    Alert.alert('Copied!', 'Invite code copied to clipboard');
+  const handleCopyCode = async () => {
+    await Clipboard.setStringAsync(referralCode);
+    if (Platform.OS === 'web') {
+      window.alert('Copied to clipboard!');
+    } else {
+      Alert.alert('Copied!', 'Referral code copied to clipboard');
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const link = generateReferralLink(referralCode);
+    await Clipboard.setStringAsync(link);
+    if (Platform.OS === 'web') {
+      window.alert('Link copied to clipboard!');
+    } else {
+      Alert.alert('Copied!', 'Referral link copied to clipboard');
+    }
   };
 
   const handleShare = async () => {
-    const userName = profile?.display_name || 'A friend';
-    const result = await shareInvite(inviteCode, userName);
+    const message = generateReferralMessage(referralCode);
+    const link = generateReferralLink(referralCode);
 
-    if (!result.success) {
-      Alert.alert('Error', result.error || 'Failed to share invite');
+    // Web Share API (PWA)
+    if (Platform.OS === 'web' && (navigator as any).share) {
+      try {
+        await (navigator as any).share({
+          title: 'Join Salvo',
+          text: message,
+          url: link,
+        });
+      } catch (error) {
+        console.error('[handleShare] Web Share API error:', error);
+        // Fallback: copy to clipboard
+        await handleCopyLink();
+      }
+    } else {
+      // Fallback: copy to clipboard
+      await handleCopyLink();
     }
   };
 
@@ -74,85 +109,85 @@ export default function InviteScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#ffffff" />
-        <Text style={styles.loadingText}>Loading invite data...</Text>
+        <Text style={styles.loadingText}>Loading referral data...</Text>
       </View>
     );
   }
-
-  const xpEarned = stats.accepted * 50; // 50 XP per accepted invite
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Invite Friends</Text>
-        <Text style={styles.headerSubtitle}>Share Salvo and earn rewards</Text>
+        <Text style={styles.headerTitle}>🎯 Relational Raid</Text>
+        <Text style={styles.headerSubtitle}>
+          Recruit Maryland voters. Earn +100 XP per completed referral.
+        </Text>
       </View>
 
-      {/* Invite Code Card */}
+      {/* Referral Code Card */}
       <View style={styles.codeCard}>
-        <Text style={styles.codeLabel}>Your Invite Code</Text>
+        <Text style={styles.codeLabel}>Your Referral Code</Text>
         <Pressable onPress={handleCopyCode} style={styles.codeBox}>
-          <Text style={styles.codeText}>{inviteCode}</Text>
-          <Ionicons name="copy-outline" size={24} color="#3498db" />
+          <Text style={styles.codeText}>{referralCode}</Text>
+          <Ionicons name="copy-outline" size={24} color="#39FF14" />
         </Pressable>
         <Text style={styles.codeHint}>Tap to copy</Text>
       </View>
 
       {/* Share Button */}
       <Pressable style={styles.shareButton} onPress={handleShare}>
-        <Ionicons name="share-social" size={20} color="#ffffff" />
-        <Text style={styles.shareButtonText}>Share Invite Link</Text>
+        <Ionicons name="share-social" size={20} color="#0f1419" />
+        <Text style={styles.shareButtonText}>Share Referral Link</Text>
       </Pressable>
 
       {/* Stats Grid */}
       <View style={styles.statsSection}>
-        <Text style={styles.sectionTitle}>Your Stats</Text>
+        <Text style={styles.sectionTitle}>Recruitment Stats</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.total}</Text>
-            <Text style={styles.statLabel}>Invites Sent</Text>
+            <Text style={styles.statValue}>{stats.totalReferrals}</Text>
+            <Text style={styles.statLabel}>Total Referrals</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats.accepted}</Text>
-            <Text style={styles.statLabel}>Accepted</Text>
+            <Text style={[styles.statValue, { color: '#39FF14' }]}>{stats.completedReferrals}</Text>
+            <Text style={styles.statLabel}>Completed</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={[styles.statValue, { color: '#4caf50' }]}>{xpEarned}</Text>
+            <Text style={[styles.statValue, { color: '#39FF14' }]}>{stats.totalXpEarned}</Text>
             <Text style={styles.statLabel}>XP Earned</Text>
           </View>
         </View>
       </View>
 
-      {/* Invite History */}
+      {/* Referral History */}
       <View style={styles.historySection}>
-        <Text style={styles.sectionTitle}>Invite History</Text>
-        {invites.length === 0 ? (
+        <Text style={styles.sectionTitle}>Referral History</Text>
+        {referrals.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="people-outline" size={48} color="#2a3744" />
-            <Text style={styles.emptyStateText}>No invites sent yet</Text>
+            <Text style={styles.emptyStateText}>No referrals yet</Text>
             <Text style={styles.emptyStateSubtext}>
-              Share your code to start inviting friends
+              Share your code to start recruiting warriors
             </Text>
           </View>
         ) : (
-          invites.map((invite) => (
-            <View key={invite.id} style={styles.inviteCard}>
+          referrals.map((referral) => (
+            <View key={referral.id} style={styles.inviteCard}>
               <View style={styles.inviteCardLeft}>
                 <View
                   style={[
                     styles.statusDot,
-                    invite.status === 'accepted'
+                    referral.xp_awarded
                       ? styles.statusDotAccepted
-                      : invite.status === 'pending'
-                      ? styles.statusDotPending
-                      : styles.statusDotExpired,
+                      : styles.statusDotPending,
                   ]}
                 />
                 <View style={styles.inviteCardInfo}>
-                  <Text style={styles.inviteCode}>{invite.invite_code}</Text>
+                  <Text style={styles.inviteCode}>
+                    {referral.invitee_name || 'New Recruit'}
+                  </Text>
                   <Text style={styles.inviteDate}>
-                    {new Date(invite.created_at).toLocaleDateString()}
+                    {new Date(referral.created_at).toLocaleDateString()}
                   </Text>
                 </View>
               </View>
@@ -160,14 +195,12 @@ export default function InviteScreen() {
                 <Text
                   style={[
                     styles.statusText,
-                    invite.status === 'accepted'
+                    referral.xp_awarded
                       ? styles.statusTextAccepted
-                      : invite.status === 'pending'
-                      ? styles.statusTextPending
-                      : styles.statusTextExpired,
+                      : styles.statusTextPending,
                   ]}
                 >
-                  {invite.status.charAt(0).toUpperCase() + invite.status.slice(1)}
+                  {referral.xp_awarded ? '+100 XP' : 'Pending'}
                 </Text>
               </View>
             </View>
@@ -248,7 +281,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   shareButton: {
-    backgroundColor: '#3498db', // Blue accent
+    backgroundColor: '#39FF14', // Neon green
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
@@ -260,7 +293,7 @@ const styles = StyleSheet.create({
   shareButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#ffffff', // White text
+    color: '#0f1419', // Dark text on neon green
   },
   statsSection: {
     marginBottom: 32,
@@ -287,7 +320,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3498db',
+    color: '#ffffff',
     marginBottom: 4,
   },
   statLabel: {
@@ -340,7 +373,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   statusDotAccepted: {
-    backgroundColor: '#4caf50',
+    backgroundColor: '#39FF14', // Neon green for completed
   },
   statusDotPending: {
     backgroundColor: '#ff9800',
@@ -365,7 +398,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   statusTextAccepted: {
-    color: '#4caf50',
+    color: '#39FF14', // Neon green for completed
   },
   statusTextPending: {
     color: '#ff9800',
