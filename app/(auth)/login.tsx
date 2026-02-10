@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Link } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -21,12 +21,21 @@ import { cleanStart, debugAuthState } from '@/lib/auth/cleanStart';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
+  const searchParams = useLocalSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [tapCount, setTapCount] = useState(0);
+
+  // Redirect to signup if referral code is present
+  useEffect(() => {
+    if (searchParams.ref) {
+      console.log('[Login] Referral code detected, redirecting to signup:', searchParams.ref);
+      router.replace(`/(auth)/signup?ref=${searchParams.ref}`);
+    }
+  }, [searchParams]);
 
   const handleTitlePress = () => {
     const newCount = tapCount + 1;

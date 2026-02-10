@@ -145,6 +145,8 @@ export async function applyReferralCode(
   referralCode: string
 ): Promise<{ success: boolean; error: Error | null }> {
   try {
+    console.log('[applyReferralCode] Starting... userId:', userId, 'code:', referralCode);
+    
     // Find the recruiter by referral code
     const { data: recruiter, error: recruiterError } = await supabase
       .from('profiles')
@@ -152,9 +154,11 @@ export async function applyReferralCode(
       .eq('referral_code', referralCode.toUpperCase())
       .single();
 
+    console.log('[applyReferralCode] Recruiter lookup:', { recruiter, recruiterError });
+
     if (recruiterError || !recruiter) {
-      console.error('[applyReferralCode] Invalid referral code:', referralCode);
-      return { success: false, error: new Error('Invalid referral code') };
+      console.error('[applyReferralCode] Invalid referral code:', referralCode, recruiterError);
+      return { success: false, error: new Error('Invalid referral code: ' + (recruiterError?.message || 'Not found')) };
     }
 
     // Prevent self-referral
@@ -163,7 +167,35 @@ export async function applyReferralCode(
       return { success: false, error: new Error('Cannot refer yourself') };
     }
 
+    // Wait a bit for profile to be created by trigger (if needed)
+    console.log('[applyReferralCode] Checking if new user profile exists...');
+    let retries = 0;
+    let profileExists = false;
+    
+    while (retries < 5 && !profileExists) {
+      const { data: checkProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+      
+      if (checkProfile) {
+        profileExists = true;
+        console.log('[applyReferralCode] Profile exists!');
+      } else {
+        console.log('[applyReferralCode] Profile not found yet, waiting... (attempt', retries + 1, ')');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        retries++;
+      }
+    }
+    
+    if (!profileExists) {
+      console.error('[applyReferralCode] Profile never created for user:', userId);
+      return { success: false, error: new Error('Profile not found - please try again') };
+    }
+
     // Update the new user's profile with referred_by_user_id
+    console.log('[applyReferralCode] Updating profile with recruiter ID:', recruiter.id);
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ referred_by_user_id: recruiter.id })
@@ -171,10 +203,10 @@ export async function applyReferralCode(
 
     if (updateError) {
       console.error('[applyReferralCode] Error updating profile:', updateError);
-      return { success: false, error: new Error('Failed to apply referral code') };
+      return { success: false, error: new Error('Failed to apply referral code: ' + updateError.message) };
     }
 
-    console.log(`[applyReferralCode] Successfully applied code ${referralCode} for user ${userId}`);
+    console.log(`[applyReferralCode] ✅ Successfully applied code ${referralCode} for user ${userId}`);
     return { success: true, error: null };
   } catch (error) {
     console.error('[applyReferralCode] Exception:', error);

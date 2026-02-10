@@ -102,9 +102,19 @@ function RootLayoutNav() {
       currentSegment: segments[0],
     });
 
-    // Rule 1: No session → Login
+    // Rule 1: No session → Login (or Signup if referral code present)
     if (!session) {
       if (!inAuthGroup) {
+        // Check for referral code in URL
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search);
+          const refCode = urlParams.get('ref');
+          if (refCode) {
+            console.log('[Auth Guard] Referral code detected, redirecting to signup:', refCode);
+            router.replace(`/(auth)/signup?ref=${refCode}`);
+            return;
+          }
+        }
         console.log('[Auth Guard] No session, redirecting to login');
         router.replace('/(auth)/login');
       }

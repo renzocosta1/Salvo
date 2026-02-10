@@ -35,10 +35,23 @@ export default function SignupScreen() {
 
   // Auto-fill referral code from URL query parameter
   useEffect(() => {
-    const ref = searchParams.ref;
+    console.log('[Signup] searchParams:', searchParams);
+    
+    // Try searchParams first
+    let ref = searchParams.ref;
+    
+    // For PWA, also check window.location directly
+    if (!ref && Platform.OS === 'web' && typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      ref = urlParams.get('ref');
+      console.log('[Signup] Checked window.location.search:', window.location.search, 'ref:', ref);
+    }
+    
     if (ref && typeof ref === 'string') {
       setReferralCode(ref.toUpperCase());
-      console.log('[Signup] Auto-filled referral code from URL:', ref);
+      console.log('[Signup] ✅ Auto-filled referral code from URL:', ref);
+    } else {
+      console.log('[Signup] ❌ No referral code found in URL');
     }
   }, [searchParams]);
 
@@ -101,13 +114,21 @@ export default function SignupScreen() {
       } else if (data.user) {
         // If referral code was provided, apply it
         if (referralCode.trim()) {
+          console.log('[Signup] Applying referral code:', referralCode.trim());
           const referralResult = await applyReferralCode(data.user.id, referralCode.trim());
           if (!referralResult.success) {
-            console.warn('Failed to apply referral code:', referralResult.error);
-            // Don't block signup if referral fails, just log it
+            console.error('[Signup] ❌ Failed to apply referral code:', referralResult.error);
+            // Don't block signup if referral fails, but show alert
+            if (Platform.OS === 'web') {
+              window.alert('Invalid referral code: ' + (referralResult.error?.message || 'Unknown error'));
+            } else {
+              Alert.alert('Invalid Referral Code', referralResult.error?.message || 'Unknown error');
+            }
           } else {
-            console.log('[Signup] Referral code applied successfully');
+            console.log('[Signup] ✅ Referral code applied successfully');
           }
+        } else {
+          console.log('[Signup] No referral code to apply');
         }
 
         if (!data.session) {
