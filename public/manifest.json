@@ -2,7 +2,7 @@
   "name": "Salvo: Maryland 2026",
   "short_name": "Salvo",
   "description": "Your civic engagement command center for Maryland's 2026 Primary Election",
-  "start_url": "/",
+  "start_url": "/?utm_source=homescreen",
   "display": "standalone",
   "background_color": "#0f1419",
   "theme_color": "#0f1419",
@@ -23,5 +23,6 @@
     }
   ],
   "categories": ["government", "news", "politics"],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "display_override": ["standalone", "fullscreen"]
 }

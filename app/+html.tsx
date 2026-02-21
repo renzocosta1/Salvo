@@ -17,11 +17,16 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="apple-mobile-web-app-title" content="Salvo" />
+        <meta name="apple-touch-fullscreen" content="yes" />
         <meta name="description" content="Your civic engagement command center for Maryland's 2026 Primary Election" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#0f1419" />
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f1419" />
+        
+        {/* Additional iOS PWA fixes */}
+        <meta name="apple-itunes-app" content="app-id=NO_APP" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
 
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />

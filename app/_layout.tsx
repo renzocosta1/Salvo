@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase';
 import { registerServiceWorker, isStandalone } from '@/lib/pwa/register-sw';
 import InstallPrompt from '@/components/InstallPrompt';
 import PwaStandaloneCheck from '@/components/PwaStandaloneCheck';
+import PwaStandaloneWarning from '@/components/PwaStandaloneWarning';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -185,6 +186,9 @@ function RootLayoutNav() {
       
       {/* PWA Standalone Check (web only) */}
       {Platform.OS === 'web' && <PwaStandaloneCheck />}
+      
+      {/* PWA Standalone Warning - Shows if Safari UI is visible */}
+      {Platform.OS === 'web' && <PwaStandaloneWarning />}
     </ThemeProvider>
   );
 }
