@@ -53,12 +53,23 @@ export function useWebPush() {
         const registration = await navigator.serviceWorker.ready;
         const existingSub = await registration.pushManager.getSubscription();
         
+        console.log('[Web Push] Checking subscription on mount:', {
+          hasSubscription: !!existingSub,
+          endpoint: existingSub?.endpoint,
+        });
+        
         if (existingSub) {
           setSubscription(existingSub);
           setIsSubscribed(true);
+        } else {
+          // Ensure state is reset if no subscription found
+          setSubscription(null);
+          setIsSubscribed(false);
         }
       } catch (error) {
         console.error('[Web Push] Error checking subscription:', error);
+        setSubscription(null);
+        setIsSubscribed(false);
       }
     };
 
@@ -77,9 +88,13 @@ export function useWebPush() {
     }
 
     try {
+      console.log('[Web Push] Subscribe called, user:', user?.id);
+
       // Request notification permission
       const permissionResult = await Notification.requestPermission();
       setPermission(permissionResult);
+
+      console.log('[Web Push] Permission result:', permissionResult);
 
       if (permissionResult !== 'granted') {
         console.log('[Web Push] Notification permission denied');
@@ -88,6 +103,20 @@ export function useWebPush() {
 
       // Get service worker registration
       const registration = await navigator.serviceWorker.ready;
+
+      // Check if already subscribed (avoid duplicate subscriptions)
+      const existingSub = await registration.pushManager.getSubscription();
+      if (existingSub) {
+        console.log('[Web Push] Already subscribed, using existing subscription');
+        setSubscription(existingSub);
+        setIsSubscribed(true);
+        
+        // Ensure it's saved to database
+        if (user) {
+          await saveSubscriptionToDatabase(existingSub);
+        }
+        return true;
+      }
 
       // Subscribe to push notifications
       // NOTE: You need to generate VAPID keys and add your public key here
@@ -101,6 +130,8 @@ export function useWebPush() {
         ),
       });
 
+      console.log('[Web Push] Push subscription created:', pushSubscription.endpoint);
+
       setSubscription(pushSubscription);
       setIsSubscribed(true);
 
@@ -113,6 +144,8 @@ export function useWebPush() {
       return true;
     } catch (error) {
       console.error('[Web Push] Subscription failed:', error);
+      setSubscription(null);
+      setIsSubscribed(false);
       return false;
     }
   };

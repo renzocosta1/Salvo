@@ -23,6 +23,9 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
     console.log('[SW] Service Worker registered successfully:', registration.scope);
 
+    // Check for SW updates every 60s when PWA is open (helps mobile get fresh mission flow)
+    setInterval(() => registration.update(), 60_000);
+
     // Check for updates periodically
     registration.addEventListener('updatefound', () => {
       const newWorker = registration.installing;
@@ -31,10 +34,13 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       if (newWorker) {
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            console.log('[SW] New content available, please refresh');
-            // Notify user of available update
+            console.log('[SW] New content available, refreshing...');
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new CustomEvent('swUpdate'));
+              // In standalone PWA, auto-reload to apply new mission flow
+              if (isStandalone()) {
+                window.location.reload();
+              }
             }
           }
         });

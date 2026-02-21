@@ -22,6 +22,9 @@ export type Directive = {
   title: string;
   body: string | null;
   target_goal: number;
+  mission_type: 'EARLY_RAID' | 'ELECTION_DAY_SIEGE' | null;
+  mission_deadline: string | null;
+  requires_gps: boolean;
   created_at: string;
 };
 
@@ -46,6 +49,9 @@ export type DirectiveWithProgress = {
   title: string;
   body: string | null;
   target_goal: number;
+  mission_type: 'EARLY_RAID' | 'ELECTION_DAY_SIEGE' | null;
+  mission_deadline: string | null;
+  requires_gps: boolean;
   current_salvos: number;
   created_at: string;
   is_completed: boolean;

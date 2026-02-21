@@ -29,6 +29,9 @@ export async function fetchDirectivesForUser(
         title,
         body,
         target_goal,
+        mission_type,
+        mission_deadline,
+        requires_gps,
         created_at
       `)
       .eq('party_id', profile.party_id)

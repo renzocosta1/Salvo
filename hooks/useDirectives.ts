@@ -19,24 +19,15 @@ export function useDirectives() {
     }
 
     console.log('[useDirectives] Fetching directives for user:', profile.id);
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDirectives.ts:22',message:'Fetching directives',data:{userId:profile.id,partyId:profile.party_id,county:profile.county,legislative_district:profile.legislative_district},timestamp:Date.now(),hypothesisId:'PARTY'})}).catch(()=>{});
-    // #endregion
     try {
       const { data, error: fetchError } = await fetchDirectivesForUser(profile);
       
       if (fetchError) {
         console.error('[useDirectives] Error fetching directives:', fetchError);
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDirectives.ts:32',message:'Fetch error',data:{error:fetchError.message},timestamp:Date.now(),hypothesisId:'PARTY'})}).catch(()=>{});
-        // #endregion
         setError(fetchError);
         setDirectives([]);
       } else {
         console.log('[useDirectives] Directives fetched successfully:', data?.length || 0, 'items');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useDirectives.ts:40',message:'Directives fetched',data:{count:data?.length,titles:data?.map(d=>d.title)},timestamp:Date.now(),hypothesisId:'PARTY'})}).catch(()=>{});
-        // #endregion
         setDirectives(data || []);
         setError(null);
       }

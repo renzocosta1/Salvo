@@ -14,7 +14,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import NotificationToggle from '@/components/NotificationToggle';
-import TestNotificationButton from '@/components/TestNotificationButton';
 
 interface ProfileData {
   display_name: string | null;
@@ -152,9 +151,6 @@ export default function ProfileScreen() {
 
       {/* Push Notifications (PWA only) */}
       <NotificationToggle />
-      
-      {/* Test Notifications */}
-      {Platform.OS === 'web' && <TestNotificationButton />}
 
       {/* Settings Section */}
       <View style={styles.section}>

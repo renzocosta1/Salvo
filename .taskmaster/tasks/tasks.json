@@ -321,7 +321,7 @@
           "21",
           "23"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -329,9 +329,10 @@
             "description": "Modify the Commands tab UI to dynamically fetch and display the four pre-loaded tactical missions.",
             "dependencies": [],
             "details": "Retrieve data from the 'directives' table. Render mission titles, types (Early Raid, Election Day Siege), and deadlines in a list view format within the existing UI framework.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Verify that all 4 pre-loaded missions appear in the Commands tab with correct data after database synchronization.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-10T02:56:49.845Z"
           },
           {
             "id": 2,
@@ -341,9 +342,10 @@
               1
             ],
             "details": "Integrate expo-location to monitor user coordinates. Compare position against Early Voting center locations using a 100m threshold. Enable photo upload functionality only upon successful GPS verification.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Mock GPS coordinates at various distances (e.g., 50m, 150m) to confirm the check-in button enables/disables correctly based on proximity.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-10T02:56:50.815Z"
           },
           {
             "id": 3,
@@ -353,9 +355,10 @@
               1
             ],
             "details": "Use user precinct coordinates from the profiles table to construct a Google Maps URL. Trigger expo-linking to open the native maps application or a browser fallback for navigation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Trigger the navigation action and confirm Google Maps opens successfully with the destination set to the correct latitude and longitude.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-10T02:56:51.093Z"
           },
           {
             "id": 4,
@@ -365,14 +368,16 @@
               2
             ],
             "details": "Develop a backend hook for Gemini 1.5 Flash to scan uploaded photos for 'I Voted' stickers. Update the 'Squad Status' UI component to render completion badges for other users in the same district.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Submit a test photo containing an 'I Voted' sticker and verify Gemini's response triggers the completion badge update for the user's squad.",
-            "parentId": "undefined"
+            "parentId": "undefined",
+            "updatedAt": "2026-02-10T02:56:51.175Z"
           }
         ],
         "complexity": 8,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Divide into: 1) Update Commands tab for mission display, 2) Early Raid GPS check-in and photo upload, 3) Election Day Google Maps deep-linking, 4) Gemini verification for photos and Squad Status UI."
+        "expansionPrompt": "Divide into: 1) Update Commands tab for mission display, 2) Early Raid GPS check-in and photo upload, 3) Election Day Google Maps deep-linking, 4) Gemini verification for photos and Squad Status UI.",
+        "updatedAt": "2026-02-10T02:56:51.175Z"
       },
       {
         "id": "30",
@@ -475,9 +480,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-02-07T23:13:47.184Z",
+      "lastModified": "2026-02-10T02:56:51.176Z",
       "taskCount": 15,
-      "completedCount": 10,
+      "completedCount": 11,
       "tags": [
         "master"
       ]

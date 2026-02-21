@@ -1,114 +1,94 @@
 import { useAuth } from '@/lib/auth';
-import { createDirective, createWarriorBand, getWarriorBands } from '@/lib/supabase/command';
+import { fetchDirectivesForUser } from '@/lib/supabase/directives';
+import type { DirectiveWithProgress } from '@/lib/supabase/types';
 import React, { useState, useEffect } from 'react';
 import {
-  Alert,
   ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
+  Alert,
 } from 'react-native';
+import { router } from 'expo-router';
 
 export default function CommandCenterScreen() {
   const { profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'directives' | 'bands'>('directives');
-
-  // Directive Creation State
-  const [directiveTitle, setDirectiveTitle] = useState('');
-  const [directiveBody, setDirectiveBody] = useState('');
-  const [directiveGoal, setDirectiveGoal] = useState('100');
-  const [creatingDirective, setCreatingDirective] = useState(false);
-
-  // Warrior Band State
-  const [bandName, setBandName] = useState('');
-  const [creatingBand, setCreatingBand] = useState(false);
-  const [bands, setBands] = useState<any[]>([]);
-  const [loadingBands, setLoadingBands] = useState(true);
-
-  const isGeneral = profile?.role === 'general';
-  const isCaptain = profile?.role === 'captain';
+  const [missions, setMissions] = useState<DirectiveWithProgress[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isCaptain) {
-      loadBands();
-    }
-  }, [isCaptain]);
+    loadMissions();
+  }, [profile?.party_id]);
 
-  const loadBands = async () => {
-    if (!profile?.party_id) return;
-    setLoadingBands(true);
-    const result = await getWarriorBands(profile.party_id);
+  const loadMissions = async () => {
+    if (!profile?.party_id) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const result = await fetchDirectivesForUser(profile);
+    
     if (result.data) {
-      setBands(result.data);
+      setMissions(result.data);
+    } else if (result.error) {
+      Alert.alert('Error', 'Failed to load missions');
     }
-    setLoadingBands(false);
+    
+    setLoading(false);
   };
 
-  const handleCreateDirective = async () => {
-    if (!directiveTitle.trim() || !profile?.party_id || !profile?.id) {
-      Alert.alert('Error', 'Please fill in the directive title');
-      return;
-    }
-
-    const goal = parseInt(directiveGoal);
-    if (isNaN(goal) || goal < 1) {
-      Alert.alert('Error', 'Target goal must be a positive number');
-      return;
-    }
-
-    setCreatingDirective(true);
-
-    const result = await createDirective(
-      profile.party_id,
-      profile.id,
-      directiveTitle.trim(),
-      directiveBody.trim() || null,
-      goal
-    );
-
-    if (result.success) {
-      Alert.alert('Success', `Directive "${directiveTitle}" has been created.`);
-      setDirectiveTitle('');
-      setDirectiveBody('');
-      setDirectiveGoal('100');
-    } else {
-      Alert.alert('Error', result.error || 'Failed to create directive');
-    }
-
-    setCreatingDirective(false);
+  const handleMissionPress = (mission: DirectiveWithProgress) => {
+    // Navigate to mission detail screen
+    router.push({
+      pathname: '/(tabs)/mission/[id]' as any,
+      params: { id: mission.id },
+    });
   };
 
-  const handleCreateBand = async () => {
-    if (!bandName.trim() || !profile?.party_id || !profile?.id) {
-      Alert.alert('Error', 'Please enter a band name');
-      return;
-    }
-
-    setCreatingBand(true);
-
-    const result = await createWarriorBand(profile.party_id, bandName.trim(), profile.id);
-
-    if (result.success) {
-      Alert.alert('Success', `Warrior Band "${bandName}" has been created.`);
-      setBandName('');
-      loadBands();
-    } else {
-      Alert.alert('Error', result.error || 'Failed to create warrior band');
-    }
-
-    setCreatingBand(false);
+  const getMissionIcon = (mission: DirectiveWithProgress) => {
+    if (mission.mission_type === 'EARLY_RAID') return '⚡';
+    if (mission.mission_type === 'ELECTION_DAY_SIEGE') return '🔥';
+    if (mission.title.includes('Relational Raid')) return '🎯';
+    if (mission.title.includes('Digital Ballot')) return '🗳️';
+    return '📋';
   };
 
-  if (!isGeneral && !isCaptain) {
+  const formatDeadline = (deadline: string | null) => {
+    if (!deadline) return null;
+    const date = new Date(deadline);
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    
+    if (days < 0) return '⏰ EXPIRED';
+    if (days === 0) return '⏰ TODAY';
+    if (days === 1) return '⏰ 1 DAY LEFT';
+    return `⏰ ${days} DAYS LEFT`;
+  };
+
+  const getProgressPercentage = (mission: DirectiveWithProgress) => {
+    return Math.min(100, Math.round((mission.current_salvos / mission.target_goal) * 100));
+  };
+
+  if (loading) {
     return (
-      <View style={styles.accessDeniedContainer}>
-        <Text style={styles.accessDeniedEmoji}>🔒</Text>
-        <Text style={styles.accessDeniedTitle}>Access Restricted</Text>
-        <Text style={styles.accessDeniedText}>
-          Command Center is only accessible to Generals and Captains.
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#00ff00" />
+        <Text style={styles.loadingText}>Loading missions...</Text>
+      </View>
+    );
+  }
+
+  if (!profile?.party_id) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorEmoji}>⚠️</Text>
+        <Text style={styles.errorTitle}>No Party Assigned</Text>
+        <Text style={styles.errorText}>
+          Complete onboarding to access tactical missions.
         </Text>
       </View>
     );
@@ -118,145 +98,108 @@ export default function CommandCenterScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Command Center</Text>
+        <Text style={styles.headerTitle}>🎯 Tactical Commands</Text>
         <Text style={styles.headerSubtitle}>
-          {isGeneral ? 'General Operations' : 'Captain Operations'}
+          Montgomery County & MD-6 • Primary 2026
         </Text>
       </View>
 
-      {/* Tabs */}
-      {isGeneral && isCaptain && (
-        <View style={styles.tabContainer}>
-          <Pressable
-            style={[styles.tab, activeTab === 'directives' && styles.tabActive]}
-            onPress={() => setActiveTab('directives')}
-          >
-            <Text style={[styles.tabText, activeTab === 'directives' && styles.tabTextActive]}>
-              Directives
-            </Text>
-            {activeTab === 'directives' && <View style={styles.tabIndicator} />}
-          </Pressable>
-          <Pressable
-            style={[styles.tab, activeTab === 'bands' && styles.tabActive]}
-            onPress={() => setActiveTab('bands')}
-          >
-            <Text style={[styles.tabText, activeTab === 'bands' && styles.tabTextActive]}>
-              Bands
-            </Text>
-            {activeTab === 'bands' && <View style={styles.tabIndicator} />}
-          </Pressable>
-        </View>
-      )}
-
-      <ScrollView style={styles.scrollContent} contentContainerStyle={styles.scrollContentContainer}>
-        {/* GENERAL: Directive Creation */}
-        {isGeneral && (!isCaptain || activeTab === 'directives') && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Create New Directive</Text>
-
-            <Text style={styles.label}>Directive Title *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., Raid the Citadel"
-              placeholderTextColor="#9e9e9e"
-              value={directiveTitle}
-              onChangeText={setDirectiveTitle}
-              maxLength={100}
-            />
-
-            <Text style={styles.label}>Mission Brief (Optional)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Provide context, objectives, or battle strategy..."
-              placeholderTextColor="#9e9e9e"
-              value={directiveBody}
-              onChangeText={setDirectiveBody}
-              multiline
-              numberOfLines={4}
-              maxLength={500}
-            />
-
-            <Text style={styles.label}>Target Goal (Salvos Required)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="100"
-              placeholderTextColor="#9e9e9e"
-              value={directiveGoal}
-              onChangeText={setDirectiveGoal}
-              keyboardType="numeric"
-              maxLength={6}
-            />
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                pressed && styles.buttonPressed,
-                creatingDirective && styles.buttonDisabled,
-              ]}
-              onPress={handleCreateDirective}
-              disabled={creatingDirective}
-            >
-              {creatingDirective ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <Text style={styles.buttonText}>Create Directive</Text>
-              )}
-            </Pressable>
+      <ScrollView 
+        style={styles.scrollContent} 
+        contentContainerStyle={styles.scrollContentContainer}
+      >
+        {missions.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No active missions</Text>
           </View>
-        )}
+        ) : (
+          missions.map((mission) => {
+            const icon = getMissionIcon(mission);
+            const deadline = formatDeadline(mission.mission_deadline);
+            const progress = getProgressPercentage(mission);
+            const isCompleted = mission.is_completed;
 
-        {/* CAPTAIN: Warrior Band Management */}
-        {isCaptain && (!isGeneral || activeTab === 'bands') && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Warrior Band Management</Text>
-
-            <Text style={styles.label}>Band Name *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., Alpha Squad, Night Raid"
-              placeholderTextColor="#9e9e9e"
-              value={bandName}
-              onChangeText={setBandName}
-              maxLength={50}
-            />
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                pressed && styles.buttonPressed,
-                creatingBand && styles.buttonDisabled,
-              ]}
-              onPress={handleCreateBand}
-              disabled={creatingBand}
-            >
-              {creatingBand ? (
-                <ActivityIndicator color="#ffffff" />
-              ) : (
-                <Text style={styles.buttonText}>Create Band</Text>
-              )}
-            </Pressable>
-
-            {/* Band List */}
-            <View style={styles.bandListSection}>
-              <Text style={styles.bandListTitle}>Active Bands</Text>
-              {loadingBands ? (
-                <View style={styles.bandListEmpty}>
-                  <ActivityIndicator color="#2196f3" />
-                </View>
-              ) : bands.length === 0 ? (
-                <Text style={styles.bandListEmptyText}>No bands created yet</Text>
-              ) : (
-                bands.map((band) => (
-                  <View key={band.id} style={styles.bandCard}>
-                    <Text style={styles.bandName}>{band.name}</Text>
-                    <Text style={styles.bandCaptain}>
-                      Captain: {band.captain?.display_name || 'Unassigned'}
+            return (
+              <Pressable
+                key={mission.id}
+                style={({ pressed }) => [
+                  styles.missionCard,
+                  pressed && styles.missionCardPressed,
+                  isCompleted && styles.missionCardCompleted,
+                ]}
+                onPress={() => handleMissionPress(mission)}
+              >
+                {/* Header Row */}
+                <View style={styles.missionHeader}>
+                  <Text style={styles.missionIcon}>{icon}</Text>
+                  <View style={styles.missionHeaderText}>
+                    <Text style={styles.missionTitle} numberOfLines={1}>
+                      {mission.title}
                     </Text>
+                    {deadline && (
+                      <Text style={[
+                        styles.missionDeadline,
+                        deadline.includes('EXPIRED') && styles.deadlineExpired
+                      ]}>
+                        {deadline}
+                      </Text>
+                    )}
                   </View>
-                ))
-              )}
-            </View>
-          </View>
+                </View>
+
+                {/* Mission Brief */}
+                {mission.body && (
+                  <Text style={styles.missionBrief} numberOfLines={2}>
+                    {mission.body.split('\n')[0]}
+                  </Text>
+                )}
+
+                {/* Progress Bar */}
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBarBackground}>
+                    <View 
+                      style={[
+                        styles.progressBarFill, 
+                        { width: `${progress}%` },
+                        isCompleted && styles.progressBarCompleted
+                      ]} 
+                    />
+                  </View>
+                  <Text style={styles.progressText}>
+                    {mission.current_salvos.toLocaleString()} / {mission.target_goal.toLocaleString()}
+                  </Text>
+                </View>
+
+                {/* Tags */}
+                <View style={styles.tagContainer}>
+                  {mission.requires_gps && (
+                    <View style={styles.tag}>
+                      <Text style={styles.tagText}>📍 GPS Required</Text>
+                    </View>
+                  )}
+                  {mission.mission_type && (
+                    <View style={[styles.tag, styles.tagMissionType]}>
+                      <Text style={styles.tagText}>
+                        {mission.mission_type.replace('_', ' ')}
+                      </Text>
+                    </View>
+                  )}
+                  {isCompleted && (
+                    <View style={[styles.tag, styles.tagCompleted]}>
+                      <Text style={styles.tagText}>✅ COMPLETED</Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* CTA */}
+                <View style={styles.ctaRow}>
+                  <Text style={styles.ctaText}>
+                    {isCompleted ? 'View Details →' : 'Start Mission →'}
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })
         )}
       </ScrollView>
     </View>
@@ -266,167 +209,182 @@ export default function CommandCenterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#0f1419',
   },
   header: {
     paddingTop: 60,
     paddingHorizontal: 16,
     paddingBottom: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#1a1f26',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#2d3748',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1c1c1e',
+    color: '#ffffff',
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#757575',
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 16,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  tabActive: {},
-  tabText: {
-    fontSize: 15,
+    fontSize: 13,
+    color: '#8b98a5',
     fontWeight: '500',
-    color: '#9e9e9e',
-  },
-  tabTextActive: {
-    color: '#2196f3',
-    fontWeight: '600',
-  },
-  tabIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: '#2196f3',
   },
   scrollContent: {
     flex: 1,
   },
   scrollContentContainer: {
+    padding: 16,
     paddingBottom: 40,
   },
-  section: {
-    padding: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1c1c1e',
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#424242',
-    marginBottom: 8,
-    marginTop: 16,
-  },
-  input: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: '#1c1c1e',
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  button: {
-    backgroundColor: '#2196f3',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  buttonPressed: {
-    opacity: 0.8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  bandListSection: {
-    marginTop: 32,
-  },
-  bandListTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1c1c1e',
-    marginBottom: 16,
-  },
-  bandListEmpty: {
-    paddingVertical: 40,
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#0f1419',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  bandListEmptyText: {
+  loadingText: {
+    color: '#8b98a5',
+    marginTop: 12,
     fontSize: 14,
-    color: '#9e9e9e',
-    textAlign: 'center',
   },
-  bandCard: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-  },
-  bandName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1c1c1e',
-    marginBottom: 4,
-  },
-  bandCaptain: {
-    fontSize: 14,
-    color: '#757575',
-  },
-  accessDeniedContainer: {
+  errorContainer: {
     flex: 1,
     backgroundColor: '#0f1419',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  accessDeniedEmoji: {
+  errorEmoji: {
     fontSize: 64,
     marginBottom: 24,
   },
-  accessDeniedTitle: {
+  errorTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#ffffff',
     textAlign: 'center',
     marginBottom: 12,
   },
-  accessDeniedText: {
+  errorText: {
     fontSize: 15,
     color: '#8b98a5',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  emptyContainer: {
+    paddingVertical: 60,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#8b98a5',
+  },
+  missionCard: {
+    backgroundColor: '#1a1f26',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#2d3748',
+  },
+  missionCardPressed: {
+    opacity: 0.8,
+    borderColor: '#00ff00',
+  },
+  missionCardCompleted: {
+    borderColor: '#00ff0044',
+    opacity: 0.85,
+  },
+  missionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  missionIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  missionHeaderText: {
+    flex: 1,
+  },
+  missionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+    marginBottom: 4,
+  },
+  missionDeadline: {
+    fontSize: 12,
+    color: '#00ff00',
+    fontWeight: '600',
+  },
+  deadlineExpired: {
+    color: '#ff4444',
+  },
+  missionBrief: {
+    fontSize: 14,
+    color: '#8b98a5',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  progressContainer: {
+    marginBottom: 12,
+  },
+  progressBarBackground: {
+    height: 8,
+    backgroundColor: '#2d3748',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#00ff00',
+    borderRadius: 4,
+  },
+  progressBarCompleted: {
+    backgroundColor: '#00ff00',
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#8b98a5',
+    fontWeight: '600',
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  tag: {
+    backgroundColor: '#2d3748',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  tagMissionType: {
+    backgroundColor: '#1e40af22',
+    borderWidth: 1,
+    borderColor: '#3b82f6',
+  },
+  tagCompleted: {
+    backgroundColor: '#00ff0022',
+    borderWidth: 1,
+    borderColor: '#00ff00',
+  },
+  tagText: {
+    fontSize: 11,
+    color: '#ffffff',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  ctaRow: {
+    marginTop: 4,
+  },
+  ctaText: {
+    fontSize: 14,
+    color: '#00ff00',
+    fontWeight: '700',
   },
 });

@@ -3,19 +3,17 @@
  * Handles offline caching and web push notifications for PWA
  */
 
-const CACHE_NAME = 'salvo-v1';
-const RUNTIME_CACHE = 'salvo-runtime-v1';
+// Bump version to force cache refresh when deploying new mission flow (Task 29)
+const CACHE_NAME = 'salvo-v2';
+const RUNTIME_CACHE = 'salvo-runtime-v2';
 
 // Critical assets to cache during install (War Room, Ballot, core assets)
 const PRECACHE_URLS = [
   '/',
   '/index.html',
-  '/(tabs)',
-  '/(tabs)/command-center',
-  '/directive',
-  '/mission',
-  '/_expo/static/js/web/entry.bundle.js',
-  '/_expo/static/js/web/App.bundle.js'
+  '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 // Install event - precache critical assets
@@ -73,24 +71,37 @@ self.addEventListener('fetch', (event) => {
     return event.respondWith(fetch(request));
   }
 
-  // Cache-first strategy for app shell and assets
+  // Network-first for JS/CSS (ensures PWA gets fresh mission flow after deploy)
   if (
     url.pathname.startsWith('/_expo/static') ||
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|ico|woff|woff2)$/)
+    url.pathname.match(/\.(js|css)$/)
   ) {
     event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Cache-first for static assets (images, fonts) - rarely change
+  if (url.pathname.match(/\.(png|jpg|jpeg|svg|ico|woff|woff2)$/)) {
+    event.respondWith(
       caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return caches.open(RUNTIME_CACHE).then((cache) => {
-          return fetch(request).then((response) => {
-            // Only cache successful responses
-            if (response.status === 200) {
-              cache.put(request, response.clone());
-            }
-            return response;
-          });
+        if (cachedResponse) return cachedResponse;
+        return fetch(request).then((response) => {
+          if (response.status === 200) {
+            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, response.clone()));
+          }
+          return response;
         });
       })
     );
