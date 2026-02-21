@@ -262,13 +262,18 @@ export default function MissionDetailScreen() {
     const precinctLat = 39.0458;
     const precinctLon = -77.0198;
 
-    // ALWAYS use web URL for PWA - native app schemes don't work properly in mobile web browsers
+    // Use web URL - works on all platforms without App Store redirects
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${precinctLat},${precinctLon}`;
 
-    Linking.openURL(googleMapsUrl).catch((err) => {
-      console.error('Failed to open Maps:', err);
-      Alert.alert('Error', 'Could not open Google Maps');
-    });
+    // Open in new tab/window to avoid iOS interception
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(googleMapsUrl, '_blank');
+    } else {
+      Linking.openURL(googleMapsUrl).catch((err) => {
+        console.error('Failed to open Maps:', err);
+        Alert.alert('Error', 'Could not open Google Maps');
+      });
+    }
   };
 
   if (loading) {

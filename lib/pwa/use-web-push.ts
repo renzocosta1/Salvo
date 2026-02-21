@@ -47,10 +47,14 @@ export function useWebPush() {
 
     checkSupport();
 
-    // Check existing subscription
+    // Check existing subscription (with retry logic for iOS)
     const checkSubscription = async () => {
       try {
         const registration = await navigator.serviceWorker.ready;
+        
+        // Wait a bit for service worker to fully initialize (iOS needs this)
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         const existingSub = await registration.pushManager.getSubscription();
         
         console.log('[Web Push] Checking subscription on mount:', {
@@ -61,10 +65,11 @@ export function useWebPush() {
         if (existingSub) {
           setSubscription(existingSub);
           setIsSubscribed(true);
+          console.log('[Web Push] ✅ Subscription found and restored');
         } else {
-          // Ensure state is reset if no subscription found
           setSubscription(null);
           setIsSubscribed(false);
+          console.log('[Web Push] ❌ No subscription found');
         }
       } catch (error) {
         console.error('[Web Push] Error checking subscription:', error);
@@ -75,6 +80,13 @@ export function useWebPush() {
 
     if (isSupported) {
       checkSubscription();
+      
+      // Re-check subscription after a delay (helps with iOS PWA state restoration)
+      const recheckTimer = setTimeout(() => {
+        checkSubscription();
+      }, 1000);
+      
+      return () => clearTimeout(recheckTimer);
     }
   }, []);
 

@@ -4,8 +4,8 @@
  */
 
 // Bump version to force cache refresh when deploying new mission flow (Task 29)
-const CACHE_NAME = 'salvo-v2';
-const RUNTIME_CACHE = 'salvo-runtime-v2';
+const CACHE_NAME = 'salvo-v3-task29-fixes';
+const RUNTIME_CACHE = 'salvo-runtime-v3';
 
 // Critical assets to cache during install (War Room, Ballot, core assets)
 const PRECACHE_URLS = [
