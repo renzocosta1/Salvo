@@ -10,7 +10,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, minimal-ui" />
 
         {/* PWA Meta Tags */}
         <meta name="application-name" content="Salvo" />
@@ -56,24 +56,27 @@ const responsiveBackground = `
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
 }
-html {
-  margin: 0;
-  padding: 0;
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
   width: 100%;
   height: 100%;
-  background-color: #0f1419 !important;
+  background: #0f1419 !important;
   overflow: hidden;
+  position: fixed;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
-body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
+html {
   height: 100%;
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  background-color: #0f1419 !important;
-  overflow: hidden;
-  /* iOS PWA: NO padding - let React Native handle safe areas */
+}
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  height: 100vh;
+  height: -webkit-fill-available;
 }
 #root {
   width: 100%;
@@ -81,26 +84,16 @@ body {
   min-height: 100vh;
   min-height: -webkit-fill-available;
   background-color: #0f1419;
+  position: relative;
 }
-/* Fill iOS status bar area with dark color */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: env(safe-area-inset-top);
-  background-color: #0f1419;
-  z-index: 9999;
-}
-/* Fill iOS home indicator area with dark color */
-body::after {
-  content: '';
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: env(safe-area-inset-bottom);
-  background-color: #0f1419;
-  z-index: 9999;
+/* Aggressive iOS PWA fullscreen - hide ALL Safari UI */
+@media (display-mode: standalone) {
+  html {
+    background: #0f1419 !important;
+  }
+  body {
+    background: #0f1419 !important;
+    position: fixed !important;
+    overflow: hidden !important;
+  }
 }`;
