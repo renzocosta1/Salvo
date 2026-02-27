@@ -143,10 +143,17 @@ export default function SignupScreen() {
       if (Platform.OS === 'web') {
         console.log('[Google OAuth Web] Using direct redirect to preserve PWA standalone mode');
         
+        // Check if we're in standalone PWA mode
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                             (window.navigator as any).standalone === true;
+        
+        const redirectUrl = window.location.origin + (isStandalone ? '?pwa=true' : '');
+        console.log('[Google OAuth Web] Redirect URL:', redirectUrl, 'Standalone:', isStandalone);
+        
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin,
+            redirectTo: redirectUrl,
             skipBrowserRedirect: false, // Let Supabase handle the redirect
             queryParams: {
               access_type: 'offline',

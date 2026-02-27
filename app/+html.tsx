@@ -73,11 +73,7 @@ body {
   min-height: -webkit-fill-available;
   background-color: #0f1419 !important;
   overflow: hidden;
-  /* iOS PWA: extend into safe areas */
-  padding-top: constant(safe-area-inset-top);
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: constant(safe-area-inset-bottom);
-  padding-bottom: env(safe-area-inset-bottom);
+  /* iOS PWA: NO padding - let React Native handle safe areas */
 }
 #root {
   width: 100%;
@@ -86,10 +82,25 @@ body {
   min-height: -webkit-fill-available;
   background-color: #0f1419;
 }
-/* Ensure dark color extends into iOS notch and home indicator areas */
-@supports (padding: max(0px)) {
-  body {
-    padding-top: max(0px, env(safe-area-inset-top));
-    padding-bottom: max(0px, env(safe-area-inset-bottom));
-  }
+/* Fill iOS status bar area with dark color */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top);
+  background-color: #0f1419;
+  z-index: 9999;
+}
+/* Fill iOS home indicator area with dark color */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-bottom);
+  background-color: #0f1419;
+  z-index: 9999;
 }`;
