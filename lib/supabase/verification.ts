@@ -81,12 +81,19 @@ export async function verifyVotedSticker(
   try {
     console.log('[Verification] Calling Edge Function with:', { photoUrl, missionType });
     
-    // Call Supabase Edge Function
+    // Get current session for auth header
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('[Verification] Session status:', { hasSession: !!session, hasAccessToken: !!session?.access_token });
+    
+    // Call Supabase Edge Function with explicit auth
     const response = await supabase.functions.invoke('verify-voted-sticker', {
       body: {
         photo_url: photoUrl,
         mission_type: missionType,
       },
+      headers: session?.access_token ? {
+        Authorization: `Bearer ${session.access_token}`,
+      } : undefined,
     });
 
     console.log('[Verification] Edge Function response:', { 
@@ -101,14 +108,33 @@ export async function verifyVotedSticker(
     });
 
     if (response.error) {
+      // Try to extract the actual error body from the response
+      let errorBody = null;
+      try {
+        const errorContext = (response.error as any).context;
+        if (errorContext?._bodyBlob || errorContext?._bodyInit) {
+          // Try to read the blob
+          const blob = errorContext._bodyBlob || errorContext._bodyInit;
+          if (blob && blob._data) {
+            errorBody = `Blob data: ${JSON.stringify(blob._data)}`;
+          }
+        }
+      } catch (e) {
+        console.log('[Verification] Could not extract error body:', e);
+      }
+
       console.error('[Verification] Edge Function error details:', {
         fullError: response.error,
         data: response.data,
+        errorBody,
+        status: (response.error as any).context?.status,
+        statusText: (response.error as any).context?.statusText,
         stringified: JSON.stringify(response.error)
       });
+      
       return {
         success: false,
-        error: `Edge Function Error: ${response.error.message} | Data: ${JSON.stringify(response.data)}`,
+        error: `Edge Function Error: ${response.error.message} (Status: ${(response.error as any).context?.status || 'unknown'}) | Body: ${errorBody || 'none'}`,
       };
     }
 
