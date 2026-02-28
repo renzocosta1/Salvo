@@ -41,14 +41,28 @@ export async function uploadProofPhoto(
       console.log('[Upload] Converting to ArrayBuffer using arrayBuffer() method');
       uploadData = await (photoFile as any).arrayBuffer();
     } else {
-      // React Native Blob - doesn't have arrayBuffer(), use FileReader
-      console.log('[Upload] Converting React Native Blob using FileReader');
-      uploadData = await new Promise<ArrayBuffer>((resolve, reject) => {
+      // React Native Blob - convert to base64, then to Uint8Array (most reliable method)
+      console.log('[Upload] Converting React Native Blob via base64');
+      const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Remove data URL prefix if present
+          const base64Data = result.includes(',') ? result.split(',')[1] : result;
+          resolve(base64Data);
+        };
         reader.onerror = reject;
-        reader.readAsArrayBuffer(photoFile as Blob);
+        reader.readAsDataURL(photoFile as Blob);
       });
+      
+      // Convert base64 to ArrayBuffer
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      uploadData = bytes.buffer;
+      console.log('[Upload] Converted to ArrayBuffer, size:', bytes.length);
     }
 
     const { data, error } = await supabase.storage
