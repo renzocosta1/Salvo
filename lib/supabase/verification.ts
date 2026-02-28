@@ -81,19 +81,37 @@ export async function verifyVotedSticker(
   try {
     console.log('[Verification] Calling Edge Function with:', { photoUrl, missionType });
     
-    // Use direct fetch with anon key to bypass JWT validation issues
+    // Refresh session to get a valid JWT token
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    console.log('[Verification] Session refresh:', { 
+      success: !refreshError, 
+      hasSession: !!refreshData?.session,
+      hasAccessToken: !!refreshData?.session?.access_token,
+    });
+    
+    const accessToken = refreshData?.session?.access_token;
+    
+    if (!accessToken) {
+      console.error('[Verification] No access token after refresh');
+      return {
+        success: false,
+        error: 'Authentication required - please log in again',
+      };
+    }
+    
+    // Use direct fetch with refreshed JWT token
     const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
     const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
     
     const functionUrl = `${supabaseUrl}/functions/v1/verify-voted-sticker`;
-    console.log('[Verification] Calling function directly with anon key');
+    console.log('[Verification] Calling with refreshed access token');
     
     const fetchResponse = await fetch(functionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Authorization': `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
         photo_url: photoUrl,
