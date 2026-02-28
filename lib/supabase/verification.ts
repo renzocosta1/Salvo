@@ -82,22 +82,37 @@ export async function verifyVotedSticker(
     console.log('[Verification] Calling Edge Function with:', { photoUrl, missionType });
     
     // Call Supabase Edge Function
-    const { data, error } = await supabase.functions.invoke('verify-voted-sticker', {
+    const response = await supabase.functions.invoke('verify-voted-sticker', {
       body: {
         photo_url: photoUrl,
         mission_type: missionType,
       },
     });
 
-    console.log('[Verification] Edge Function response:', { data, error });
+    console.log('[Verification] Edge Function response:', { 
+      data: response.data, 
+      error: response.error,
+      errorContext: response.error ? {
+        message: response.error.message,
+        name: response.error.name,
+        stack: response.error.stack,
+        context: (response.error as any).context
+      } : null
+    });
 
-    if (error) {
-      console.error('[Verification] Edge Function error:', error);
+    if (response.error) {
+      console.error('[Verification] Edge Function error details:', {
+        fullError: response.error,
+        data: response.data,
+        stringified: JSON.stringify(response.error)
+      });
       return {
         success: false,
-        error: `Edge Function Error: ${error.message}`,
+        error: `Edge Function Error: ${response.error.message} | Data: ${JSON.stringify(response.data)}`,
       };
     }
+
+    const { data, error } = response;
 
     if (!data) {
       console.error('[Verification] No data returned from Edge Function');

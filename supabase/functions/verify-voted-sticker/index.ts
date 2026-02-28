@@ -73,10 +73,16 @@ serve(async (req) => {
     console.log('Processing verification for mission type:', mission_type)
 
     // Download the image from Supabase Storage
+    console.log('Parsing photo URL:', photo_url)
     const storagePathMatch = photo_url.match(/mission-proofs\/(.+)$/)
     if (!storagePathMatch) {
+      console.error('Failed to match storage path from URL:', photo_url)
       return new Response(
-        JSON.stringify({ error: 'Invalid photo URL format' }),
+        JSON.stringify({ 
+          error: 'Invalid photo URL format',
+          receivedUrl: photo_url,
+          expectedFormat: 'URL should contain mission-proofs/filename.jpg'
+        }),
         {
           status: 400,
           headers: { 
@@ -89,6 +95,7 @@ serve(async (req) => {
 
     const storagePath = storagePathMatch[1]
     console.log('Downloading image from storage:', storagePath)
+    console.log('Full storage details:', { bucket: 'mission-proofs', path: storagePath })
 
     const { data: imageBlob, error: downloadError } = await supabase.storage
       .from('mission-proofs')
@@ -98,8 +105,15 @@ serve(async (req) => {
       console.error('Failed to download image:', downloadError)
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to download photo', 
-          details: downloadError 
+          error: 'Failed to download photo from storage', 
+          details: {
+            message: downloadError?.message,
+            name: downloadError?.name,
+            statusCode: downloadError?.statusCode,
+            bucket: 'mission-proofs',
+            path: storagePath,
+            fullError: String(downloadError)
+          }
         }),
         {
           status: 500,
@@ -208,8 +222,13 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
       console.error('Gemini API error:', geminiResponse.status, errorText)
       return new Response(
         JSON.stringify({ 
-          error: 'AI verification failed', 
-          details: errorText 
+          error: 'Gemini API request failed', 
+          details: {
+            status: geminiResponse.status,
+            statusText: geminiResponse.statusText,
+            errorBody: errorText,
+            apiKeyPresent: !!geminiApiKey
+          }
         }),
         {
           status: 500,
@@ -281,11 +300,17 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
     )
   } catch (error) {
     console.error('Error in verify-voted-sticker function:', error)
+    const errorDetails = {
+      error: error.message || 'Unknown error',
+      stack: error.stack,
+      name: error.name,
+      type: typeof error,
+      fullError: String(error),
+    };
+    console.error('Full error details:', errorDetails);
+    
     return new Response(
-      JSON.stringify({
-        error: error.message,
-        stack: error.stack,
-      }),
+      JSON.stringify(errorDetails),
       {
         status: 500,
         headers: { 
