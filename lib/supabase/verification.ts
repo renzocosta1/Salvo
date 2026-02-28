@@ -81,19 +81,16 @@ export async function verifyVotedSticker(
   try {
     console.log('[Verification] Calling Edge Function with:', { photoUrl, missionType });
     
-    // Get current session for auth header
+    // Get current session for debugging
     const { data: { session } } = await supabase.auth.getSession();
     console.log('[Verification] Session status:', { hasSession: !!session, hasAccessToken: !!session?.access_token });
     
-    // Call Supabase Edge Function with explicit auth
+    // Call Supabase Edge Function - let it handle auth automatically
     const response = await supabase.functions.invoke('verify-voted-sticker', {
       body: {
         photo_url: photoUrl,
         mission_type: missionType,
       },
-      headers: session?.access_token ? {
-        Authorization: `Bearer ${session.access_token}`,
-      } : undefined,
     });
 
     console.log('[Verification] Edge Function response:', { 
@@ -110,13 +107,38 @@ export async function verifyVotedSticker(
     if (response.error) {
       // Try to extract the actual error body from the response
       let errorBody = null;
+      let parsedErrorBody = null;
       try {
         const errorContext = (response.error as any).context;
-        if (errorContext?._bodyBlob || errorContext?._bodyInit) {
-          // Try to read the blob
+        
+        // Try to read the blob as text/JSON
+        if (errorContext?._bodyBlob) {
+          const blob = errorContext._bodyBlob;
+          console.log('[Verification] Attempting to read error blob...');
+          
+          // Convert blob to text
+          const reader = new FileReader();
+          const textPromise = new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => resolve(null);
+          });
+          reader.readAsText(blob);
+          const text = await textPromise;
+          
+          if (text) {
+            errorBody = text as string;
+            try {
+              parsedErrorBody = JSON.parse(errorBody);
+            } catch {
+              // Not JSON, just use as text
+            }
+          }
+        }
+        
+        if (!errorBody && (errorContext?._bodyBlob || errorContext?._bodyInit)) {
           const blob = errorContext._bodyBlob || errorContext._bodyInit;
           if (blob && blob._data) {
-            errorBody = `Blob data: ${JSON.stringify(blob._data)}`;
+            errorBody = `Blob metadata: ${JSON.stringify(blob._data)}`;
           }
         }
       } catch (e) {

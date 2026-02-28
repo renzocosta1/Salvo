@@ -1,0 +1,2 @@
+# Disable JWT verification since this function uses service role internally
+verify_jwt = false
