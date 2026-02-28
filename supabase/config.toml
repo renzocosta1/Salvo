@@ -1,0 +1,2 @@
+[functions.verify-voted-sticker]
+verify_jwt = false
