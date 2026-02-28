@@ -68,15 +68,21 @@ serve(async (req) => {
     
     const imageResponse = await fetch(photo_url)
     
+    console.log('Fetch response status:', imageResponse.status, imageResponse.statusText)
+    console.log('Fetch response headers:', JSON.stringify(Object.fromEntries(imageResponse.headers.entries())))
+    console.log('Fetch response ok:', imageResponse.ok, 'body:', imageResponse.body)
+    
     if (!imageResponse.ok) {
-      console.error('Failed to fetch image from URL:', imageResponse.status, imageResponse.statusText)
+      const errorText = await imageResponse.text()
+      console.error('Failed to fetch image from URL:', imageResponse.status, imageResponse.statusText, 'Body:', errorText)
       return new Response(
         JSON.stringify({ 
           error: 'Failed to fetch photo from URL', 
           details: {
             status: imageResponse.status,
             statusText: imageResponse.statusText,
-            url: photo_url
+            url: photo_url,
+            errorBody: errorText
           }
         }),
         {
@@ -89,8 +95,11 @@ serve(async (req) => {
       )
     }
 
+    const contentLength = imageResponse.headers.get('content-length')
+    console.log('Content-Length header:', contentLength)
+    
     const imageBlob = await imageResponse.blob()
-    console.log('Image fetched, size:', imageBlob.size, 'bytes', 'blob.type:', imageBlob.type)
+    console.log('Image fetched, size:', imageBlob.size, 'bytes', 'blob.type:', imageBlob.type, 'expected size:', contentLength)
 
     // Detect MIME type from file extension (don't trust blob.type from fetch)
     const fileExtension = photo_url.toLowerCase().match(/\.(jpg|jpeg|png|webp|heic|heif)$/)?.[1]
@@ -257,15 +266,32 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
         throw new Error('No text content in AI response')
       }
 
-      console.log('AI response text:', responseText)
+      console.log('AI response text (length:', responseText.length, '):', responseText.substring(0, 200))
 
-      // Extract JSON from response
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) {
+      // Try multiple JSON extraction methods
+      let jsonString = null
+      
+      // Method 1: Remove markdown code blocks if present
+      const codeBlockMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+      if (codeBlockMatch) {
+        jsonString = codeBlockMatch[1].trim()
+        console.log('Extracted from markdown code block')
+      } else {
+        // Method 2: Find first { to last }
+        const firstBrace = responseText.indexOf('{')
+        const lastBrace = responseText.lastIndexOf('}')
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonString = responseText.substring(firstBrace, lastBrace + 1)
+          console.log('Extracted using brace positions')
+        }
+      }
+
+      if (!jsonString) {
         throw new Error('No JSON found in AI response')
       }
 
-      aiVerdict = JSON.parse(jsonMatch[0])
+      console.log('JSON string to parse:', jsonString)
+      aiVerdict = JSON.parse(jsonString)
       console.log('Parsed AI verdict:', aiVerdict)
 
       if (typeof aiVerdict.verdict !== 'boolean') {
@@ -273,10 +299,13 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError)
+      const responseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text
+      console.error('Raw Gemini response text:', responseText)
       return new Response(
         JSON.stringify({
           error: 'Failed to parse AI response',
           details: parseError.message,
+          rawResponse: responseText?.substring(0, 500),
         }),
         {
           status: 500,
