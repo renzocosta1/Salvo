@@ -2,7 +2,6 @@
 // Verifies "I Voted" sticker photos for Early Raid and Election Day Siege missions
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts'
 
 console.log('Verify Voted Sticker Edge Function initialized')
@@ -23,23 +22,17 @@ serve(async (req) => {
 
     // Check environment variables
     const geminiApiKey = Deno.env.get('GOOGLE_API_KEY') || Deno.env.get('GEMINI_API_KEY')
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
     console.log('Environment check:', {
       hasGeminiKey: !!geminiApiKey,
-      hasSupabaseUrl: !!supabaseUrl,
-      hasServiceKey: !!supabaseServiceKey,
     })
 
-    if (!geminiApiKey || !supabaseUrl || !supabaseServiceKey) {
+    if (!geminiApiKey) {
       return new Response(
         JSON.stringify({
           error: 'Missing required environment variables',
           details: {
             hasGeminiKey: !!geminiApiKey,
-            hasSupabaseUrl: !!supabaseUrl,
-            hasServiceKey: !!supabaseServiceKey,
           },
         }),
         {
@@ -51,9 +44,6 @@ serve(async (req) => {
         }
       )
     }
-
-    // Initialize Supabase client
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Parse request body
     const { photo_url, mission_type } = await req.json()
@@ -73,47 +63,20 @@ serve(async (req) => {
 
     console.log('Processing verification for mission type:', mission_type)
 
-    // Download the image from Supabase Storage
-    console.log('Parsing photo URL:', photo_url)
-    const storagePathMatch = photo_url.match(/mission-proofs\/(.+)$/)
-    if (!storagePathMatch) {
-      console.error('Failed to match storage path from URL:', photo_url)
+    // Download the image directly from the public URL (bucket is public)
+    console.log('Fetching image from public URL:', photo_url)
+    
+    const imageResponse = await fetch(photo_url)
+    
+    if (!imageResponse.ok) {
+      console.error('Failed to fetch image from URL:', imageResponse.status, imageResponse.statusText)
       return new Response(
         JSON.stringify({ 
-          error: 'Invalid photo URL format',
-          receivedUrl: photo_url,
-          expectedFormat: 'URL should contain mission-proofs/filename.jpg'
-        }),
-        {
-          status: 400,
-          headers: { 
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        }
-      )
-    }
-
-    const storagePath = storagePathMatch[1]
-    console.log('Downloading image from storage:', storagePath)
-    console.log('Full storage details:', { bucket: 'mission-proofs', path: storagePath })
-
-    const { data: imageBlob, error: downloadError } = await supabase.storage
-      .from('mission-proofs')
-      .download(storagePath)
-
-    if (downloadError || !imageBlob) {
-      console.error('Failed to download image:', downloadError)
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to download photo from storage', 
+          error: 'Failed to fetch photo from URL', 
           details: {
-            message: downloadError?.message,
-            name: downloadError?.name,
-            statusCode: downloadError?.statusCode,
-            bucket: 'mission-proofs',
-            path: storagePath,
-            fullError: String(downloadError)
+            status: imageResponse.status,
+            statusText: imageResponse.statusText,
+            url: photo_url
           }
         }),
         {
@@ -126,11 +89,12 @@ serve(async (req) => {
       )
     }
 
-    console.log('Image downloaded, size:', imageBlob.size, 'bytes', 'blob.type:', imageBlob.type)
+    const imageBlob = await imageResponse.blob()
+    console.log('Image fetched, size:', imageBlob.size, 'bytes', 'blob.type:', imageBlob.type)
 
-    // Detect MIME type from file extension (don't trust blob.type from Storage)
-    const fileExtension = storagePath.toLowerCase().match(/\.(jpg|jpeg|png|webp|heic|heif)$/)?.[1]
-    console.log('File extension from path:', fileExtension)
+    // Detect MIME type from file extension (don't trust blob.type from fetch)
+    const fileExtension = photo_url.toLowerCase().match(/\.(jpg|jpeg|png|webp|heic|heif)$/)?.[1]
+    console.log('File extension from URL:', fileExtension)
     
     const extensionToMimeType: Record<string, string> = {
       'jpg': 'image/jpeg',
