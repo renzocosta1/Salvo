@@ -176,6 +176,7 @@ export default function MissionDetailScreen() {
     if (!profile?.id || !mission) return;
 
     try {
+      console.log('[Photo Upload] Starting process for file:', file.name, file.size, file.type);
       setUploadingPhoto(true);
 
       // Step 1: Upload photo to Supabase Storage
@@ -185,33 +186,65 @@ export default function MissionDetailScreen() {
         file
       );
 
+      console.log('[Photo Upload] Upload result:', { 
+        hasError: !!uploadResult.error, 
+        errorMsg: uploadResult.error?.message,
+        hasUrl: !!uploadResult.url,
+        url: uploadResult.url 
+      });
+
       if (uploadResult.error || !uploadResult.url) {
-        Alert.alert('Upload Failed', uploadResult.error?.message || 'Could not upload photo');
+        const errorMsg = uploadResult.error?.message || 'Could not upload photo';
+        console.error('[Photo Upload] Upload failed:', errorMsg);
+        Alert.alert('Upload Failed', errorMsg + '\n\nMake sure the storage bucket exists in Supabase.');
         setUploadingPhoto(false);
         return;
       }
 
-      console.log('Photo uploaded:', uploadResult.url);
+      console.log('[Photo Upload] ✅ Upload successful, starting verification...');
       setUploadingPhoto(false);
       setVerifying(true);
 
       // Step 2: Verify with Gemini AI
-      const verifyResult = await verifyVotedSticker(
-        uploadResult.url,
-        mission.mission_type || 'general'
-      );
+      let verifyResult;
+      try {
+        verifyResult = await verifyVotedSticker(
+          uploadResult.url,
+          mission.mission_type || 'general'
+        );
+      } catch (verifyError: any) {
+        console.error('[Photo Upload] Verification threw error:', verifyError);
+        setVerifying(false);
+        Alert.alert(
+          'Verification Error',
+          `Exception during verification:\n\n${verifyError.message || verifyError}\n\nPhoto URL: ${uploadResult.url}`
+        );
+        return;
+      }
+
+      console.log('[Photo Upload] Verification result:', {
+        success: verifyResult.success,
+        verdict: verifyResult.verdict,
+        confidence: verifyResult.confidence,
+        error: verifyResult.error,
+        reasoning: verifyResult.reasoning
+      });
 
       setVerifying(false);
 
       if (!verifyResult.success) {
-        // Show detailed error to help debug
         const errorMsg = verifyResult.error || 'Could not verify photo';
+        console.error('[Photo Upload] Verification failed:', errorMsg);
+        
+        // SHOW THE FULL ERROR TO USER
         Alert.alert(
-          'Verification Failed', 
-          `${errorMsg}\n\nThis might be because:\n- The Edge Function isn't deployed\n- The Gemini API key isn't configured\n- Network connection issue\n\nPlease check the Supabase dashboard.`
+          'DEBUG: Verification Failed', 
+          `Error: ${errorMsg}\n\nPhoto URL: ${uploadResult.url}\n\nThis error will help us debug the issue.`
         );
         return;
       }
+
+      console.log('[Photo Upload] ✅ Verification complete');
 
       // Step 3: Check verdict
       if (verifyResult.verdict) {

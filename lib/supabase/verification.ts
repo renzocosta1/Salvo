@@ -76,6 +76,8 @@ export async function verifyVotedSticker(
   missionType: string
 ): Promise<VerificationResult> {
   try {
+    console.log('[Verification] Calling Edge Function with:', { photoUrl, missionType });
+    
     // Call Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('verify-voted-sticker', {
       body: {
@@ -84,10 +86,21 @@ export async function verifyVotedSticker(
       },
     });
 
+    console.log('[Verification] Edge Function response:', { data, error });
+
     if (error) {
+      console.error('[Verification] Edge Function error:', error);
       return {
         success: false,
-        error: error.message || 'Failed to verify photo',
+        error: `Edge Function Error: ${error.message}`,
+      };
+    }
+
+    if (!data) {
+      console.error('[Verification] No data returned from Edge Function');
+      return {
+        success: false,
+        error: 'No response from verification service',
       };
     }
 
@@ -98,6 +111,7 @@ export async function verifyVotedSticker(
       reasoning: data.reasoning,
     };
   } catch (error) {
+    console.error('[Verification] Caught exception:', error);
     return {
       success: false,
       error: (error as Error).message || 'Verification failed',
