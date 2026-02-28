@@ -126,10 +126,24 @@ serve(async (req) => {
       )
     }
 
-    console.log('Image downloaded, size:', imageBlob.size, 'bytes', 'type:', imageBlob.type)
+    console.log('Image downloaded, size:', imageBlob.size, 'bytes', 'blob.type:', imageBlob.type)
 
-    // Detect MIME type from blob
-    const mimeType = imageBlob.type || 'image/jpeg'
+    // Detect MIME type from file extension (don't trust blob.type from Storage)
+    const fileExtension = storagePath.toLowerCase().match(/\.(jpg|jpeg|png|webp|heic|heif)$/)?.[1]
+    console.log('File extension from path:', fileExtension)
+    
+    const extensionToMimeType: Record<string, string> = {
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'webp': 'image/webp',
+      'heic': 'image/heic',
+      'heif': 'image/heif',
+    }
+    
+    const mimeType = fileExtension ? extensionToMimeType[fileExtension] : 'image/jpeg'
+    console.log('Determined MIME type:', mimeType)
+    
     const supportedMimeTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif']
     
     if (!supportedMimeTypes.includes(mimeType)) {
@@ -137,7 +151,8 @@ serve(async (req) => {
         JSON.stringify({ 
           error: 'Unsupported image format',
           receivedType: mimeType,
-          supportedTypes: supportedMimeTypes
+          supportedTypes: supportedMimeTypes,
+          fileExtension: fileExtension,
         }),
         {
           status: 400,
@@ -191,7 +206,7 @@ serve(async (req) => {
     const missionPrompt = getMissionPrompt(mission_type || 'default')
 
     // Call Gemini AI - using Gemini 2.5 Flash (current model in 2026)
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
 
     const prompt = `${missionPrompt}
 
@@ -229,14 +244,20 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
 
     console.log('Sending request to Gemini AI...')
     console.log('Image size:', imageBlob.size, 'bytes', 'MIME:', mimeType, 'Base64 length:', base64Image.length)
+    console.log('Image blob type:', imageBlob.type, 'Detected MIME:', mimeType)
+    console.log('Base64 preview (first 100 chars):', base64Image.substring(0, 100))
+    console.log('Payload structure:', JSON.stringify(geminiPayload).substring(0, 500))
 
     const geminiResponse = await fetch(geminiUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-goog-api-key': geminiApiKey,
+      },
       body: JSON.stringify(geminiPayload),
     })
     
-    console.log('Gemini response status:', geminiResponse.status)
+    console.log('Gemini response status:', geminiResponse.status, geminiResponse.statusText)
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text()
