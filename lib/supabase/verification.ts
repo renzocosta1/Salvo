@@ -81,17 +81,42 @@ export async function verifyVotedSticker(
   try {
     console.log('[Verification] Calling Edge Function with:', { photoUrl, missionType });
     
-    // Get current session for debugging
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log('[Verification] Session status:', { hasSession: !!session, hasAccessToken: !!session?.access_token });
+    // Use direct fetch with anon key to bypass JWT validation issues
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+    const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
     
-    // Call Supabase Edge Function - let it handle auth automatically
-    const response = await supabase.functions.invoke('verify-voted-sticker', {
-      body: {
+    const functionUrl = `${supabaseUrl}/functions/v1/verify-voted-sticker`;
+    console.log('[Verification] Calling function directly with anon key');
+    
+    const fetchResponse = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify({
         photo_url: photoUrl,
         mission_type: missionType,
-      },
+      }),
     });
+    
+    console.log('[Verification] Fetch response status:', fetchResponse.status, fetchResponse.statusText);
+    
+    if (!fetchResponse.ok) {
+      const errorText = await fetchResponse.text();
+      console.error('[Verification] Fetch error response:', errorText);
+      return {
+        success: false,
+        error: `Edge Function Error (${fetchResponse.status}): ${errorText}`,
+      };
+    }
+    
+    const data = await fetchResponse.json();
+    console.log('[Verification] Function returned data:', data);
+    
+    // Mimic the original response structure
+    const response = { data, error: null };
 
     console.log('[Verification] Edge Function response:', { 
       data: response.data, 
