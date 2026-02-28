@@ -3,6 +3,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts'
 
 console.log('Verify Voted Sticker Edge Function initialized')
 
@@ -148,16 +149,12 @@ serve(async (req) => {
       )
     }
 
-    // Convert to Base64
+    // Convert to Base64 using Deno's proper encoding function
     const arrayBuffer = await imageBlob.arrayBuffer()
-    const base64Image = btoa(
-      new Uint8Array(arrayBuffer).reduce(
-        (data, byte) => data + String.fromCharCode(byte),
-        ''
-      )
-    )
+    const uint8Array = new Uint8Array(arrayBuffer)
+    const base64Image = encodeBase64(uint8Array)
 
-    console.log('Image converted to Base64, MIME type:', mimeType, 'Base64 length:', base64Image.length)
+    console.log('Image converted to Base64, MIME type:', mimeType, 'Original size:', imageBlob.size, 'bytes, Base64 length:', base64Image.length)
 
     // Create mission-specific prompt
     const getMissionPrompt = (type: string) => {
