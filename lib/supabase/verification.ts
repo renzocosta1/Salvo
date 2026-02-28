@@ -65,15 +65,40 @@ export async function uploadProofPhoto(
       console.log('[Upload] Converted to ArrayBuffer, size:', bytes.length);
     }
 
-    const { data, error } = await supabase.storage
-      .from('mission-proofs')
-      .upload(filePath, uploadData, {
-        contentType: 'image/jpeg',
-        upsert: false,
-      });
+    // Upload with retry logic (React Native can be flaky)
+    let data = null;
+    let error = null;
+    const maxRetries = 3;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      console.log(`[Upload] Attempt ${attempt}/${maxRetries}`);
+      const result = await supabase.storage
+        .from('mission-proofs')
+        .upload(filePath, uploadData, {
+          contentType: 'image/jpeg',
+          upsert: attempt > 1, // Allow overwrite on retries
+        });
+      
+      data = result.data;
+      error = result.error;
+      
+      if (!error) {
+        console.log(`[Upload] Success on attempt ${attempt}`);
+        break;
+      }
+      
+      console.error(`[Upload] Attempt ${attempt} failed:`, error.message);
+      
+      if (attempt < maxRetries) {
+        // Wait before retry (exponential backoff)
+        const delayMs = attempt * 1000;
+        console.log(`[Upload] Waiting ${delayMs}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
 
     if (error) {
-      console.error('Upload error:', error);
+      console.error('[Upload] All attempts failed:', error);
       return { url: null, error: new Error(error.message) };
     }
 
