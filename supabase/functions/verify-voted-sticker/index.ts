@@ -125,7 +125,28 @@ serve(async (req) => {
       )
     }
 
-    console.log('Image downloaded, size:', imageBlob.size, 'bytes')
+    console.log('Image downloaded, size:', imageBlob.size, 'bytes', 'type:', imageBlob.type)
+
+    // Detect MIME type from blob
+    const mimeType = imageBlob.type || 'image/jpeg'
+    const supportedMimeTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif']
+    
+    if (!supportedMimeTypes.includes(mimeType)) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Unsupported image format',
+          receivedType: mimeType,
+          supportedTypes: supportedMimeTypes
+        }),
+        {
+          status: 400,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      )
+    }
 
     // Convert to Base64
     const arrayBuffer = await imageBlob.arrayBuffer()
@@ -136,7 +157,7 @@ serve(async (req) => {
       )
     )
 
-    console.log('Image converted to Base64')
+    console.log('Image converted to Base64, MIME type:', mimeType, 'Base64 length:', base64Image.length)
 
     // Create mission-specific prompt
     const getMissionPrompt = (type: string) => {
@@ -194,7 +215,7 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
             { text: prompt },
             {
               inline_data: {
-                mime_type: 'image/jpeg',
+                mime_type: mimeType,
                 data: base64Image,
               },
             },
@@ -210,12 +231,15 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
     }
 
     console.log('Sending request to Gemini AI...')
+    console.log('Image size:', imageBlob.size, 'bytes', 'MIME:', mimeType, 'Base64 length:', base64Image.length)
 
     const geminiResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(geminiPayload),
     })
+    
+    console.log('Gemini response status:', geminiResponse.status)
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text()
