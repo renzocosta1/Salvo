@@ -18,14 +18,14 @@ export interface VerificationResult {
 export async function uploadProofPhoto(
   userId: string,
   missionType: string,
-  photoFile: File | string
+  photoFile: File | Blob | string
 ): Promise<{ url: string | null; error: Error | null }> {
   try {
     const timestamp = Date.now();
     const fileName = `${userId}_${missionType}_${timestamp}.jpg`;
     const filePath = `mission-proofs/${fileName}`;
 
-    let uploadData: ArrayBuffer;
+    let uploadData: ArrayBuffer | Blob;
 
     if (typeof photoFile === 'string') {
       // Base64 string
@@ -36,8 +36,11 @@ export async function uploadProofPhoto(
         bytes[i] = binaryString.charCodeAt(i);
       }
       uploadData = bytes.buffer;
+    } else if (photoFile instanceof Blob) {
+      // For React Native: Blob can be uploaded directly
+      uploadData = photoFile;
     } else {
-      // File object
+      // File object (web only)
       uploadData = await photoFile.arrayBuffer();
     }
 

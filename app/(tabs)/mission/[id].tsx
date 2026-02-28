@@ -165,46 +165,78 @@ export default function MissionDetailScreen() {
         
         input.click();
       } else {
-        // Native photo upload using expo-image-picker
-        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        
-        if (!permissionResult.granted) {
-          Alert.alert('Permission Required', 'Please allow photo library access to upload photos');
-          return;
-        }
+        // Native photo upload - show options: Camera or Library
+        Alert.alert(
+          'Upload Photo',
+          'Choose photo source:',
+          [
+            {
+              text: 'Take Photo',
+              onPress: async () => {
+                const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+                if (!cameraPermission.granted) {
+                  Alert.alert('Permission Required', 'Please allow camera access to take photos');
+                  return;
+                }
 
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: 'images',
-          allowsEditing: false,
-          quality: 0.8,
-        });
+                const result = await ImagePicker.launchCameraAsync({
+                  allowsEditing: false,
+                  quality: 0.8,
+                });
 
-        if (result.canceled || !result.assets?.[0]) {
-          return;
-        }
+                if (result.canceled || !result.assets?.[0]) return;
+                
+                const asset = result.assets[0];
+                console.log('[Photo Upload] Photo taken:', asset.uri);
+                const response = await fetch(asset.uri);
+                const blob = await response.blob();
+                console.log('[Photo Upload] Blob created:', blob.size, blob.type);
+                await processPhoto(blob as any);
+              }
+            },
+            {
+              text: 'Choose from Library',
+              onPress: async () => {
+                const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                if (!permissionResult.granted) {
+                  Alert.alert('Permission Required', 'Please allow photo library access to upload photos');
+                  return;
+                }
 
-        const asset = result.assets[0];
-        console.log('[Photo Upload] Native image picked:', asset.uri);
+                const result = await ImagePicker.launchImageLibraryAsync({
+                  mediaTypes: 'images',
+                  allowsEditing: false,
+                  quality: 0.8,
+                });
 
-        // Fetch the image as a blob
-        const response = await fetch(asset.uri);
-        const blob = await response.blob();
-        
-        // Create a File-like object from the blob
-        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
-        
-        await processPhoto(file);
+                if (result.canceled || !result.assets?.[0]) return;
+
+                const asset = result.assets[0];
+                console.log('[Photo Upload] Native image picked:', asset.uri);
+                const response = await fetch(asset.uri);
+                const blob = await response.blob();
+                console.log('[Photo Upload] Blob created:', blob.size, blob.type);
+                await processPhoto(blob as any);
+              }
+            },
+            {
+              text: 'Cancel',
+              style: 'cancel'
+            }
+          ]
+        );
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to upload photo');
     }
   };
 
-  const processPhoto = async (file: File) => {
+  const processPhoto = async (file: File | Blob) => {
     if (!profile?.id || !mission) return;
 
     try {
-      console.log('[Photo Upload] Starting process for file:', file.name, file.size, file.type);
+      const fileName = file instanceof File ? file.name : 'blob-photo.jpg';
+      console.log('[Photo Upload] Starting process for file:', fileName, file.size, file.type);
       setUploadingPhoto(true);
 
       // Step 1: Upload photo to Supabase Storage
