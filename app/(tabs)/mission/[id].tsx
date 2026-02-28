@@ -8,6 +8,7 @@ import {
   awardMissionXP,
   checkElectionVerification,
 } from '@/lib/supabase/verification';
+import * as ImagePicker from 'expo-image-picker';
 import React, { useState, useEffect } from 'react';
 import {
   ActivityIndicator,
@@ -164,8 +165,35 @@ export default function MissionDetailScreen() {
         
         input.click();
       } else {
-        // TODO: Native expo-image-picker implementation
-        Alert.alert('Coming Soon', 'Native photo upload will be available soon');
+        // Native photo upload using expo-image-picker
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        
+        if (!permissionResult.granted) {
+          Alert.alert('Permission Required', 'Please allow photo library access to upload photos');
+          return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: 'images',
+          allowsEditing: false,
+          quality: 0.8,
+        });
+
+        if (result.canceled || !result.assets?.[0]) {
+          return;
+        }
+
+        const asset = result.assets[0];
+        console.log('[Photo Upload] Native image picked:', asset.uri);
+
+        // Fetch the image as a blob
+        const response = await fetch(asset.uri);
+        const blob = await response.blob();
+        
+        // Create a File-like object from the blob
+        const file = new File([blob], `photo-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        
+        await processPhoto(file);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to upload photo');
