@@ -208,10 +208,10 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
         },
       ],
       generationConfig: {
-        temperature: 0.1,
-        topK: 1,
-        topP: 0.8,
-        maxOutputTokens: 200,
+        temperature: 0.4,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 500,
       },
     }
 
