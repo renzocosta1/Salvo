@@ -172,8 +172,8 @@ serve(async (req) => {
 
     const missionPrompt = getMissionPrompt(mission_type || 'default')
 
-    // Call Gemini AI - using v1beta with gemini-1.5-flash-latest
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`
+    // Call Gemini AI - using gemini-1.5-pro (supports vision)
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${geminiApiKey}`
 
     const prompt = `${missionPrompt}
 
