@@ -25,7 +25,7 @@ export async function uploadProofPhoto(
     const fileName = `${userId}_${missionType}_${timestamp}.jpg`;
     const filePath = fileName; // Don't add 'mission-proofs/' - the bucket name handles it
 
-    let uploadData: ArrayBuffer | Blob;
+    let uploadData: ArrayBuffer;
 
     if (typeof photoFile === 'string') {
       // Base64 string
@@ -36,11 +36,8 @@ export async function uploadProofPhoto(
         bytes[i] = binaryString.charCodeAt(i);
       }
       uploadData = bytes.buffer;
-    } else if (photoFile instanceof Blob) {
-      // For React Native: Blob can be uploaded directly
-      uploadData = photoFile;
     } else {
-      // File object (web only)
+      // File or Blob object - convert to ArrayBuffer for Supabase upload
       uploadData = await photoFile.arrayBuffer();
     }
 
