@@ -23,7 +23,7 @@ export async function uploadProofPhoto(
   try {
     const timestamp = Date.now();
     const fileName = `${userId}_${missionType}_${timestamp}.jpg`;
-    const filePath = `mission-proofs/${fileName}`;
+    const filePath = fileName; // Don't add 'mission-proofs/' - the bucket name handles it
 
     let uploadData: ArrayBuffer | Blob;
 
