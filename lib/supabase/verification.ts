@@ -36,9 +36,19 @@ export async function uploadProofPhoto(
         bytes[i] = binaryString.charCodeAt(i);
       }
       uploadData = bytes.buffer;
+    } else if (typeof (photoFile as any).arrayBuffer === 'function') {
+      // Web File/Blob - has arrayBuffer() method
+      console.log('[Upload] Converting to ArrayBuffer using arrayBuffer() method');
+      uploadData = await (photoFile as any).arrayBuffer();
     } else {
-      // File or Blob object - convert to ArrayBuffer for Supabase upload
-      uploadData = await photoFile.arrayBuffer();
+      // React Native Blob - doesn't have arrayBuffer(), use FileReader
+      console.log('[Upload] Converting React Native Blob using FileReader');
+      uploadData = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(photoFile as Blob);
+      });
     }
 
     const { data, error } = await supabase.storage
