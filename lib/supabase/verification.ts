@@ -112,82 +112,10 @@ export async function verifyVotedSticker(
       };
     }
     
-    const data = await fetchResponse.json();
-    console.log('[Verification] Function returned data:', data);
-    
-    // Mimic the original response structure
-    const response = { data, error: null };
+    const responseData = await fetchResponse.json();
+    console.log('[Verification] Function returned data:', responseData);
 
-    console.log('[Verification] Edge Function response:', { 
-      data: response.data, 
-      error: response.error,
-      errorContext: response.error ? {
-        message: response.error.message,
-        name: response.error.name,
-        stack: response.error.stack,
-        context: (response.error as any).context
-      } : null
-    });
-
-    if (response.error) {
-      // Try to extract the actual error body from the response
-      let errorBody = null;
-      let parsedErrorBody = null;
-      try {
-        const errorContext = (response.error as any).context;
-        
-        // Try to read the blob as text/JSON
-        if (errorContext?._bodyBlob) {
-          const blob = errorContext._bodyBlob;
-          console.log('[Verification] Attempting to read error blob...');
-          
-          // Convert blob to text
-          const reader = new FileReader();
-          const textPromise = new Promise((resolve) => {
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => resolve(null);
-          });
-          reader.readAsText(blob);
-          const text = await textPromise;
-          
-          if (text) {
-            errorBody = text as string;
-            try {
-              parsedErrorBody = JSON.parse(errorBody);
-            } catch {
-              // Not JSON, just use as text
-            }
-          }
-        }
-        
-        if (!errorBody && (errorContext?._bodyBlob || errorContext?._bodyInit)) {
-          const blob = errorContext._bodyBlob || errorContext._bodyInit;
-          if (blob && blob._data) {
-            errorBody = `Blob metadata: ${JSON.stringify(blob._data)}`;
-          }
-        }
-      } catch (e) {
-        console.log('[Verification] Could not extract error body:', e);
-      }
-
-      console.error('[Verification] Edge Function error details:', {
-        fullError: response.error,
-        data: response.data,
-        errorBody,
-        status: (response.error as any).context?.status,
-        statusText: (response.error as any).context?.statusText,
-        stringified: JSON.stringify(response.error)
-      });
-      
-      return {
-        success: false,
-        error: `Edge Function Error: ${response.error.message} (Status: ${(response.error as any).context?.status || 'unknown'}) | Body: ${errorBody || 'none'}`,
-      };
-    }
-
-    const { data, error } = response;
-
-    if (!data) {
+    if (!responseData) {
       console.error('[Verification] No data returned from Edge Function');
       return {
         success: false,
@@ -197,9 +125,9 @@ export async function verifyVotedSticker(
 
     return {
       success: true,
-      verdict: data.verdict,
-      confidence: data.confidence,
-      reasoning: data.reasoning,
+      verdict: responseData.verdict,
+      confidence: responseData.confidence,
+      reasoning: responseData.reasoning,
     };
   } catch (error) {
     console.error('[Verification] Caught exception:', error);
