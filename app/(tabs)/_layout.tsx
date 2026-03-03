@@ -14,6 +14,7 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const { profile } = useAuth();
   const isLeader = profile?.role === 'general' || profile?.role === 'captain';
+  const hasLeadershipRole = !!profile?.leadership_role;
   
   return (
     <Tabs
@@ -30,8 +31,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Command',
+          title: 'Missions',
           tabBarIcon: ({ color }) => <TabBarIcon name="list-ul" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="command-center"
+        options={{
+          title: 'War Room',
+          tabBarIcon: ({ color }) => <TabBarIcon name="line-chart" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -41,6 +49,15 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="check-square-o" color={color} />,
         }}
       />
+      {hasLeadershipRole && (
+        <Tabs.Screen
+          name="admin-endorsements"
+          options={{
+            title: 'Admin',
+            tabBarIcon: ({ color }) => <TabBarIcon name="shield" color={color} />,
+          }}
+        />
+      )}
       <Tabs.Screen
         name="contacts"
         options={{
@@ -53,14 +70,6 @@ export default function TabLayout() {
         options={{
           title: 'Invite',
           tabBarIcon: ({ color }) => <TabBarIcon name="user-plus" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="command-center"
-        options={{
-          title: 'HQ',
-          tabBarIcon: ({ color }) => <TabBarIcon name="star" color={color} />,
-          href: isLeader ? '/(tabs)/command-center' : null,
         }}
       />
       <Tabs.Screen

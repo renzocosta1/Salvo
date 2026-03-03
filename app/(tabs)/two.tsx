@@ -96,9 +96,9 @@ export default function ProfileScreen() {
     );
   }
 
-  // Calculate XP progress to next level
-  const currentLevelXp = profileData.level * profileData.level * 100;
-  const nextLevelXp = (profileData.level + 1) * (profileData.level + 1) * 100;
+  // Calculate XP progress to next level (100 XP per level)
+  const currentLevelXp = (profileData.level - 1) * 100;
+  const nextLevelXp = profileData.level * 100;
   const xpToNextLevel = nextLevelXp - profileData.xp;
   const progressPercent = ((profileData.xp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
 

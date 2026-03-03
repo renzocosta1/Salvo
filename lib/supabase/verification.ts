@@ -38,11 +38,9 @@ export async function uploadProofPhoto(
       uploadData = bytes.buffer;
     } else if (typeof (photoFile as any).arrayBuffer === 'function') {
       // Web File/Blob - has arrayBuffer() method
-      console.log('[Upload] Converting to ArrayBuffer using arrayBuffer() method');
       uploadData = await (photoFile as any).arrayBuffer();
     } else {
       // React Native Blob - convert to base64, then to Uint8Array (most reliable method)
-      console.log('[Upload] Converting React Native Blob via base64');
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -62,7 +60,6 @@ export async function uploadProofPhoto(
         bytes[i] = binaryString.charCodeAt(i);
       }
       uploadData = bytes.buffer;
-      console.log('[Upload] Converted to ArrayBuffer, size:', bytes.length);
     }
 
     // Upload with retry logic (React Native can be flaky)
@@ -71,7 +68,6 @@ export async function uploadProofPhoto(
     const maxRetries = 3;
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      console.log(`[Upload] Attempt ${attempt}/${maxRetries}`);
       const result = await supabase.storage
         .from('mission-proofs')
         .upload(filePath, uploadData, {
@@ -83,16 +79,12 @@ export async function uploadProofPhoto(
       error = result.error;
       
       if (!error) {
-        console.log(`[Upload] Success on attempt ${attempt}`);
         break;
       }
-      
-      console.error(`[Upload] Attempt ${attempt} failed:`, error.message);
       
       if (attempt < maxRetries) {
         // Wait before retry (exponential backoff)
         const delayMs = attempt * 1000;
-        console.log(`[Upload] Waiting ${delayMs}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
@@ -125,20 +117,11 @@ export async function verifyVotedSticker(
   missionType: string
 ): Promise<VerificationResult> {
   try {
-    console.log('[Verification] Calling Edge Function with:', { photoUrl, missionType });
-    
     // Refresh session to get a valid JWT token
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-    console.log('[Verification] Session refresh:', { 
-      success: !refreshError, 
-      hasSession: !!refreshData?.session,
-      hasAccessToken: !!refreshData?.session?.access_token,
-    });
-    
     const accessToken = refreshData?.session?.access_token;
     
     if (!accessToken) {
-      console.error('[Verification] No access token after refresh');
       return {
         success: false,
         error: 'Authentication required - please log in again',
@@ -150,7 +133,6 @@ export async function verifyVotedSticker(
     const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
     
     const functionUrl = `${supabaseUrl}/functions/v1/verify-voted-sticker`;
-    console.log('[Verification] Calling with refreshed access token');
     
     const fetchResponse = await fetch(functionUrl, {
       method: 'POST',
@@ -165,8 +147,6 @@ export async function verifyVotedSticker(
       }),
     });
     
-    console.log('[Verification] Fetch response status:', fetchResponse.status, fetchResponse.statusText);
-    
     if (!fetchResponse.ok) {
       const errorText = await fetchResponse.text();
       console.error('[Verification] Fetch error response:', errorText);
@@ -177,10 +157,8 @@ export async function verifyVotedSticker(
     }
     
     const responseData = await fetchResponse.json();
-    console.log('[Verification] Function returned data:', responseData);
 
     if (!responseData) {
-      console.error('[Verification] No data returned from Edge Function');
       return {
         success: false,
         error: 'No response from verification service',

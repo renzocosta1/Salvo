@@ -51,6 +51,13 @@ export type Profile = {
   xp: number;
   oath_signed_at: string | null;
   contract_version_id: string | null;
+  county?: string | null;
+  legislative_district?: string | null;
+  congressional_district?: string | null;
+  leadership_role?: 'state_leader' | 'county_leader' | 'district_leader' | null;
+  expo_push_token?: string | null;
+  notifications_enabled?: boolean;
+  ballot_notification_sent_at?: string | null;
   created_at: string;
   updated_at: string;
 };

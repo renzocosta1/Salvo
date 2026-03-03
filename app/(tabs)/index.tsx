@@ -4,18 +4,17 @@ import type { DirectiveWithProgress } from '@/lib/supabase/types';
 import React, { useState, useEffect } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
-  Platform,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 
-export default function CommandCenterScreen() {
-  const { profile, signOut } = useAuth();
+export default function MissionsScreen() {
+  const { profile } = useAuth();
   const [missions, setMissions] = useState<DirectiveWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +41,6 @@ export default function CommandCenterScreen() {
   };
 
   const handleMissionPress = (mission: DirectiveWithProgress) => {
-    // Navigate to mission detail screen
     router.push({
       pathname: '/(tabs)/mission/[id]' as any,
       params: { id: mission.id },
@@ -77,7 +75,7 @@ export default function CommandCenterScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#00ff00" />
+        <ActivityIndicator size="large" color="#39FF14" />
         <Text style={styles.loadingText}>Loading missions...</Text>
       </View>
     );
@@ -89,7 +87,7 @@ export default function CommandCenterScreen() {
         <Text style={styles.errorEmoji}>⚠️</Text>
         <Text style={styles.errorTitle}>No Party Assigned</Text>
         <Text style={styles.errorText}>
-          Complete onboarding to access tactical missions.
+          Complete onboarding to access missions.
         </Text>
       </View>
     );
@@ -99,31 +97,10 @@ export default function CommandCenterScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.headerTitle}>🎯 Tactical Commands</Text>
-            <Text style={styles.headerSubtitle}>
-              {profile.role.charAt(0).toUpperCase() + profile.role.slice(1)} • Level {profile.level}
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => {
-              if (Platform.OS === 'web') {
-                if (window.confirm('Are you sure you want to sign out?')) {
-                  signOut();
-                }
-              } else {
-                Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Sign Out', style: 'destructive', onPress: () => signOut() },
-                ]);
-              }
-            }}
-            style={({ pressed }) => [styles.signOutButton, pressed && styles.signOutButtonPressed]}
-          >
-            <Text style={styles.signOutButtonText}>Sign Out</Text>
-          </Pressable>
-        </View>
+        <Text style={styles.headerTitle}>🎯 Active Missions</Text>
+        <Text style={styles.headerSubtitle}>
+          Complete missions to earn XP and level up
+        </Text>
       </View>
 
       <ScrollView 
@@ -241,14 +218,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#2d3748',
   },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  headerLeft: {
-    flex: 1,
-  },
   headerTitle: {
     fontSize: 28,
     fontWeight: '700',
@@ -259,20 +228,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#8b98a5',
     fontWeight: '500',
-  },
-  signOutButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#1c2631',
-    borderRadius: 8,
-  },
-  signOutButtonPressed: {
-    opacity: 0.7,
-  },
-  signOutButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#ff6b35',
   },
   scrollContent: {
     flex: 1,
@@ -334,10 +289,10 @@ const styles = StyleSheet.create({
   },
   missionCardPressed: {
     opacity: 0.8,
-    borderColor: '#00ff00',
+    borderColor: '#39FF14',
   },
   missionCardCompleted: {
-    borderColor: '#00ff0044',
+    borderColor: '#39FF1444',
     opacity: 0.85,
   },
   missionHeader: {
@@ -360,7 +315,7 @@ const styles = StyleSheet.create({
   },
   missionDeadline: {
     fontSize: 12,
-    color: '#00ff00',
+    color: '#39FF14',
     fontWeight: '600',
   },
   deadlineExpired: {
@@ -384,11 +339,11 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#00ff00',
+    backgroundColor: '#39FF14',
     borderRadius: 4,
   },
   progressBarCompleted: {
-    backgroundColor: '#00ff00',
+    backgroundColor: '#39FF14',
   },
   progressText: {
     fontSize: 12,
@@ -413,9 +368,9 @@ const styles = StyleSheet.create({
     borderColor: '#3b82f6',
   },
   tagCompleted: {
-    backgroundColor: '#00ff0022',
+    backgroundColor: '#39FF1422',
     borderWidth: 1,
-    borderColor: '#00ff00',
+    borderColor: '#39FF14',
   },
   tagText: {
     fontSize: 11,
@@ -428,7 +383,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     fontSize: 14,
-    color: '#00ff00',
+    color: '#39FF14',
     fontWeight: '700',
   },
 });

@@ -187,10 +187,8 @@ export default function MissionDetailScreen() {
                 if (result.canceled || !result.assets?.[0]) return;
                 
                 const asset = result.assets[0];
-                console.log('[Photo Upload] Photo taken:', asset.uri);
                 const response = await fetch(asset.uri);
                 const blob = await response.blob();
-                console.log('[Photo Upload] Blob created:', blob.size, blob.type);
                 await processPhoto(blob as any);
               }
             },
@@ -212,10 +210,8 @@ export default function MissionDetailScreen() {
                 if (result.canceled || !result.assets?.[0]) return;
 
                 const asset = result.assets[0];
-                console.log('[Photo Upload] Native image picked:', asset.uri);
                 const response = await fetch(asset.uri);
                 const blob = await response.blob();
-                console.log('[Photo Upload] Blob created:', blob.size, blob.type);
                 await processPhoto(blob as any);
               }
             },
@@ -236,7 +232,6 @@ export default function MissionDetailScreen() {
 
     try {
       const fileName = file instanceof File ? file.name : 'blob-photo.jpg';
-      console.log('[Photo Upload] Starting process for file:', fileName, file.size, file.type);
       setUploadingPhoto(true);
 
       // Step 1: Upload photo to Supabase Storage
@@ -246,22 +241,13 @@ export default function MissionDetailScreen() {
         file
       );
 
-      console.log('[Photo Upload] Upload result:', { 
-        hasError: !!uploadResult.error, 
-        errorMsg: uploadResult.error?.message,
-        hasUrl: !!uploadResult.url,
-        url: uploadResult.url 
-      });
-
       if (uploadResult.error || !uploadResult.url) {
         const errorMsg = uploadResult.error?.message || 'Could not upload photo';
-        console.error('[Photo Upload] Upload failed:', errorMsg);
-        Alert.alert('Upload Failed', errorMsg + '\n\nMake sure the storage bucket exists in Supabase.');
+        Alert.alert('Upload Failed', errorMsg);
         setUploadingPhoto(false);
         return;
       }
 
-      console.log('[Photo Upload] ✅ Upload successful, starting verification...');
       setUploadingPhoto(false);
       setVerifying(true);
 
@@ -273,22 +259,13 @@ export default function MissionDetailScreen() {
           mission.mission_type || 'general'
         );
       } catch (verifyError: any) {
-        console.error('[Photo Upload] Verification threw error:', verifyError);
         setVerifying(false);
         Alert.alert(
           'Verification Error',
-          `Exception during verification:\n\n${verifyError.message || verifyError}\n\nPhoto URL: ${uploadResult.url}`
+          `Exception during verification:\n\n${verifyError.message || verifyError}`
         );
         return;
       }
-
-      console.log('[Photo Upload] Verification result:', {
-        success: verifyResult.success,
-        verdict: verifyResult.verdict,
-        confidence: verifyResult.confidence,
-        error: verifyResult.error,
-        reasoning: verifyResult.reasoning
-      });
 
       setVerifying(false);
 
@@ -303,8 +280,6 @@ export default function MissionDetailScreen() {
         );
         return;
       }
-
-      console.log('[Photo Upload] ✅ Verification complete');
 
       // Step 3: Check verdict
       if (verifyResult.verdict) {
@@ -329,7 +304,7 @@ export default function MissionDetailScreen() {
         Alert.alert(
           '🎉 MISSION COMPLETE!',
           `Your "I Voted" sticker has been verified!\n\n+${xpAmount} XP awarded!\n\nConfidence: ${Math.round((verifyResult.confidence || 0) * 100)}%\n\n${verifyResult.reasoning}`,
-          [{ text: 'Back to Missions', onPress: () => router.back() }]
+          [{ text: 'Back to Missions', onPress: () => router.push('/(tabs)') }]
         );
 
         setAlreadyVerified(true);

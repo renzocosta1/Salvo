@@ -10,6 +10,8 @@ export interface BallotRace {
   race_title: string;
   race_type: 'federal' | 'state' | 'county' | 'local' | 'judicial' | 'ballot_question';
   position_order: number;
+  incumbent_name?: string;
+  max_selections?: number;
   candidates: BallotCandidate[];
 }
 
@@ -20,6 +22,7 @@ export interface BallotCandidate {
   candidate_party: string;
   hard_party_endorsed: boolean;
   candidate_order: number;
+  is_placeholder?: boolean;
 }
 
 export interface UserBallotCommitment {
@@ -67,13 +70,16 @@ export async function fetchBallotForUser(
         race_title,
         race_type,
         position_order,
+        incumbent_name,
+        max_selections,
         md_ballot_candidates (
           id,
           race_id,
           candidate_name,
           candidate_party,
           hard_party_endorsed,
-          candidate_order
+          candidate_order,
+          is_placeholder
         )
       `)
       .eq('ballot_id', ballotData.id)

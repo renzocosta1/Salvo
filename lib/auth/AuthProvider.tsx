@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { supabase, Profile } from '../supabase';
 import { AuthContext } from './AuthContext';
+import { registerForPushNotifications } from '../notifications/pushTokens';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -171,6 +172,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(data as Profile);
       isFetchingProfile.current = false;
       setLoading(false);
+      
+      // Register for push notifications on successful login (native only)
+      registerForPushNotifications(userId).catch((error) => {
+        console.error('[Auth] Push registration failed:', error);
+        // Don't block login if push registration fails
+      });
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
       isFetchingProfile.current = false;

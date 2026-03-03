@@ -138,10 +138,6 @@ export default function AddressScreen() {
 
       console.log('Profile updated successfully (manual entry)');
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:138',message:'Before marking onboarding complete (manual)',data:{userId:user.id,platform:Platform.OS},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
-
       // Mark onboarding as complete and navigate to main app
       const { error: onboardingError } = await supabase
         .from('profiles')
@@ -150,37 +146,15 @@ export default function AddressScreen() {
 
       if (onboardingError) {
         console.error('Error completing onboarding:', onboardingError);
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:149',message:'Onboarding completion failed',data:{error:onboardingError.message},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
-      } else {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:154',message:'Onboarding completion success',data:{},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
       }
-
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:160',message:'Before refetchProfile',data:{},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
 
       // Refresh profile to update auth context
       await refetchProfile(user.id);
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:168',message:'After refetchProfile, before router.replace',data:{},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
-
       // Navigate to main app
       router.replace('/(tabs)');
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:176',message:'After router.replace call',data:{},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
     } catch (error) {
       console.error('Unexpected error:', error);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:183',message:'Caught error in manual submit',data:{error:error instanceof Error ? error.message : String(error)},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       if (Platform.OS === 'web') {
         window.alert('Error: An unexpected error occurred. Please try again.');
       } else {
@@ -267,10 +241,6 @@ export default function AddressScreen() {
 
       console.log('Profile updated successfully');
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:234',message:'Before marking onboarding complete (auto)',data:{userId:user.id,platform:Platform.OS},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
-
       // Mark onboarding as complete and navigate to main app
       const { error: onboardingError } = await supabase
         .from('profiles')
@@ -279,37 +249,15 @@ export default function AddressScreen() {
 
       if (onboardingError) {
         console.error('Error completing onboarding:', onboardingError);
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:245',message:'Onboarding completion failed',data:{error:onboardingError.message},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
-        // #endregion
-      } else {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:250',message:'Onboarding completion success',data:{},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
       }
-
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:256',message:'Before refetchProfile',data:{},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
 
       // Refresh profile to update auth context
       await refetchProfile(user.id);
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:264',message:'After refetchProfile, before router.replace',data:{},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
-
       // Navigate to main app
       router.replace('/(tabs)');
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:272',message:'After router.replace call',data:{},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
     } catch (error) {
       console.error('Unexpected error:', error);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'address.tsx:283',message:'Caught error in handleContinue',data:{error:error instanceof Error ? error.message : String(error)},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
       if (Platform.OS === 'web') {
         window.alert('Error: An unexpected error occurred. Please try again.');
       } else {

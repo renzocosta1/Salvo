@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fetch Polymarket Odds</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #000; color: #39FF14; }
+    button { background: #39FF14; color: #000; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; }
+    button:hover { background: #2de000; }
+    pre { background: #111; padding: 15px; border: 1px solid #39FF14; overflow: auto; }
+    #status { margin: 15px 0; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>🎯 Fetch Polymarket Odds</h1>
+  
+  <div>
+    <label>Supabase URL:</label><br>
+    <input id="url" type="text" placeholder="https://xxxxx.supabase.co" style="width: 400px; padding: 8px;">
+  </div>
+  
+  <div style="margin-top: 10px;">
+    <label>Anon Key:</label><br>
+    <input id="key" type="text" placeholder="eyJhbGc..." style="width: 400px; padding: 8px;">
+  </div>
+  
+  <div style="margin-top: 15px;">
+    <button onclick="fetchOdds()">🚀 Fetch Odds Now</button>
+  </div>
+  
+  <div id="status"></div>
+  <pre id="result"></pre>
+  
+  <script>
+    async function fetchOdds() {
+      const url = document.getElementById('url').value;
+      const key = document.getElementById('key').value;
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+      
+      if (!url || !key) {
+        status.innerHTML = '❌ Please enter both URL and Key';
+        status.style.color = '#ff4444';
+        return;
+      }
+      
+      status.innerHTML = '⏳ Fetching odds from Polymarket...';
+      status.style.color = '#ffaa00';
+      result.textContent = '';
+      
+      try {
+        const response = await fetch(`${url}/functions/v1/fetch-polymarket-odds`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${key}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          status.innerHTML = `✅ Success! Updated ${data.updated} market(s)`;
+          status.style.color = '#39FF14';
+          result.textContent = JSON.stringify(data, null, 2);
+        } else {
+          status.innerHTML = '❌ Failed to fetch odds';
+          status.style.color = '#ff4444';
+          result.textContent = JSON.stringify(data, null, 2);
+        }
+      } catch (error) {
+        status.innerHTML = `❌ Error: ${error.message}`;
+        status.style.color = '#ff4444';
+        result.textContent = error.stack;
+      }
+    }
+  </script>
+</body>
+</html>

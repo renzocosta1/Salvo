@@ -211,7 +211,7 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
         temperature: 0.4,
         topK: 40,
         topP: 0.95,
-        maxOutputTokens: 500,
+        maxOutputTokens: 1000,
       },
     }
 
@@ -266,23 +266,30 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
         throw new Error('No text content in AI response')
       }
 
-      console.log('AI response text (length:', responseText.length, '):', responseText.substring(0, 200))
+      console.log('AI response text (length:', responseText.length, '):', responseText)
 
       // Try multiple JSON extraction methods
       let jsonString = null
       
-      // Method 1: Remove markdown code blocks if present
+      // Method 1: Remove markdown code blocks if present (non-greedy, needs closing ```)
       const codeBlockMatch = responseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
       if (codeBlockMatch) {
         jsonString = codeBlockMatch[1].trim()
         console.log('Extracted from markdown code block')
       } else {
-        // Method 2: Find first { to last }
-        const firstBrace = responseText.indexOf('{')
-        const lastBrace = responseText.lastIndexOf('}')
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          jsonString = responseText.substring(firstBrace, lastBrace + 1)
-          console.log('Extracted using brace positions')
+        // Method 2: Try to extract from unclosed markdown block (truncated response)
+        const uncloseBlockMatch = responseText.match(/```(?:json)?\s*([\s\S]*)$/)
+        if (uncloseBlockMatch) {
+          jsonString = uncloseBlockMatch[1].trim()
+          console.log('Extracted from unclosed markdown block (truncated?)')
+        } else {
+          // Method 3: Find first { to last }
+          const firstBrace = responseText.indexOf('{')
+          const lastBrace = responseText.lastIndexOf('}')
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            jsonString = responseText.substring(firstBrace, lastBrace + 1)
+            console.log('Extracted using brace positions')
+          }
         }
       }
 
@@ -291,7 +298,23 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
       }
 
       console.log('JSON string to parse:', jsonString)
-      aiVerdict = JSON.parse(jsonString)
+      
+      // Try to parse JSON, with fallback for incomplete JSON
+      try {
+        aiVerdict = JSON.parse(jsonString)
+      } catch (jsonError) {
+        // If parse fails, try to fix incomplete JSON by adding missing closing brace
+        console.log('Initial JSON parse failed, trying to fix incomplete JSON...')
+        const openBraces = (jsonString.match(/{/g) || []).length
+        const closeBraces = (jsonString.match(/}/g) || []).length
+        if (openBraces > closeBraces) {
+          const fixed = jsonString + '}'.repeat(openBraces - closeBraces)
+          console.log('Attempted fix by adding', openBraces - closeBraces, 'closing braces')
+          aiVerdict = JSON.parse(fixed)
+        } else {
+          throw jsonError
+        }
+      }
       console.log('Parsed AI verdict:', aiVerdict)
 
       if (typeof aiVerdict.verdict !== 'boolean') {
@@ -305,7 +328,8 @@ If it's unclear, irrelevant, or doesn't show voting evidence, verdict should be 
         JSON.stringify({
           error: 'Failed to parse AI response',
           details: parseError.message,
-          rawResponse: responseText?.substring(0, 500),
+          rawResponse: responseText, // Full response for debugging
+          responseLength: responseText?.length,
         }),
         {
           status: 500,
