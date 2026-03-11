@@ -41,7 +41,8 @@ ON CONFLICT (slug) DO UPDATE SET
   priority = 1,
   race_type = 'governor';
 
--- Insert current live odds (as of Feb 13, 2026)
+-- Insert current live odds (updated from live Polymarket data)
+-- Source: https://polymarket.com/event/maryland-governor-republican-primary-winner
 -- These will be auto-updated by fetch-polymarket-odds Edge Function
 INSERT INTO polymarket_odds (
   market_slug,
@@ -61,10 +62,10 @@ INSERT INTO polymarket_odds (
   'Maryland Governor (R) Primary Winner',
   'maryland-governor-republican-primary-winner',
   'maryland-governor-republican-primary-winner',
-  '["Dan Cox", "Ed Hale", "Carl Brunner", "Christopher Bouchat", "Steve Hershey", "Kurt Wedekind", "John Myrick", "Larry Hogan"]'::JSONB,
-  '[0.30, 0.234, 0.088, 0.08, 0.04, 0.03, 0.03, 0.02]'::JSONB,  -- Current odds as of Feb 13, 2026
-  25122,  -- $25,122 trading volume
-  '[0.30, 0.234, 0.088, 0.08, 0.04, 0.03, 0.03, 0.02]'::JSONB,  -- Baseline
+  '["Dan Cox", "Ed Hale", "Christopher Bouchat", "Carl Brunner", "Kurt Wedekind", "Steve Hershey", "John Myrick", "Larry Hogan"]'::JSONB,
+  '[0.52, 0.265, 0.09, 0.048, 0.04, 0.04, 0.02, 0.02]'::JSONB,  -- LIVE odds from Polymarket
+  0,  -- Volume not yet tracked
+  '[0.52, 0.265, 0.09, 0.048, 0.04, 0.04, 0.02, 0.02]'::JSONB,  -- Baseline
   '[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]'::JSONB,  -- No change yet
   NOW(),
   NOW(),
@@ -74,6 +75,7 @@ ON CONFLICT (market_slug) DO UPDATE SET
   outcomes = EXCLUDED.outcomes,
   prices = EXCLUDED.prices,
   volume_24hr = EXCLUDED.volume_24hr,
+  last_fetched_at = NOW(),
   updated_at = NOW();
 
 -- =====================================================
@@ -137,7 +139,8 @@ ORDER BY m.priority;
 DO $$
 BEGIN
   RAISE NOTICE '✅ Live 2026 Maryland Governor market seeded successfully!';
-  RAISE NOTICE '📊 Current leader: Dan Cox at 30%%';
+  RAISE NOTICE '📊 Current leader: Dan Cox at 52%% (Ed Hale 26.5%%)';
   RAISE NOTICE '🔄 Odds will update automatically via Edge Function';
   RAISE NOTICE '🎯 Primary Election: June 24, 2026';
+  RAISE NOTICE '🔗 Source: https://polymarket.com/event/maryland-governor-republican-primary-winner';
 END $$;

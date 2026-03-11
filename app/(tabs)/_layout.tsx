@@ -31,9 +31,8 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Missions',
-          tabBarIcon: ({ color }) => <TabBarIcon name="list-ul" color={color} />,
-          href: null, // Hide from tab bar
+          title: 'Home',
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -78,6 +77,12 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="mission/[id]"
+        options={{
+          href: null, // Hide mission detail route from tabs
         }}
       />
     </Tabs>
