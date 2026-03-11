@@ -629,6 +629,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     flex: 1,
+    minWidth: 0, // Allow flex child to shrink below content size
   },
   leaderboardRank: {
     fontSize: 20,
@@ -638,17 +639,20 @@ const styles = StyleSheet.create({
   },
   leaderboardInfo: {
     flex: 1,
+    minWidth: 0, // Allow flex child to shrink below content size
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 4,
+    flexWrap: 'wrap', // Allow wrapping if needed
   },
   leaderboardName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
+    flexShrink: 1, // Allow name to shrink if needed
   },
   leaderBadge: {
     backgroundColor: '#ff6b35',

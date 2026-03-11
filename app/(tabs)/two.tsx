@@ -157,7 +157,7 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>Settings</Text>
         <Pressable
           style={({ pressed }) => [styles.listItem, pressed && styles.listItemPressed]}
-          onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}
+          onPress={() => router.push('/profile-edit')}
         >
           <View style={styles.listItemLeft}>
             <Ionicons name="person-outline" size={24} color="#8b98a5" />

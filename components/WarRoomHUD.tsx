@@ -73,6 +73,7 @@ export default function WarRoomHUD() {
 
     setLoading(true);
     
+    // Fetch ballot races with odds (district-specific)
     const result = await fetchBallotWithOdds({
       id: profile.id,
       county: profile.county,
@@ -80,14 +81,44 @@ export default function WarRoomHUD() {
       congressional_district: profile.congressional_district || '',
     });
 
-    if (result.data) {
+    // ALSO fetch statewide Polymarket markets directly (Governor, etc.)
+    // These should show even without ballot data
+    const { getPolymarketOdds } = await import('@/lib/supabase/polymarket');
+    const { data: allOdds } = await getPolymarketOdds();
+    
+    // Create synthetic "races" for statewide markets that don't need ballot matching
+    const statewideMarkets = (allOdds || [])
+      .filter(market => {
+        const title = market.market_title.toLowerCase();
+        // Show statewide races: Governor, Senate (when available)
+        return title.includes('governor') && title.includes('maryland');
+      })
+      .map(market => ({
+        id: market.market_slug,
+        ballot_id: 'statewide',
+        race_title: 'Governor of Maryland',
+        race_type: 'state' as const,
+        position_order: 0,
+        max_selections: 1,
+        candidates: [],
+        odds: market,
+        oddsStatus: 'available' as const,
+      }));
+
+    // Combine statewide markets with ballot races
+    const allRaces = [...statewideMarkets, ...(result.data || [])];
+    
+    if (allRaces.length > 0) {
       // Sort races: federal first, then state, then county
-      const sorted = result.data.sort((a, b) => {
+      const sorted = allRaces.sort((a, b) => {
         const order = { federal: 0, state: 1, county: 2 };
         return order[a.race_type] - order[b.race_type];
       });
       setRaces(sorted);
+    } else {
+      setRaces([]);
     }
+    
     setLoading(false);
   };
 
