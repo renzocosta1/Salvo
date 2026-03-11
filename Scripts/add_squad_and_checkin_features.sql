@@ -253,6 +253,9 @@ COMMENT ON FUNCTION claim_weekly_check_in IS 'Allows user to claim weekly check-
 -- Test squad stats
 -- SELECT get_squad_stats('Anne Arundel', '32');
 
-RAISE NOTICE '✅ Squad features and weekly check-in database schema complete!';
-RAISE NOTICE '📊 Functions created: claim_weekly_check_in, get_district_leaderboard, get_county_leaderboard, get_squad_stats';
-RAISE NOTICE '🎯 Ready to build UI components!';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Squad features and weekly check-in database schema complete!';
+  RAISE NOTICE '📊 Functions created: claim_weekly_check_in, get_district_leaderboard, get_county_leaderboard, get_squad_stats';
+  RAISE NOTICE '🎯 Ready to build UI components!';
+END $$;

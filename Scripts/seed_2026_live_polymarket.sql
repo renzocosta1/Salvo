@@ -134,7 +134,10 @@ ORDER BY m.priority;
 -- Or call manually from the app when users visit War Room
 -- =====================================================
 
-RAISE NOTICE '✅ Live 2026 Maryland Governor market seeded successfully!';
-RAISE NOTICE '📊 Current leader: Dan Cox at 30%%';
-RAISE NOTICE '🔄 Odds will update automatically via Edge Function';
-RAISE NOTICE '🎯 Primary Election: June 24, 2026';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Live 2026 Maryland Governor market seeded successfully!';
+  RAISE NOTICE '📊 Current leader: Dan Cox at 30%%';
+  RAISE NOTICE '🔄 Odds will update automatically via Edge Function';
+  RAISE NOTICE '🎯 Primary Election: June 24, 2026';
+END $$;

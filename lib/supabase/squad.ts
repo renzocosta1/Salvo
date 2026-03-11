@@ -55,6 +55,10 @@ export async function getDistrictLeaderboard(
   error: Error | null;
 }> {
   try {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'squad.ts:37',message:'getDistrictLeaderboard called',data:{county,legislativeDistrict,limit},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
+    
     const { data, error } = await supabase.rpc('get_district_leaderboard', {
       p_county: county,
       p_legislative_district: legislativeDistrict,
@@ -62,9 +66,17 @@ export async function getDistrictLeaderboard(
     });
 
     if (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'squad.ts:48',message:'getDistrictLeaderboard RPC error',data:{errorCode:error.code,errorMsg:error.message,errorDetails:error.details},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      
       console.error('[getDistrictLeaderboard] Error:', error);
       return { data: null, error: new Error(error.message) };
     }
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'squad.ts:57',message:'getDistrictLeaderboard success',data:{resultCount:data?.length||0},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
 
     return { data: data || [], error: null };
   } catch (error) {

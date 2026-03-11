@@ -37,6 +37,10 @@ export async function getPolymarketOdds(): Promise<{
       .select('*')
       .order('market_slug');
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'polymarket.ts:40',message:'getPolymarketOdds result',data:{count:data?.length||0,slugs:data?.map(d=>d.market_slug)||[],titles:data?.map(d=>d.market_title)||[]},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
+
     if (error) {
       return { data: null, error: new Error(error.message) };
     }
