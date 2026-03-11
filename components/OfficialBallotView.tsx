@@ -52,7 +52,7 @@ export default function OfficialBallotView({ races, county, loading = false }: O
         <Text style={styles.officialTitle}>OFFICIAL BALLOT</Text>
         <Text style={styles.referenceNotice}>★ FOR REFERENCE ONLY - DO NOT MARK ★</Text>
         <Text style={styles.electionType}>REPUBLICAN PRIMARY ELECTION</Text>
-        <Text style={styles.electionDate}>Tuesday, May 14, 2024</Text>
+        <Text style={styles.electionDate}>Tuesday, June 24, 2026</Text>
         <Text style={styles.location}>State of Maryland, County of {county || 'Montgomery'}</Text>
       </View>
 

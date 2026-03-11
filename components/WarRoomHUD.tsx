@@ -21,13 +21,13 @@ export default function WarRoomHUD() {
   const [countdowns, setCountdowns] = useState<CountdownInfo[]>([]);
   const [alerts, setAlerts] = useState<AlertWithMarket[]>([]);
 
-  // Key election dates - Using 2024 dates for testing
-  // TODO: Switch back to 2026 dates after testing phase
+  // Maryland 2026 Republican Primary - Official Dates
+  // Source: Maryland State Board of Elections
   const ELECTION_DATES = [
-    { label: 'Voter Registration Deadline', date: new Date('2024-04-23T23:59:59') },
-    { label: 'Early Voting Begins', date: new Date('2024-05-02T08:00:00') },
-    { label: 'Early Voting Ends', date: new Date('2024-05-09T20:00:00') },
-    { label: 'Primary Election Day', date: new Date('2024-05-14T20:00:00') },
+    { label: 'Voter Registration Deadline', date: new Date('2026-05-03T23:59:59') },
+    { label: 'Early Voting Begins', date: new Date('2026-06-12T08:00:00') },
+    { label: 'Early Voting Ends', date: new Date('2026-06-20T20:00:00') },
+    { label: 'Primary Election Day', date: new Date('2026-06-24T20:00:00') },
   ];
 
   useEffect(() => {
@@ -310,7 +310,7 @@ export default function WarRoomHUD() {
 
       {/* Countdowns Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>📅 MISSION DEADLINES (2024 Test Data)</Text>
+        <Text style={styles.sectionTitle}>📅 MISSION DEADLINES</Text>
         <View style={styles.countdownGrid}>
           {countdowns.map((countdown) => renderCountdown(countdown))}
         </View>
