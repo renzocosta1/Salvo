@@ -85,9 +85,25 @@ BEGIN
   END IF;
 END $$;
 
--- Delete all profiles (this cascades to auth.users via trigger)
+-- Delete all profiles
 -- ⚠️ This removes ALL user accounts!
 DELETE FROM profiles;
+
+-- Also delete from auth.users (sometimes profiles deletion doesn't cascade properly)
+-- This ensures Google login accounts are fully removed
+DO $$
+DECLARE
+  user_count INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO user_count FROM auth.users;
+  
+  IF user_count > 0 THEN
+    DELETE FROM auth.users;
+    RAISE NOTICE '✓ Deleted % user(s) from auth.users', user_count;
+  ELSE
+    RAISE NOTICE 'ℹ No users found in auth.users';
+  END IF;
+END $$;
 
 -- Re-enable triggers (only if they exist)
 DO $$

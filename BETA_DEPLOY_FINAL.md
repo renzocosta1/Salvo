@@ -22,7 +22,19 @@ Before deploying for beta testing, run these SQL scripts **IN ORDER**:
 
 ---
 
-### 2️⃣ Setup Avatar Storage
+### 2️⃣ Add Avatar Support to Profiles
+```sql
+-- Run: Scripts/add_avatar_url_column.sql
+```
+**What it does:**
+- Adds `avatar_url` column to profiles table
+- Creates index for faster lookups
+
+**Why needed:** Profile edit feature requires this column
+
+---
+
+### 3️⃣ Setup Avatar Storage
 ```sql
 -- Run: Scripts/setup_avatar_storage.sql
 ```
@@ -31,11 +43,11 @@ Before deploying for beta testing, run these SQL scripts **IN ORDER**:
 - Configures RLS policies for user uploads
 - Allows public read access to avatar images
 
-**Why needed:** Profile edit feature requires this bucket
+**Why needed:** Profile picture uploads require this bucket
 
 ---
 
-### 3️⃣ Seed Complete Maryland Geography
+### 4️⃣ Seed Complete Maryland Geography
 ```sql
 -- Run: Scripts/seed_maryland_complete_geography.sql
 ```
@@ -48,7 +60,7 @@ Before deploying for beta testing, run these SQL scripts **IN ORDER**:
 
 ---
 
-### 4️⃣ Cleanup Test Data
+### 5️⃣ Cleanup Test Data
 ```sql
 -- Run: Scripts/cleanup_all_2026_data.sql
 ```
@@ -59,7 +71,7 @@ Before deploying for beta testing, run these SQL scripts **IN ORDER**:
 
 ---
 
-### 5️⃣ Setup LIVE Polymarket Odds
+### 6️⃣ Setup LIVE Polymarket Odds
 ```sql
 -- Run: Scripts/seed_2026_live_polymarket.sql
 ```
@@ -76,7 +88,7 @@ Before deploying for beta testing, run these SQL scripts **IN ORDER**:
 
 ---
 
-### 6️⃣ Setup Squad Features
+### 7️⃣ Setup Squad Features
 ```sql
 -- Run: Scripts/add_squad_and_checkin_features.sql
 ```

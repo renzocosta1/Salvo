@@ -49,15 +49,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="check-square-o" color={color} />,
         }}
       />
-      {hasLeadershipRole && (
-        <Tabs.Screen
-          name="admin-endorsements"
-          options={{
-            title: 'Admin',
-            tabBarIcon: ({ color }) => <TabBarIcon name="shield" color={color} />,
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="admin-endorsements"
+        options={{
+          title: 'Admin',
+          tabBarIcon: ({ color }) => <TabBarIcon name="shield" color={color} />,
+          href: hasLeadershipRole ? '/admin-endorsements' : null, // Only show for leaders
+        }}
+      />
       <Tabs.Screen
         name="invite"
         options={{
