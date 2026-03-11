@@ -53,7 +53,7 @@ export async function fetchBallotForUser(
       .select('id')
       .eq('county', county)
       .eq('legislative_district', legislative_district)
-      .single();
+      .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 rows gracefully
 
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ballot.ts:61',message:'md_ballots query result',data:{found:!!ballotData,ballotId:ballotData?.id||null,error:ballotError?.message||null},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
@@ -66,7 +66,7 @@ export async function fetchBallotForUser(
 
     if (!ballotData) {
       console.log('[fetchBallotForUser] No ballot found for district');
-      return { data: [], error: null };
+      return { data: [], error: null }; // Return empty array, no error
     }
 
     // 2. Get all races for this ballot with candidates

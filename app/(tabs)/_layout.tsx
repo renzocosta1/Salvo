@@ -33,6 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Missions',
           tabBarIcon: ({ color }) => <TabBarIcon name="list-ul" color={color} />,
+          href: null, // Hide from tab bar
         }}
       />
       <Tabs.Screen

@@ -126,11 +126,11 @@ BEGIN
     COALESCE(p.display_name, 'Warrior') as display_name,
     p.xp,
     p.level,
-    COALESCE(COUNT(cm.id), 0)::INTEGER as missions_completed,
+    COALESCE(COUNT(um.id) FILTER (WHERE um.status = 'verified'), 0)::INTEGER as missions_completed,
     ROW_NUMBER() OVER (ORDER BY p.xp DESC, p.level DESC, p.created_at ASC)::INTEGER as district_rank,
     (p.leadership_role IS NOT NULL) as is_leader
   FROM profiles p
-  LEFT JOIN completed_missions cm ON cm.user_id = p.id
+  LEFT JOIN user_missions um ON um.user_id = p.id
   WHERE 
     p.county = p_county
     AND p.legislative_district = p_legislative_district
@@ -168,11 +168,11 @@ BEGIN
     p.xp,
     p.level,
     p.legislative_district,
-    COALESCE(COUNT(cm.id), 0)::INTEGER as missions_completed,
+    COALESCE(COUNT(um.id) FILTER (WHERE um.status = 'verified'), 0)::INTEGER as missions_completed,
     ROW_NUMBER() OVER (ORDER BY p.xp DESC, p.level DESC, p.created_at ASC)::INTEGER as county_rank,
     (p.leadership_role IS NOT NULL) as is_leader
   FROM profiles p
-  LEFT JOIN completed_missions cm ON cm.user_id = p.id
+  LEFT JOIN user_missions um ON um.user_id = p.id
   WHERE p.county = p_county
   GROUP BY p.id, p.display_name, p.xp, p.level, p.legislative_district, p.created_at, p.leadership_role
   ORDER BY p.xp DESC, p.level DESC, p.created_at ASC
@@ -200,7 +200,7 @@ BEGIN
     'active_today', COUNT(DISTINCT CASE WHEN p.updated_at::DATE = CURRENT_DATE THEN p.id END),
     'total_xp', COALESCE(SUM(p.xp), 0),
     'average_level', ROUND(AVG(p.level), 1),
-    'missions_completed', COUNT(DISTINCT cm.id),
+    'missions_completed', COUNT(DISTINCT um.id) FILTER (WHERE um.status = 'verified'),
     'top_warrior', (
       SELECT jsonb_build_object(
         'name', COALESCE(display_name, 'Warrior'),
@@ -216,7 +216,7 @@ BEGIN
   )
   INTO v_result
   FROM profiles p
-  LEFT JOIN completed_missions cm ON cm.user_id = p.id
+  LEFT JOIN user_missions um ON um.user_id = p.id
   WHERE p.county = p_county
     AND p.legislative_district = p_legislative_district;
 
