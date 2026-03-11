@@ -10,12 +10,13 @@ VALUES ('avatars', 'avatars', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Allow authenticated users to upload their own avatars
+-- Filename pattern: {user_id}_avatar_{timestamp}.{ext}
 CREATE POLICY "Users can upload their own avatar"
   ON storage.objects FOR INSERT
   TO authenticated
   WITH CHECK (
     bucket_id = 'avatars' AND
-    (storage.foldername(name))[1] = auth.uid()::text
+    name LIKE (auth.uid()::text || '_avatar_%')
   );
 
 -- Allow authenticated users to update their own avatars
@@ -24,7 +25,7 @@ CREATE POLICY "Users can update their own avatar"
   TO authenticated
   USING (
     bucket_id = 'avatars' AND
-    (storage.foldername(name))[1] = auth.uid()::text
+    name LIKE (auth.uid()::text || '_avatar_%')
   );
 
 -- Allow authenticated users to delete their own avatars
@@ -33,7 +34,7 @@ CREATE POLICY "Users can delete their own avatar"
   TO authenticated
   USING (
     bucket_id = 'avatars' AND
-    (storage.foldername(name))[1] = auth.uid()::text
+    name LIKE (auth.uid()::text || '_avatar_%')
   );
 
 -- Allow public read access to all avatars

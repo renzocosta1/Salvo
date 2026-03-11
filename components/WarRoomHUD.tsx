@@ -71,6 +71,10 @@ export default function WarRoomHUD() {
       return;
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:START',message:'Starting loadData',data:{hasProfile:!!profile,county:profile?.county,district:profile?.legislative_district},timestamp:Date.now(),hypothesisId:'ALL'})}).catch(()=>{});
+    // #endregion
+
     setLoading(true);
     
     // Fetch ballot races with odds (district-specific)
@@ -81,32 +85,57 @@ export default function WarRoomHUD() {
       congressional_district: profile.congressional_district || '',
     });
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:BALLOT_RESULT',message:'Ballot races fetched',data:{racesCount:result.data?.length||0,hasError:!!result.error},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+
     // ALSO fetch statewide Polymarket markets directly (Governor, etc.)
     // These should show even without ballot data
     const { getPolymarketOdds } = await import('@/lib/supabase/polymarket');
     const { data: allOdds } = await getPolymarketOdds();
     
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:POLYMARKET_ODDS',message:'Polymarket odds fetched',data:{oddsCount:allOdds?.length||0,odds:allOdds?.map(o=>({slug:o.market_slug,title:o.market_title,active:o.active}))},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    
     // Create synthetic "races" for statewide markets that don't need ballot matching
     const statewideMarkets = (allOdds || [])
       .filter(market => {
         const title = market.market_title.toLowerCase();
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:FILTER_CHECK',message:'Checking market filter',data:{originalTitle:market.market_title,lowerTitle:title,hasGovernor:title.includes('governor'),hasMaryland:title.includes('maryland'),passes:title.includes('governor')&&title.includes('maryland')},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
         // Show statewide races: Governor, Senate (when available)
         return title.includes('governor') && title.includes('maryland');
       })
-      .map(market => ({
-        id: market.market_slug,
-        ballot_id: 'statewide',
-        race_title: 'Governor of Maryland',
-        race_type: 'state' as const,
-        position_order: 0,
-        max_selections: 1,
-        candidates: [],
-        odds: market,
-        oddsStatus: 'available' as const,
-      }));
+      .map(market => {
+        const syntheticRace = {
+          id: market.market_slug,
+          ballot_id: 'statewide',
+          race_title: 'Governor of Maryland',
+          race_type: 'state' as const,
+          position_order: 0,
+          max_selections: 1,
+          candidates: [],
+          odds: market,
+          oddsStatus: 'available' as const,
+        };
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:SYNTHETIC_RACE',message:'Created synthetic race',data:{race:syntheticRace},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        return syntheticRace;
+      });
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:STATEWIDE_MARKETS',message:'Statewide markets created',data:{count:statewideMarkets.length,markets:statewideMarkets},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
 
     // Combine statewide markets with ballot races
     const allRaces = [...statewideMarkets, ...(result.data || [])];
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:ALL_RACES',message:'Combined all races',data:{totalCount:allRaces.length,statewideCount:statewideMarkets.length,ballotCount:result.data?.length||0},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     
     if (allRaces.length > 0) {
       // Sort races: federal first, then state, then county
@@ -115,8 +144,14 @@ export default function WarRoomHUD() {
         return order[a.race_type] - order[b.race_type];
       });
       setRaces(sorted);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:SET_RACES',message:'Setting races state',data:{count:sorted.length},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
     } else {
       setRaces([]);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:loadData:NO_RACES',message:'No races found, setting empty',data:{},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
     }
     
     setLoading(false);
