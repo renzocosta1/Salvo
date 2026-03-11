@@ -43,10 +43,6 @@ export async function fetchBallotForUser(
   try {
     console.log('[fetchBallotForUser] Fetching ballot for:', { county, legislative_district });
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ballot.ts:47',message:'fetchBallotForUser querying md_ballots',data:{county,legislative_district},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
-
     // 1. Get the ballot ID for this user's district
     const { data: ballotData, error: ballotError } = await supabase
       .from('md_ballots')
@@ -54,10 +50,6 @@ export async function fetchBallotForUser(
       .eq('county', county)
       .eq('legislative_district', legislative_district)
       .maybeSingle(); // Use maybeSingle() instead of single() to handle 0 rows gracefully
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ballot.ts:61',message:'md_ballots query result',data:{found:!!ballotData,ballotId:ballotData?.id||null,error:ballotError?.message||null},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
-    // #endregion
 
     if (ballotError) {
       console.error('[fetchBallotForUser] Error fetching ballot:', ballotError);

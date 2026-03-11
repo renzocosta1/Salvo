@@ -73,10 +73,6 @@ export default function WarRoomHUD() {
 
     setLoading(true);
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:78',message:'loadData fetching ballot with odds',data:{county:profile.county,district:profile.legislative_district},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-    // #endregion
-    
     const result = await fetchBallotWithOdds({
       id: profile.id,
       county: profile.county,
@@ -85,10 +81,6 @@ export default function WarRoomHUD() {
     });
 
     if (result.data) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WarRoomHUD.tsx:89',message:'fetchBallotWithOdds result',data:{raceCount:result.data.length,raceTitles:result.data.map(r=>r.raceTitle),marketSlugs:result.data.map(r=>r.market?.slug||'no-market'),hasOdds:result.data.map(r=>!!r.market)},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-      
       // Sort races: federal first, then state, then county
       const sorted = result.data.sort((a, b) => {
         const order = { federal: 0, state: 1, county: 2 };
