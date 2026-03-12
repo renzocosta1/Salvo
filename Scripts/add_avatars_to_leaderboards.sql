@@ -5,6 +5,10 @@
 -- Run this AFTER add_avatar_url_column.sql
 -- =====================================================
 
+-- Drop existing functions first (required when changing return type)
+DROP FUNCTION IF EXISTS get_district_leaderboard(TEXT, TEXT, INTEGER);
+DROP FUNCTION IF EXISTS get_county_leaderboard(TEXT, INTEGER);
+
 -- =====================================================
 -- Function: Get District Leaderboard (with avatars)
 -- =====================================================
