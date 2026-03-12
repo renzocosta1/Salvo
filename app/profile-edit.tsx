@@ -104,7 +104,12 @@ export default function ProfileEditScreen() {
       // #endregion
 
       // Refresh the profile in auth context to show new data
-      await refetchProfile(profile.id);
+      try {
+        await refetchProfile(profile.id);
+        console.log('[ProfileEdit] Profile refreshed successfully');
+      } catch (refreshError) {
+        console.error('[ProfileEdit] Error refreshing profile:', refreshError);
+      }
 
       const msg = 'Profile updated successfully!';
       if (Platform.OS === 'web') {
@@ -113,7 +118,8 @@ export default function ProfileEditScreen() {
         Alert.alert('Success', msg);
       }
 
-      router.back();
+      // Navigate back to profile tab
+      router.replace('/(tabs)/two');
     } catch (error) {
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:ERROR',message:'Save failed with exception',data:{error:String(error)},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});

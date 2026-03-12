@@ -1,6 +1,7 @@
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -35,6 +36,13 @@ export default function ProfileScreen() {
   useEffect(() => {
     loadProfile();
   }, [profile]);
+
+  // Reload profile when screen comes into focus (after editing)
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [profile])
+  );
 
   const loadProfile = async () => {
     if (!profile) return;
