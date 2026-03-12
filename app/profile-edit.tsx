@@ -41,10 +41,6 @@ export default function ProfileEditScreen() {
       return;
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:START',message:'Starting profile save',data:{userId:profile?.id,originalName:profile?.display_name,newName:displayName.trim(),originalAddress:profile?.address_line1,newAddress:addressLine1.trim()},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-
     setSaving(true);
 
     try {
@@ -52,10 +48,6 @@ export default function ProfileEditScreen() {
         display_name: displayName.trim(),
         updated_at: new Date().toISOString(),
       };
-
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:UPDATES_PREPARED',message:'Updates object prepared',data:{updates:updates},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
 
       // Update address if changed
       if (addressLine1.trim() !== profile.address_line1 || 
@@ -66,10 +58,6 @@ export default function ProfileEditScreen() {
         updates.city = city.trim();
         updates.state = state;
         updates.zip_code = zipCode.trim();
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:ADDRESS_CHANGED',message:'Address updates added',data:{updates:updates},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         
         // TODO: Geocode address to get county/district
         // For now, we'll let the backend handle this via a trigger or manual admin update
@@ -83,33 +71,16 @@ export default function ProfileEditScreen() {
       //   updates.avatar_url = profilePicUrl;
       // }
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:BEFORE_UPDATE',message:'About to execute UPDATE query',data:{userId:profile.id,updates:updates},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
-
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', profile.id)
         .select();
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:AFTER_UPDATE',message:'UPDATE query completed',data:{hasError:!!error,errorMsg:error?.message,rowsAffected:data?.length||0,returnedData:data},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
-
       if (error) throw error;
 
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:SUCCESS',message:'Save successful',data:{rowsUpdated:data?.length||0},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
-
       // Refresh the profile in auth context to show new data
-      try {
-        await refetchProfile(profile.id);
-        console.log('[ProfileEdit] Profile refreshed successfully');
-      } catch (refreshError) {
-        console.error('[ProfileEdit] Error refreshing profile:', refreshError);
-      }
+      await refetchProfile(profile.id);
 
       const msg = 'Profile updated successfully!';
       if (Platform.OS === 'web') {
@@ -121,9 +92,6 @@ export default function ProfileEditScreen() {
       // Navigate back to profile tab
       router.replace('/(tabs)/two');
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:ERROR',message:'Save failed with exception',data:{error:String(error)},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
       console.error('[ProfileEdit] Error saving:', error);
       const msg = 'Failed to update profile';
       if (Platform.OS === 'web') {

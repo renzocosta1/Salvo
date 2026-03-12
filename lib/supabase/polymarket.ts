@@ -32,18 +32,10 @@ export async function getPolymarketOdds(): Promise<{
   error: Error | null;
 }> {
   try {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'polymarket.ts:getPolymarketOdds:START',message:'Fetching polymarket odds',data:{},timestamp:Date.now(),hypothesisId:'A,E'})}).catch(()=>{});
-    // #endregion
-
     const { data, error } = await supabase
       .from('polymarket_odds')
       .select('*')
       .order('market_slug');
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'polymarket.ts:getPolymarketOdds:RESULT',message:'Query result',data:{count:data?.length||0,hasError:!!error,errorMsg:error?.message,data:data},timestamp:Date.now(),hypothesisId:'A,E'})}).catch(()=>{});
-    // #endregion
 
     if (error) {
       return { data: null, error: new Error(error.message) };
@@ -51,9 +43,6 @@ export async function getPolymarketOdds(): Promise<{
 
     return { data, error: null };
   } catch (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'polymarket.ts:getPolymarketOdds:EXCEPTION',message:'Exception thrown',data:{error:String(error)},timestamp:Date.now(),hypothesisId:'A,E'})}).catch(()=>{});
-    // #endregion
     return { data: null, error: error as Error };
   }
 }
