@@ -101,6 +101,19 @@ Before deploying for beta testing, run these SQL scripts **IN ORDER**:
 
 ---
 
+### 8️⃣ Add Avatars to Leaderboards
+```sql
+-- Run: Scripts/add_avatars_to_leaderboards.sql
+```
+**What it does:**
+- Updates `get_district_leaderboard()` to include `avatar_url`
+- Updates `get_county_leaderboard()` to include `avatar_url`
+- Profile pictures now show in Squad leaderboards
+
+**Why needed:** Display profile pictures in Squad tab leaderboards
+
+---
+
 ## 🎯 New Features for Beta Testing
 
 ### 1. Profile Editing ✨
@@ -144,10 +157,11 @@ Before deploying for beta testing, run these SQL scripts **IN ORDER**:
 
 **Features:**
 - Weekly check-in system
-- District leaderboards
-- County leaderboards
+- District leaderboards with profile pictures
+- County leaderboards with profile pictures
 - Squad stats (total members, active today, XP, missions)
 - Real-time updates via Supabase Realtime
+- Avatar display in leaderboards (with fallback icon)
 
 **Testing:**
 1. Navigate to Squad tab
@@ -155,6 +169,7 @@ Before deploying for beta testing, run these SQL scripts **IN ORDER**:
 3. Toggle between District/County leaderboards
 4. Verify your rank appears correctly
 5. Check squad stats display
+6. Upload a profile picture, verify it shows in leaderboard
 
 ---
 
