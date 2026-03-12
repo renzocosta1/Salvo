@@ -9,6 +9,7 @@ import {
   Pressable,
   Alert,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -185,6 +186,19 @@ export default function SquadScreen() {
       >
         <View style={styles.leaderboardLeft}>
           <Text style={styles.leaderboardRank}>{renderRankBadge(rank)}</Text>
+          
+          {/* Avatar */}
+          {entry.avatar_url ? (
+            <Image 
+              source={{ uri: entry.avatar_url }} 
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={20} color="#8b98a5" />
+            </View>
+          )}
+          
           <View style={styles.leaderboardInfo}>
             <View style={styles.nameRow}>
               <Text style={styles.leaderboardName}>
@@ -636,6 +650,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#ffffff',
     minWidth: 40,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2a3744',
+  },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2a3744',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   leaderboardInfo: {
     flex: 1,

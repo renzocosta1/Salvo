@@ -7,6 +7,7 @@ import { supabase } from '../supabase';
 export interface LeaderboardEntry {
   user_id: string;
   display_name: string;
+  avatar_url?: string | null;
   xp: number;
   level: number;
   missions_completed: number;
