@@ -65,9 +65,11 @@ export default function ProfileEditScreen() {
       }
 
       // Update profile pic if uploaded
-      if (profilePicUrl) {
-        updates.avatar_url = profilePicUrl;
-      }
+      // NOTE: Requires Scripts/add_avatar_url_column.sql to be run first!
+      // Temporarily disabled until SQL script is run
+      // if (profilePicUrl) {
+      //   updates.avatar_url = profilePicUrl;
+      // }
 
       const { error } = await supabase
         .from('profiles')
