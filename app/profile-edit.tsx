@@ -18,7 +18,7 @@ import { supabase } from '@/lib/supabase';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileEditScreen() {
-  const { profile } = useAuth();
+  const { profile, refetchProfile } = useAuth();
   const [saving, setSaving] = useState(false);
   const [displayName, setDisplayName] = useState(profile?.display_name || '');
   const [addressLine1, setAddressLine1] = useState(profile?.address_line1 || '');
@@ -102,6 +102,9 @@ export default function ProfileEditScreen() {
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handleSave:SUCCESS',message:'Save successful',data:{rowsUpdated:data?.length||0},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
       // #endregion
+
+      // Refresh the profile in auth context to show new data
+      await refetchProfile(profile.id);
 
       const msg = 'Profile updated successfully!';
       if (Platform.OS === 'web') {
