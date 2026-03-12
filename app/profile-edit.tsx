@@ -105,8 +105,16 @@ export default function ProfileEditScreen() {
 
   const handlePickImage = async () => {
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handlePickImage:START',message:'Starting image picker',data:{userId:profile?.id,platform:Platform.OS},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+
       // Request permission
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handlePickImage:PERMISSION',message:'Permission result',data:{status:status,granted:status==='granted'},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       
       if (status !== 'granted') {
         const msg = 'Camera roll permission is required';
@@ -126,6 +134,10 @@ export default function ProfileEditScreen() {
         quality: 0.8,
       });
 
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handlePickImage:PICKER_RESULT',message:'Image picker result',data:{canceled:result.canceled,hasAssets:!!result.assets,assetCount:result.assets?.length},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+
       if (result.canceled) return;
 
       setUploading(true);
@@ -134,6 +146,10 @@ export default function ProfileEditScreen() {
       const photo = result.assets[0];
       const fileExt = photo.uri.split('.').pop();
       const fileName = `${profile?.id}_avatar_${Date.now()}.${fileExt}`;
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handlePickImage:FILE_PREP',message:'Preparing file for upload',data:{fileName:fileName,fileExt:fileExt,photoUri:photo.uri,platform:Platform.OS},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
 
       // Convert to blob for web, use uri for native
       let fileData;
@@ -148,10 +164,18 @@ export default function ProfileEditScreen() {
         };
       }
 
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handlePickImage:BEFORE_UPLOAD',message:'About to upload to storage',data:{bucket:'avatars',fileName:fileName,platform:Platform.OS,isBlob:Platform.OS==='web'},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
+
       // Upload to 'avatars' bucket
       const { data, error } = await supabase.storage
         .from('avatars')
         .upload(fileName, fileData as any);
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handlePickImage:AFTER_UPLOAD',message:'Upload result',data:{hasError:!!error,errorMsg:error?.message,errorCode:(error as any)?.statusCode,uploadData:data},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
 
       if (error) throw error;
 
@@ -159,6 +183,10 @@ export default function ProfileEditScreen() {
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
+
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handlePickImage:PUBLIC_URL',message:'Got public URL',data:{publicUrl:urlData.publicUrl},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
 
       setProfilePicUrl(urlData.publicUrl);
 
@@ -169,6 +197,9 @@ export default function ProfileEditScreen() {
         Alert.alert('Success', msg);
       }
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5f41651f-fc97-40d7-bb16-59b10a371800',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'profile-edit.tsx:handlePickImage:ERROR',message:'Image upload failed',data:{error:String(error),errorObj:JSON.stringify(error)},timestamp:Date.now(),hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
       console.error('[ProfileEdit] Image upload error:', error);
       const msg = 'Failed to upload image';
       if (Platform.OS === 'web') {
